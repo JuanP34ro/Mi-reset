@@ -3,21 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#2B5797">
+<meta name="theme-color" content="#0b0c0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mi Reset">
 <title>Mi Reset Saludable — Gimnasio</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%232B5797'/%3E%3Ctext x='90' y='118' font-size='100' text-anchor='middle' fill='white' font-family='system-ui'%3E%F0%9F%92%AA%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230b0c0f'/%3E%3Crect x='62' y='74' width='56' height='9' rx='2' fill='%231bb4e8'/%3E%3Crect x='62' y='90' width='56' height='9' rx='2' fill='%231bb4e8'/%3E%3Crect x='62' y='106' width='56' height='9' rx='2' fill='%231bb4e8'/%3E%3Ctext x='90' y='60' font-size='44' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'%3E%F0%9F%92%AA%3C/text%3E%3C/svg%3E">
 <style>
   :root{
-    --bg1:#667eea; --bg2:#764ba2;
-    --header:#2B5797; --header-dark:#1f4071;
-    --card:#ffffff; --ink:#1f2630; --muted:#6b7280;
-    --line:#e8eaf0; --soft:#f4f6fb;
-    --ok:#2e9e6b; --ok-soft:#e6f6ee;
-    --accent:#5b6fd6; --warn:#d97706;
-    --radius:18px; --shadow:0 6px 22px rgba(31,38,48,.10);
+    /* Tema BIELA — oscuro */
+    --bg1:#0c0e13; --bg2:#16181f;
+    --header:#101319; --header-dark:#0a0c10;
+    --card:#16181f; --ink:#eef2f7; --muted:#8b95a6;
+    --line:#272b35; --soft:#1d2028;
+    --ok:#2fd07f; --ok-soft:rgba(47,208,127,.15);
+    --accent:#1bb4e8; --warn:#f0a33c;
+    --radius:18px; --shadow:0 8px 26px rgba(0,0,0,.5);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
@@ -343,6 +344,69 @@
     font-size:15px;font-family:ui-monospace,Menlo,monospace;color:var(--ink);margin-bottom:11px;background:#fff}
   .cloud-input:focus{outline:none;border-color:var(--accent)}
   #cloudModal .modal-box{max-width:430px}
+
+  /* ============================================================
+     TEMA BIELA (oscuro) — ajustes de contraste y acentos en cian
+     Va al final para tener prioridad sobre las reglas anteriores.
+     ============================================================ */
+  body{background:#0b0c0f;background-image:linear-gradient(160deg,#0c0e13,#15171e)}
+  /* Cabecera: chips de día/lugar */
+  .loc-btn.active{background:var(--accent);color:#04232f}
+  .day-btn.active{background:#eef2f7;color:#0b0c10}
+  .day-btn.active small{opacity:.7;color:#0b0c10}
+  /* Badges numéricos visibles sobre tarjeta oscura */
+  .ex-num{background:var(--accent);color:#04232f}
+  .ex.done .ex-num{background:var(--ok);color:#04221a}
+  /* Campos de entrada en oscuro */
+  .sets input{background:#0f1117;color:var(--ink)}
+  .sets input:focus{background:#0c0e13}
+  .set-done{background:#0f1117}
+  .ex-note{background:#0f1117;color:var(--ink)}
+  .modal-box textarea{background:#0f1117}
+  .cloud-input{background:#0f1117}
+  /* Botones cuyo texto era oscuro (ahora invisible) → cian */
+  .btn-rest{background:var(--accent);color:#04232f}
+  .btn-video{color:var(--accent)}
+  .btn-hist{background:var(--soft);color:var(--accent)}
+  .btn-skip{background:var(--accent);color:#04232f}
+  .tiny-actions .btn{color:var(--accent)}
+  /* Banner de sesión en gradiente cian */
+  .session-banner{background:linear-gradient(135deg,#1bb4e8,#0e89c0)}
+  /* Notas técnicas en tonos oscuros */
+  .note-tech{background:rgba(240,163,60,.12);border-color:rgba(240,163,60,.32);color:#f0bd72}
+  .note-tech.key{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#f3a6a6}
+  /* Estadísticas del resumen */
+  .stat .v{color:var(--accent)}
+  /* Día de descanso */
+  .rest-day h2{color:var(--accent)}
+  /* Avisos */
+  .phase12{background:rgba(240,163,60,.1);border-color:rgba(240,163,60,.3);color:#f0bd72}
+  .phase12 b{color:#f5cf95}
+  .backup-note{background:rgba(27,180,232,.1);border-color:rgba(27,180,232,.3);color:#cfe9f5}
+  .backup-note .bn-body b{color:#7fd4f2}
+  .backup-note .mini.go{background:var(--accent);color:#04232f}
+  .backup-note .mini.dismiss{background:var(--soft);color:var(--accent);border-color:var(--line)}
+  .prefill-btn{border-color:rgba(47,208,127,.4)}
+  /* Cierre de sesión */
+  .cierre{background:linear-gradient(135deg,#0e2a36,#0a1c25)}
+  /* Modales */
+  .modal-box{background:var(--card)}
+  .modal-box h3{color:var(--accent)}
+  .rest-box{background:var(--card)}
+  .rest-time{color:var(--accent)}
+  /* Toast (antes era claro sobre claro) */
+  .toast{background:#0f1320;color:#fff;border:1px solid var(--line)}
+  /* Barra de pestañas inferior oscura */
+  .tabbar{background:rgba(14,16,21,.92);border-top-color:var(--line)}
+  .tab.active{color:var(--accent)}
+  /* Panel de progreso */
+  .hero{background:linear-gradient(135deg,#0e89c0,#1bb4e8)}
+  .pcard .v{color:var(--accent)}
+  .bar-col .bar{background:linear-gradient(180deg,#3fc6f2,#1bb4e8)}
+  .locbar .fill{background:linear-gradient(90deg,#3fc6f2,#1bb4e8)}
+  .pr .val{color:var(--accent)}
+  .p-empty h2{color:var(--accent)}
+  .cloud-state{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -371,8 +435,8 @@
     <div class="ttl">Descanso</div>
     <div class="rest-time" id="restTime">90</div>
     <svg class="rest-ring" width="120" height="10">
-      <rect x="0" y="3" width="120" height="4" rx="2" fill="#e8eaf0"/>
-      <rect id="restBar" x="0" y="3" width="120" height="4" rx="2" fill="#2B5797"/>
+      <rect x="0" y="3" width="120" height="4" rx="2" fill="#2a2f3a"/>
+      <rect id="restBar" x="0" y="3" width="120" height="4" rx="2" fill="#1bb4e8"/>
     </svg>
     <div class="rest-btns">
       <button class="btn btn-soft" id="restPause">Pausar</button>
@@ -1199,13 +1263,13 @@ function drawHistory(container,sessionKey,ex){
   points.forEach((p,i)=>{
     const x=X(p), y=Y(p);
     path += (i===0?"M":"L")+x.toFixed(1)+" "+y.toFixed(1)+" ";
-    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="#2B5797"/>
-             <text x="${x.toFixed(1)}" y="${(y-9).toFixed(1)}" font-size="10" fill="#1f2630" text-anchor="middle" font-weight="700">${p.val}</text>
-             <text x="${x.toFixed(1)}" y="${H-8}" font-size="9" fill="#6b7280" text-anchor="middle">s${p.w}</text>`;
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="#1bb4e8"/>
+             <text x="${x.toFixed(1)}" y="${(y-9).toFixed(1)}" font-size="10" fill="#eef2f7" text-anchor="middle" font-weight="700">${p.val}</text>
+             <text x="${x.toFixed(1)}" y="${H-8}" font-size="9" fill="#8b95a6" text-anchor="middle">s${p.w}</text>`;
   });
   const svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
-    <line x1="${pad}" y1="${H-pad}" x2="${W-pad+6}" y2="${H-pad}" stroke="#e8eaf0" stroke-width="1"/>
-    ${points.length>1?`<path d="${path}" fill="none" stroke="#5b6fd6" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`:""}
+    <line x1="${pad}" y1="${H-pad}" x2="${W-pad+6}" y2="${H-pad}" stroke="#272b35" stroke-width="1"/>
+    ${points.length>1?`<path d="${path}" fill="none" stroke="#1bb4e8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`:""}
     ${dots}
   </svg>`;
   container.innerHTML += svg;
@@ -1771,7 +1835,7 @@ function renderProgress(){
 }
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.09-4";
+const APP_VERSION = "2026.06.09-5 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
