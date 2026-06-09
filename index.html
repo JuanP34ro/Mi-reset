@@ -407,6 +407,45 @@
   .pr .val{color:var(--accent)}
   .p-empty h2{color:var(--accent)}
   .cloud-state{color:var(--accent)}
+
+  /* ============================================================
+     Extras gráficos BIELA: glow neón, celebración y progreso del día
+     ============================================================ */
+  /* Glow neón cian en elementos activos */
+  .loc-btn.active{box-shadow:0 0 16px rgba(27,180,232,.55)}
+  .tab.active .ti{filter:drop-shadow(0 0 7px rgba(27,180,232,.8))}
+  .btn-rest{box-shadow:0 0 18px rgba(27,180,232,.42)}
+  .ex-num{box-shadow:0 0 12px rgba(27,180,232,.4)}
+  .ex.open{border-color:var(--accent);box-shadow:0 0 0 1px rgba(27,180,232,.45),0 0 22px rgba(27,180,232,.16)}
+  .set-done.on{box-shadow:0 0 12px rgba(47,208,127,.55);animation:pop .25s ease}
+  .ex.done .ex-check{animation:pop .3s ease}
+  @keyframes pop{0%{transform:scale(.6)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .rest-time{text-shadow:0 0 24px rgba(27,180,232,.7)}
+  .session-banner{box-shadow:0 10px 34px rgba(27,180,232,.3)}
+  .hero{box-shadow:0 10px 34px rgba(27,180,232,.32)}
+  .rest-box{box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 40px rgba(27,180,232,.18)}
+
+  /* Barra de progreso del día (en el banner de sesión) */
+  .day-progress{height:7px;background:rgba(255,255,255,.25);border-radius:999px;overflow:hidden;margin-top:13px}
+  .dp-fill{height:100%;width:0;border-radius:999px;background:#fff;
+    box-shadow:0 0 10px rgba(255,255,255,.65);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+  .dp-label{font-size:11.5px;opacity:.92;margin-top:6px;font-weight:600}
+  .dp-label.full{font-weight:800}
+
+  /* Celebración: confeti */
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:250;overflow:hidden}
+  .confetti-piece{position:absolute;top:-18px;width:9px;height:15px;border-radius:2px;opacity:0;
+    animation-name:confetti-fall;animation-timing-function:cubic-bezier(.25,.6,.35,1);animation-fill-mode:forwards}
+  @keyframes confetti-fall{
+    0%{opacity:0;transform:translateY(-12px) rotate(0)}
+    12%{opacity:1}
+    100%{opacity:0;transform:translateY(104vh) rotate(560deg)}
+  }
+  /* Realce de la tarjeta de cierre */
+  .cierre{box-shadow:var(--shadow),0 0 34px rgba(27,180,232,.22);animation:cierre-pop .5s cubic-bezier(.2,.9,.25,1) both}
+  @keyframes cierre-pop{0%{opacity:0;transform:scale(.92)}60%{transform:scale(1.02)}100%{opacity:1;transform:scale(1)}}
+  /* Línea del historial con animación de dibujado */
+  .histline{transition:stroke-dashoffset .9s ease}
 </style>
 </head>
 <body>
@@ -909,6 +948,25 @@ function renderDaySelector(){
 }
 
 let activeTab = "entreno"; // entreno | progreso
+const SESSION_DONE = {}; // recuerda qué sesiones estaban completas (para celebrar solo en la transición)
+
+function launchConfetti(){
+  const box=document.createElement("div");
+  box.className="confetti";
+  const colors=["#1bb4e8","#3fc6f2","#ffffff","#2fd07f"];
+  for(let i=0;i<48;i++){
+    const p=document.createElement("div");
+    p.className="confetti-piece";
+    p.style.left=(Math.random()*100)+"%";
+    p.style.background=colors[i%colors.length];
+    p.style.animationDelay=(Math.random()*0.5).toFixed(2)+"s";
+    p.style.animationDuration=(1.6+Math.random()*1.3).toFixed(2)+"s";
+    box.appendChild(p);
+  }
+  document.body.appendChild(box);
+  if(navigator.vibrate) navigator.vibrate([40,40,90]);
+  setTimeout(()=>box.remove(), 3200);
+}
 
 function render(){
   document.body.classList.toggle("tab-progreso", activeTab==="progreso");
@@ -960,22 +1018,38 @@ function renderEntreno(){
   // Recordatorio suave de copia a libreta (domingo o 7+ días sin exportar)
   renderBackupReminder();
 
-  // Session banner
+  // Progreso del día: ejercicios completados
+  const isExDone = ex=>{
+    const e=LOG[logKey(WEEK,day.key,ex.id)];
+    return e && e.sets.every(s=>s.done) && e.sets.some(s=>s.w!==""||s.r!=="");
+  };
+  const nEx = sv.exercises.length;
+  const completedEx = sv.exercises.filter(isExDone).length;
+  const dayPct = nEx ? Math.round(completedEx/nEx*100) : 0;
+  const sessionComplete = completedEx===nEx && nEx>0;
+
+  // Session banner con barra de progreso del día
   const banner=document.createElement("div");
   banner.className="session-banner";
-  const nEx = sv.exercises.length;
   const totalSets = sv.exercises.reduce((a,e)=>a+e.sets,0);
   banner.innerHTML = `<div class="label">${DAY_SHORT[selectedDay]} · ${selectedDay==todayKey()?"hoy":"sesión"} · ${LOCATIONS[LOCATION].tag}</div>
     <h2>${sv.title}</h2>
     <div class="meta">${nEx} ejercicios · ${totalSets} series · Fase 1</div>
+    <div class="day-progress"><div class="dp-fill" data-w="${dayPct}"></div></div>
+    <div class="dp-label${sessionComplete?" full":""}">${sessionComplete?"✓ Sesión completada":completedEx+"/"+nEx+" ejercicios completados"}</div>
     <div class="frase-banner">${fraseDe("banner")}</div>`;
   content.appendChild(banner);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const f=banner.querySelector(".dp-fill"); if(f) f.style.width=f.getAttribute("data-w")+"%";
+  }));
+
+  // Celebración: solo cuando la sesión pasa de incompleta a completa
+  const skey = WEEK+"|"+LOCATION+"|"+day.key;
+  const wasDone = SESSION_DONE[skey];
+  SESSION_DONE[skey] = sessionComplete;
+  if(sessionComplete && wasDone===false){ launchConfetti(); }
 
   // Cierre de sesión: si todos los ejercicios del día están completos
-  const sessionComplete = sv.exercises.every(ex=>{
-    const e=LOG[logKey(WEEK,day.key,ex.id)];
-    return e && e.sets.every(s=>s.done) && e.sets.some(s=>s.w!==""||s.r!=="");
-  });
   if(sessionComplete){
     const cierre=document.createElement("div");
     cierre.className="cierre";
@@ -1267,12 +1341,31 @@ function drawHistory(container,sessionKey,ex){
              <text x="${x.toFixed(1)}" y="${(y-9).toFixed(1)}" font-size="10" fill="#eef2f7" text-anchor="middle" font-weight="700">${p.val}</text>
              <text x="${x.toFixed(1)}" y="${H-8}" font-size="9" fill="#8b95a6" text-anchor="middle">s${p.w}</text>`;
   });
+  const gid = "hg_"+ex.id;
+  // Área bajo la línea (relleno con degradado cian)
+  let area="";
+  if(points.length>1){
+    const x0=X(points[0]).toFixed(1), x1=X(points[points.length-1]).toFixed(1);
+    area = `<path d="${path}L ${x1} ${H-pad} L ${x0} ${H-pad} Z" fill="url(#${gid})" stroke="none"/>`;
+  }
   const svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1bb4e8" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#1bb4e8" stop-opacity="0"/>
+    </linearGradient></defs>
     <line x1="${pad}" y1="${H-pad}" x2="${W-pad+6}" y2="${H-pad}" stroke="#272b35" stroke-width="1"/>
-    ${points.length>1?`<path d="${path}" fill="none" stroke="#1bb4e8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`:""}
+    ${area}
+    ${points.length>1?`<path class="histline" d="${path}" fill="none" stroke="#1bb4e8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`:""}
     ${dots}
   </svg>`;
   container.innerHTML += svg;
+  // Animación de dibujado de la línea
+  const lineEl=container.querySelector(".histline");
+  if(lineEl){
+    const L=lineEl.getTotalLength();
+    lineEl.style.strokeDasharray=L; lineEl.style.strokeDashoffset=L;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ lineEl.style.strokeDashoffset=0; }));
+  }
 
   // detail rows
   let rows = `<div class="hist-rows">`;
@@ -1835,7 +1928,7 @@ function renderProgress(){
 }
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.09-5 · BIELA";
+const APP_VERSION = "2026.06.09-6 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
