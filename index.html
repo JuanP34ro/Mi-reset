@@ -460,6 +460,26 @@
   .update-banner.show{display:flex}
   .update-banner button{background:var(--accent);color:#04232f;border:none;border-radius:10px;
     padding:9px 15px;font-weight:800;font-family:inherit;cursor:pointer;white-space:nowrap}
+
+  /* ============================================================
+     Bloque 3: métricas pro (RPE, calentamiento, récord, e1RM, molestia)
+     ============================================================ */
+  .sets th:nth-child(4){width:44px}              /* columna RPE estrecha */
+  .serie-cell{cursor:pointer;user-select:none;touch-action:manipulation}
+  .pr-dot{font-size:11px}
+  tr.warm-set .serie-cell{color:var(--warn);font-weight:800}
+  tr.warm-set input{opacity:.65}
+  .e1rm-line{background:var(--soft);border:1px solid var(--line);border-radius:10px;
+    padding:8px 11px;font-size:12.5px;color:var(--muted);margin-top:10px}
+  .e1rm-line b{color:var(--accent)}
+  .molestia-btn{width:100%;margin-top:9px;border:1.5px solid var(--line);background:var(--soft);color:var(--muted);
+    border-radius:11px;padding:9px 12px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;touch-action:manipulation}
+  .molestia-btn.on{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.42);color:#f3a6a6}
+  .ex.has-molestia{border-color:rgba(239,68,68,.42)}
+  .hist-toggle{display:flex;gap:6px;margin-bottom:10px}
+  .hist-toggle .ht{border:1.5px solid var(--line);background:var(--card);color:var(--muted);
+    border-radius:9px;padding:5px 13px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;touch-action:manipulation}
+  .hist-toggle .ht.on{background:var(--accent);color:#04232f;border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -998,6 +1018,30 @@ function lastFilledBefore(sessionKey, exId, week, loc){
   return null;
 }
 
+/* 1RM estimado (e1RM): Brzycki para reps bajas (≤10), Epley para moderadas-altas.
+   Devuelve null si no es fiable (sin datos o reps muy altas). Redondea a 0,5 kg. */
+function e1rm(w, r){
+  const W=parseFloat(w), R=parseFloat(r);
+  if(isNaN(W) || isNaN(R) || W<=0 || R<=0 || R>15) return null;
+  if(R===1) return W;
+  const v = R<=10 ? (W*36/(37-R)) : (W*(1+R/30));
+  return Math.round(v*2)/2;
+}
+/* Mejor marca (peso y e1RM) ANTES de `week`, ignorando series de calentamiento → para detectar PR */
+function bestBefore(sessionKey, exId, week, loc){
+  let weight=0, best1rm=0;
+  for(let w=1; w<week; w++){
+    const e=LOG[logKey(w,sessionKey,exId,loc)];
+    if(!e || !e.sets) continue;
+    e.sets.forEach(s=>{
+      if(s.warm) return;
+      const W=parseFloat(s.w); if(!isNaN(W) && W>weight) weight=W;
+      const er=e1rm(s.w,s.r); if(er && er>best1rm) best1rm=er;
+    });
+  }
+  return { weight, e1rm:best1rm };
+}
+
 /* Devuelve la variante (gym/casa/hotel) de una sesión según el lugar activo */
 function sess(day){ return day.variants[LOCATION] || day.variants.gym; }
 
@@ -1320,15 +1364,28 @@ function renderExercise(day,ex,num){
   }
 
   // sets table
+  const prevBest = prevRef ? bestBefore(day.key, ex.id, WEEK) : {weight:0,e1rm:0};
+  const hasPrevBest = prevBest.weight>0 || prevBest.e1rm>0;
   const table=document.createElement("table");
   table.className="sets";
-  table.innerHTML=`<thead><tr><th>Serie</th><th>Peso (kg)</th><th>Reps</th><th>✓</th></tr></thead>`;
+  table.innerHTML=`<thead><tr><th>Serie</th><th>Peso (kg)</th><th>Reps</th><th>RPE</th><th>✓</th></tr></thead>`;
   const tb=document.createElement("tbody");
   entry.sets.forEach((s,si)=>{
     const tr=document.createElement("tr");
+    if(s.warm) tr.className="warm-set";
     const prevSet = prevRef && prevRef.e.sets[si]; // para autocompletar (placeholder)
 
-    const tdN=document.createElement("td"); tdN.textContent=si+1;
+    // ¿es récord? (supera la mejor marca previa, sin contar calentamiento)
+    const setE = e1rm(s.w,s.r);
+    const isPR = !s.warm && hasPrevBest && (
+      (parseFloat(s.w)>prevBest.weight && prevBest.weight>0) ||
+      (setE && prevBest.e1rm>0 && setE>prevBest.e1rm)
+    );
+
+    const tdN=document.createElement("td"); tdN.className="serie-cell";
+    tdN.innerHTML = (s.warm?"W":(si+1)) + (isPR?' <span class="pr-dot" aria-label="Récord">🥇</span>':'');
+    tdN.title = "Toca para marcar/quitar serie de calentamiento";
+    tdN.onclick=()=>{ s.warm=!s.warm; persist(); render(); };
 
     const tdW=document.createElement("td");
     const inW=document.createElement("input");
@@ -1346,6 +1403,14 @@ function renderExercise(day,ex,num){
     inR.oninput=()=>{ s.r=inR.value; persist(); };
     tdR.appendChild(inR);
 
+    const tdRpe=document.createElement("td");
+    const inRpe=document.createElement("input");
+    inRpe.type="number"; inRpe.inputMode="numeric"; inRpe.value=s.rpe||""; inRpe.placeholder="–";
+    inRpe.min="1"; inRpe.max="10";
+    inRpe.setAttribute("aria-label", `Serie ${si+1} esfuerzo RPE de 1 a 10`);
+    inRpe.oninput=()=>{ s.rpe=inRpe.value; persist(); };
+    tdRpe.appendChild(inRpe);
+
     const tdD=document.createElement("td");
     const bd=document.createElement("button");
     bd.className="set-done"+(s.done?" on":""); bd.textContent="✓";
@@ -1358,16 +1423,27 @@ function renderExercise(day,ex,num){
       persist();
       wrap.classList.toggle("done", entryComplete(entry));     // actualiza estado del ejercicio
       const r = updateDayProgress();                            // barra del día + detección de cierre
-      if(s.done) startRest(ex.rest);                            // descanso autostart al marcar
+      if(s.done && !s.warm) startRest(ex.rest);                 // descanso autostart (no en calentamiento)
       if(r.transition) render();                                // muestra/oculta cierre + confeti
     };
     tdD.appendChild(bd);
 
-    tr.append(tdN,tdW,tdR,tdD);
+    tr.append(tdN,tdW,tdR,tdRpe,tdD);
     tb.appendChild(tr);
   });
   table.appendChild(tb);
   detail.appendChild(table);
+
+  // Resumen e1RM del ejercicio (mejor serie de trabajo de esta semana)
+  const workE = entry.sets.filter(s=>!s.warm).map(s=>e1rm(s.w,s.r)).filter(Boolean);
+  if(workE.length){
+    const best=Math.max(...workE);
+    const e1=document.createElement("div");
+    e1.className="e1rm-line";
+    const pr = hasPrevBest && best>prevBest.e1rm ? " · 🥇 nuevo récord" : "";
+    e1.innerHTML = `💪 1RM estimado: <b>${best} kg</b>${pr}`;
+    detail.appendChild(e1);
+  }
 
   // Botón: copiar pesos del último entreno (si hay datos previos y las series actuales están vacías)
   if(prevRef){
@@ -1393,6 +1469,22 @@ function renderExercise(day,ex,num){
   ta.oninput=()=>{ entry.note=ta.value; persist(); };
   detail.appendChild(ta);
 
+  // Marca de molestia (para correlacionar con la carga en rehabilitación)
+  const mol=document.createElement("button");
+  const molTxt = v => v ? "😬 Molestia registrada hoy" : "🟢 Sin molestia";
+  mol.className="molestia-btn"+(entry.molestia?" on":"");
+  mol.textContent=molTxt(entry.molestia);
+  mol.setAttribute("aria-pressed", entry.molestia?"true":"false");
+  mol.onclick=()=>{
+    entry.molestia=!entry.molestia; persist();
+    mol.className="molestia-btn"+(entry.molestia?" on":"");
+    mol.textContent=molTxt(entry.molestia);
+    mol.setAttribute("aria-pressed", entry.molestia?"true":"false");
+    wrap.classList.toggle("has-molestia", entry.molestia);
+  };
+  detail.appendChild(mol);
+  if(entry.molestia) wrap.classList.add("has-molestia");
+
   // buttons
   const row=document.createElement("div");
   row.className="btn-row";
@@ -1410,28 +1502,42 @@ function renderExercise(day,ex,num){
   // history panel
   const hist=document.createElement("div");
   hist.className="hist";
-  bHist.onclick=()=>{ hist.classList.toggle("show"); if(hist.classList.contains("show")) drawHistory(hist,day.key,ex); };
+  bHist.onclick=()=>{ hist.classList.toggle("show"); if(hist.classList.contains("show")) drawHistory(hist,day.key,ex,"peso"); };
   detail.appendChild(hist);
 
   wrap.appendChild(detail);
   return wrap;
 }
 
-/* ---- Historial: peso de trabajo (máx de la sesión) por semana ---- */
-function drawHistory(container,sessionKey,ex){
+/* ---- Historial por ejercicio: progresión de peso o de 1RM estimado ---- */
+function drawHistory(container,sessionKey,ex,metric){
+  metric = (metric==="e1rm") ? "e1rm" : "peso";
   const points=[];
   for(let w=1; w<=Math.max(WEEK,1); w++){
     const e = LOG[logKey(w,sessionKey,ex.id)];
-    if(e){
-      const weights = e.sets.map(s=>parseFloat(s.w)).filter(v=>!isNaN(v));
-      if(weights.length){ points.push({w, val:Math.max(...weights)}); }
-    }
+    if(!e) continue;
+    const vals = metric==="e1rm"
+      ? e.sets.filter(s=>!s.warm).map(s=>e1rm(s.w,s.r)).filter(Boolean)
+      : e.sets.filter(s=>!s.warm).map(s=>parseFloat(s.w)).filter(v=>!isNaN(v));
+    if(vals.length){ points.push({w, val:Math.max(...vals)}); }
   }
-  container.innerHTML = `<h4>Progresión peso de trabajo</h4>`;
+  const title = metric==="e1rm" ? "1RM estimado" : "Peso de trabajo";
+  const toggle = `<div class="hist-toggle">
+    <button class="ht${metric==="peso"?" on":""}" data-m="peso">Peso</button>
+    <button class="ht${metric==="e1rm"?" on":""}" data-m="e1rm">e1RM</button></div>`;
+  function wireToggle(){
+    container.querySelectorAll(".ht").forEach(b=>{
+      b.onclick=()=>drawHistory(container,sessionKey,ex,b.getAttribute("data-m"));
+    });
+  }
+
   if(points.length<1){
-    container.innerHTML += `<div class="empty">Aún sin datos. Registra peso para ver la evolución semana a semana.</div>`;
+    container.innerHTML = `<h4>Progresión — ${title}</h4>${toggle}`+
+      `<div class="empty">Aún sin datos. Registra ${metric==="e1rm"?"peso y reps":"peso"} para ver la evolución.</div>`;
+    wireToggle();
     return;
   }
+
   const W=320,H=120,pad=26;
   const maxV=Math.max(...points.map(p=>p.val)), minV=Math.min(...points.map(p=>p.val));
   const span=(maxV-minV)||1;
@@ -1448,7 +1554,6 @@ function drawHistory(container,sessionKey,ex){
              <text x="${x.toFixed(1)}" y="${H-8}" font-size="9" fill="#8b95a6" text-anchor="middle">s${p.w}</text>`;
   });
   const gid = "hg_"+ex.id;
-  // Área bajo la línea (relleno con degradado cian)
   let area="";
   if(points.length>1){
     const x0=X(points[0]).toFixed(1), x1=X(points[points.length-1]).toFixed(1);
@@ -1464,7 +1569,20 @@ function drawHistory(container,sessionKey,ex){
     ${points.length>1?`<path class="histline" d="${path}" fill="none" stroke="#1bb4e8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`:""}
     ${dots}
   </svg>`;
-  container.innerHTML += svg;
+
+  // Filas de detalle por semana (con e1RM)
+  let rows = `<div class="hist-rows">`;
+  points.slice().reverse().forEach(p=>{
+    const e=LOG[logKey(p.w,sessionKey,ex.id)];
+    const det = e.sets.filter(s=>s.w!==""||s.r!=="").map(s=>`${s.warm?"·":""}${esc(s.w)||"–"}×${esc(s.r)||"–"}`).join("  ");
+    const we = e.sets.filter(s=>!s.warm).map(s=>e1rm(s.w,s.r)).filter(Boolean);
+    const tag = we.length ? ` · e1RM ~${Math.max(...we)}` : "";
+    rows += `<div><span>Semana ${p.w}</span><b>${det||"–"}${tag}</b></div>`;
+  });
+  rows += `</div>`;
+
+  container.innerHTML = `<h4>Progresión — ${title}</h4>${toggle}${svg}${rows}`;
+  wireToggle();
   // Animación de dibujado de la línea
   const lineEl=container.querySelector(".histline");
   if(lineEl){
@@ -1472,16 +1590,6 @@ function drawHistory(container,sessionKey,ex){
     lineEl.style.strokeDasharray=L; lineEl.style.strokeDashoffset=L;
     requestAnimationFrame(()=>requestAnimationFrame(()=>{ lineEl.style.strokeDashoffset=0; }));
   }
-
-  // detail rows
-  let rows = `<div class="hist-rows">`;
-  points.slice().reverse().forEach(p=>{
-    const e=LOG[logKey(p.w,sessionKey,ex.id)];
-    const detail = e.sets.filter(s=>s.w!==""||s.r!=="").map(s=>`${esc(s.w)||"–"}×${esc(s.r)||"–"}`).join("  ");
-    rows += `<div><span>Semana ${p.w}</span><b>${detail||"–"}</b></div>`;
-  });
-  rows += `</div>`;
-  container.innerHTML += rows;
 }
 
 /* ---- Resumen semanal ---- */
@@ -1960,11 +2068,12 @@ function computeProgress(){
     e.sets.forEach(s=>{
       const wv=parseFloat(s.w), rv=parseFloat(s.r);
       if(s.done){ totalSets++; if(perWeek[week]) perWeek[week].sets++; }
+      if(s.warm) return; // el calentamiento no cuenta para volumen ni récords
       if(!isNaN(wv) && !isNaN(rv)){
         const vol=wv*rv; totalVolume+=vol; if(perWeek[week]) perWeek[week].volume+=vol;
       }
       if(!isNaN(wv) && wv>0){
-        if(!prs[ex] || wv>prs[ex].w){ prs[ex]={w:wv, r:(isNaN(rv)?null:rv), week, loc}; }
+        if(!prs[ex] || wv>prs[ex].w){ prs[ex]={w:wv, r:(isNaN(rv)?null:rv), week, loc, e1:e1rm(s.w,s.r)}; }
       }
     });
   });
@@ -2074,19 +2183,19 @@ function renderProgress(){
     }));
   }
 
-  // Mejores marcas (récords de peso)
+  // Mejores marcas (récords de peso + 1RM estimado)
   const prList=Object.keys(p.prs)
-    .map(id=>({id, w:p.prs[id].w, r:p.prs[id].r, week:p.prs[id].week, loc:p.prs[id].loc,
+    .map(id=>({id, w:p.prs[id].w, r:p.prs[id].r, week:p.prs[id].week, loc:p.prs[id].loc, e1:p.prs[id].e1,
                name:(EX_INDEX[id]?EX_INDEX[id].name:id)}))
     .sort((a,b)=>b.w-a.w).slice(0,8);
   if(prList.length){
     const rs=document.createElement("div"); rs.className="psec";
-    let rh=`<h3>Tus mejores marcas</h3><div class="hint">Peso máximo levantado en cada ejercicio.</div>`;
+    let rh=`<h3>Tus mejores marcas</h3><div class="hint">Peso máximo (y 1RM estimado) en cada ejercicio. El calentamiento no cuenta.</div>`;
     const medals=["🥇","🥈","🥉"];
     prList.forEach((r,i)=>{
       rh+=`<div class="pr"><span class="medal">${medals[i]||"🏅"}</span>
-        <span class="nm">${r.name}<small>${LOCATIONS[r.loc]?LOCATIONS[r.loc].label:""} · semana ${r.week}</small></span>
-        <span class="val">${r.w} kg${r.r?` × ${r.r}`:""}</span></div>`;
+        <span class="nm">${esc(r.name)}<small>${LOCATIONS[r.loc]?LOCATIONS[r.loc].label:""} · semana ${r.week}${r.e1?" · e1RM ~"+r.e1:""}</small></span>
+        <span class="val">${esc(r.w)} kg${r.r?` × ${esc(r.r)}`:""}</span></div>`;
     });
     rs.innerHTML=rh; content.appendChild(rs);
   }
@@ -2118,7 +2227,7 @@ function showUpdate(){ const b=document.getElementById("updateBanner"); if(b) b.
 })();
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.10-2 · BIELA";
+const APP_VERSION = "2026.06.10-3 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
