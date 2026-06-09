@@ -985,6 +985,19 @@ function mergeLogs(base, incoming){
   return out;
 }
 
+/* ¿Una entrada está "completa"? (todas las series marcadas y con algún dato) */
+function entryComplete(e){
+  return !!(e && e.sets && e.sets.length && e.sets.every(s=>s.done) && e.sets.some(s=>s.w!==""||s.r!==""));
+}
+/* Devuelve el entreno más reciente CON datos anterior a `week` (para autocompletar) → {e, w} o null */
+function lastFilledBefore(sessionKey, exId, week, loc){
+  for(let w=week-1; w>=1; w--){
+    const e=LOG[logKey(w,sessionKey,exId,loc)];
+    if(e && e.sets.some(s=>s.w!==""||s.r!=="")) return { e, w };
+  }
+  return null;
+}
+
 /* Devuelve la variante (gym/casa/hotel) de una sesión según el lugar activo */
 function sess(day){ return day.variants[LOCATION] || day.variants.gym; }
 
@@ -1235,6 +1248,27 @@ function renderWarmup(day,sv){
   content.appendChild(card);
 }
 
+/* Actualiza la barra de progreso del día sin re-render completo.
+   Devuelve {complete, transition} para que quien marca la serie decida si re-renderiza. */
+function updateDayProgress(){
+  const day=PROGRAM[selectedDay];
+  if(!day || day.type!=="session") return {complete:false, transition:false};
+  const sv=sess(day);
+  const nEx=sv.exercises.length;
+  const completed=sv.exercises.filter(ex=>entryComplete(LOG[logKey(WEEK,day.key,ex.id)])).length;
+  const complete = completed===nEx && nEx>0;
+  const fill=document.querySelector(".dp-fill");
+  if(fill) fill.style.width=(nEx?Math.round(completed/nEx*100):0)+"%";
+  const label=document.querySelector(".dp-label");
+  if(label){
+    label.classList.toggle("full", complete);
+    label.textContent = complete ? "✓ Sesión completada" : completed+"/"+nEx+" ejercicios completados";
+  }
+  const skey=WEEK+"|"+LOCATION+"|"+day.key;
+  const transition = complete !== (SESSION_DONE[skey]===true);
+  return {complete, transition};
+}
+
 function renderExercise(day,ex,num){
   const entry = getEntry(day.key,ex.id,ex.sets);
   const open = UI.openEx[ex.id];
@@ -1262,17 +1296,17 @@ function renderExercise(day,ex,num){
   const detail=document.createElement("div");
   detail.className="ex-detail";
 
-  // last time reference (previous week)
+  // Referencia del último entreno con datos (no solo la semana anterior)
+  const prevRef = WEEK>1 ? lastFilledBefore(day.key, ex.id, WEEK) : null;
   if(WEEK>1){
-    const prev = LOG[logKey(WEEK-1,day.key,ex.id)];
     const ref=document.createElement("div");
     ref.className="last-time";
-    if(prev && prev.sets.some(s=>s.w!==""||s.r!=="")){
-      const str = prev.sets.filter(s=>s.w!==""||s.r!=="")
+    if(prevRef){
+      const str = prevRef.e.sets.filter(s=>s.w!==""||s.r!=="")
         .map(s=>`${esc(s.w)||"–"}kg × ${esc(s.r)||"–"}`).join(", ");
-      ref.innerHTML = `📌 <b>Última vez (sem ${WEEK-1}):</b> ${str}`;
+      ref.innerHTML = `📌 <b>Última vez (sem ${prevRef.w}):</b> ${str}`;
     }else{
-      ref.innerHTML = `📌 Sin registro de la semana anterior. ¡A estrenar!`;
+      ref.innerHTML = `📌 Sin registro anterior. ¡A estrenar!`;
     }
     detail.appendChild(ref);
   }
@@ -1292,25 +1326,41 @@ function renderExercise(day,ex,num){
   const tb=document.createElement("tbody");
   entry.sets.forEach((s,si)=>{
     const tr=document.createElement("tr");
+    const prevSet = prevRef && prevRef.e.sets[si]; // para autocompletar (placeholder)
 
     const tdN=document.createElement("td"); tdN.textContent=si+1;
 
     const tdW=document.createElement("td");
     const inW=document.createElement("input");
-    inW.type="number"; inW.inputMode="decimal"; inW.placeholder="–"; inW.value=s.w;
+    inW.type="number"; inW.inputMode="decimal"; inW.value=s.w;
+    inW.placeholder = (prevSet && prevSet.w!=="") ? prevSet.w : "–"; // muestra lo del último entreno
+    inW.setAttribute("aria-label", `Serie ${si+1} peso en kg`);
     inW.oninput=()=>{ s.w=inW.value; persist(); };
     tdW.appendChild(inW);
 
     const tdR=document.createElement("td");
     const inR=document.createElement("input");
-    inR.type="number"; inR.inputMode="numeric"; inR.placeholder="–"; inR.value=s.r;
+    inR.type="number"; inR.inputMode="numeric"; inR.value=s.r;
+    inR.placeholder = (prevSet && prevSet.r!=="") ? prevSet.r : "–";
+    inR.setAttribute("aria-label", `Serie ${si+1} repeticiones`);
     inR.oninput=()=>{ s.r=inR.value; persist(); };
     tdR.appendChild(inR);
 
     const tdD=document.createElement("td");
     const bd=document.createElement("button");
     bd.className="set-done"+(s.done?" on":""); bd.textContent="✓";
-    bd.onclick=()=>{ s.done=!s.done; persist(); render(); };
+    bd.setAttribute("aria-label", `Marcar serie ${si+1} como hecha`);
+    bd.onclick=()=>{
+      s.done=!s.done;
+      bd.classList.toggle("on", s.done);
+      bd.setAttribute("aria-pressed", s.done ? "true" : "false");
+      if(s.done && navigator.vibrate) navigator.vibrate(30);   // háptica al marcar
+      persist();
+      wrap.classList.toggle("done", entryComplete(entry));     // actualiza estado del ejercicio
+      const r = updateDayProgress();                            // barra del día + detección de cierre
+      if(s.done) startRest(ex.rest);                            // descanso autostart al marcar
+      if(r.transition) render();                                // muestra/oculta cierre + confeti
+    };
     tdD.appendChild(bd);
 
     tr.append(tdN,tdW,tdR,tdD);
@@ -1319,17 +1369,16 @@ function renderExercise(day,ex,num){
   table.appendChild(tb);
   detail.appendChild(table);
 
-  // Botón: copiar pesos de la semana anterior (solo si hay datos previos y las series actuales están vacías)
-  if(WEEK>1){
-    const prevE = LOG[logKey(WEEK-1,day.key,ex.id)];
+  // Botón: copiar pesos del último entreno (si hay datos previos y las series actuales están vacías)
+  if(prevRef){
     const currentEmpty = entry.sets.every(s=>s.w===""&&s.r==="");
-    if(prevE && prevE.sets.some(s=>s.w!==""||s.r!=="") && currentEmpty){
+    if(currentEmpty){
       const pf=document.createElement("button");
       pf.className="prefill-btn";
-      pf.innerHTML="↻ Copiar pesos de la semana pasada";
+      pf.innerHTML="↻ Copiar pesos del último entreno";
       pf.onclick=()=>{
         entry.sets.forEach((s,i)=>{
-          if(prevE.sets[i]){ s.w=prevE.sets[i].w; s.r=prevE.sets[i].r; }
+          if(prevRef.e.sets[i]){ s.w=prevRef.e.sets[i].w; s.r=prevRef.e.sets[i].r; }
         });
         persist(); toast("Pesos copiados — ajústalos y a por más"); render();
       };
@@ -1497,14 +1546,15 @@ function renderSummary(){
 /* ===========================================================
    Temporizador de descanso
    =========================================================== */
-let restTimer=null, restRemaining=0, restTotal=0, restPaused=false, audioCtx=null;
+let restTimer=null, restRemaining=0, restTotal=0, restPaused=false, restEndAt=0, restDone=false, audioCtx=null;
 const restOverlay=document.getElementById("restOverlay");
 const restTimeEl=document.getElementById("restTime");
 const restBar=document.getElementById("restBar");
 const restPauseBtn=document.getElementById("restPause");
 
 function startRest(seconds){
-  restTotal=seconds; restRemaining=seconds; restPaused=false;
+  restTotal=seconds; restRemaining=seconds; restPaused=false; restDone=false;
+  restEndAt=Date.now()+seconds*1000;
   restPauseBtn.textContent="Pausar";
   const rf=document.getElementById("restFrase");
   if(rf) rf.textContent="“"+fraseDe("esfuerzo")+"”";
@@ -1512,13 +1562,15 @@ function startRest(seconds){
   restOverlay.classList.add("show");
   acquireWakeLock();
   clearInterval(restTimer);
-  restTimer=setInterval(tickRest,1000);
+  restTimer=setInterval(tickRest,250); // refresco fino; el tiempo real lo marca restEndAt
 }
 function tickRest(){
-  if(restPaused) return;
-  restRemaining--;
+  if(restPaused || restDone) return;
+  // Tiempo real basado en la hora de fin → exacto aunque iOS congele el JS en segundo plano
+  restRemaining=Math.max(0, Math.ceil((restEndAt-Date.now())/1000));
   updateRestUI();
   if(restRemaining<=0){
+    restDone=true;
     clearInterval(restTimer);
     restTimeEl.classList.add("flash");
     beep();
@@ -1537,8 +1589,17 @@ function closeRest(){
   restOverlay.classList.remove("show");
   restTimeEl.classList.remove("flash");
 }
-restPauseBtn.onclick=()=>{ restPaused=!restPaused; restPauseBtn.textContent=restPaused?"Seguir":"Pausar"; };
-document.getElementById("restAdd").onclick=()=>{ restRemaining+=30; restTotal=Math.max(restTotal,restRemaining); updateRestUI(); };
+restPauseBtn.onclick=()=>{
+  restPaused=!restPaused;
+  if(!restPaused) restEndAt=Date.now()+restRemaining*1000; // al reanudar, recoloca la hora de fin
+  restPauseBtn.textContent=restPaused?"Seguir":"Pausar";
+};
+document.getElementById("restAdd").onclick=()=>{
+  restRemaining+=30;
+  if(!restPaused) restEndAt=Date.now()+restRemaining*1000;
+  restTotal=Math.max(restTotal,restRemaining);
+  updateRestUI();
+};
 document.getElementById("restSkip").onclick=closeRest;
 restOverlay.onclick=(e)=>{ if(e.target===restOverlay) closeRest(); };
 
@@ -1564,8 +1625,9 @@ async function acquireWakeLock(){
   try{ if("wakeLock" in navigator){ wakeLock=await navigator.wakeLock.request("screen"); } }catch(e){}
 }
 document.addEventListener("visibilitychange",()=>{
-  if(wakeLock!==null && document.visibilityState==="visible" && restOverlay.classList.contains("show")){
-    acquireWakeLock();
+  if(document.visibilityState==="visible" && restOverlay.classList.contains("show")){
+    if(wakeLock!==null) acquireWakeLock();
+    tickRest(); // recalibra el descanso al volver (iOS congela el JS en segundo plano)
   }
 });
 
@@ -2056,7 +2118,7 @@ function showUpdate(){ const b=document.getElementById("updateBanner"); if(b) b.
 })();
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.10-1 · BIELA";
+const APP_VERSION = "2026.06.10-2 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
