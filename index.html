@@ -2,8 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0b0c0f">
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mi Reset">
@@ -446,6 +447,19 @@
   @keyframes cierre-pop{0%{opacity:0;transform:scale(.92)}60%{transform:scale(1.02)}100%{opacity:1;transform:scale(1)}}
   /* Línea del historial con animación de dibujado */
   .histline{transition:stroke-dashoffset .9s ease}
+
+  /* Evitar zoom por doble toque en controles */
+  .btn,.day-btn,.loc-btn,.tab,.set-done,.mini,.prefill-btn,.ex-head,.card-head{touch-action:manipulation}
+
+  /* Banner "nueva versión disponible" */
+  .update-banner{position:fixed;left:14px;right:14px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:260;
+    display:none;align-items:center;gap:10px;justify-content:space-between;
+    background:var(--card);border:1px solid var(--accent);border-radius:14px;padding:11px 14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 22px rgba(27,180,232,.28);
+    font-size:13.5px;font-weight:700;color:var(--ink);animation:rise .3s ease both}
+  .update-banner.show{display:flex}
+  .update-banner button{background:var(--accent);color:#04232f;border:none;border-radius:10px;
+    padding:9px 15px;font-weight:800;font-family:inherit;cursor:pointer;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -512,6 +526,7 @@
       <button class="btn btn-add" id="restoreBackup">Restaurar</button>
       <button class="btn btn-soft" id="closeBackup">Cerrar</button>
     </div>
+    <button class="btn btn-soft" id="undoRestore" style="width:100%;margin-top:9px">↩️ Deshacer (recuperar datos previos)</button>
   </div>
 </div>
 
@@ -558,6 +573,12 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- Banner de actualización disponible -->
+<div class="update-banner" id="updateBanner">
+  <span>✨ Nueva versión disponible</span>
+  <button id="updateBtn">Actualizar</button>
 </div>
 
 <!-- Barra de pestañas inferior -->
@@ -882,20 +903,37 @@ const LS_LASTEXPORT = "reset_gym_lastexport_v1"; // fecha del último export a l
 const LS_GH_TOKEN = "reset_gym_gh_token_v1";     // token de GitHub (SOLO en este dispositivo)
 const LS_GH_GIST  = "reset_gym_gh_gist_v1";      // id del Gist privado de respaldo
 const LS_GH_LASTSYNC = "reset_gym_gh_lastsync_v1"; // fecha de la última sincronización en la nube
+const LS_PREDO = "reset_gym_predo_v1";           // snapshot anterior al último cambio destructivo (deshacer)
 
 function loadJSON(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
 function saveJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+// Escapa texto antes de meterlo en innerHTML (evita inyección desde copias externas)
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+/* Sanea una entrada: fuerza tipos seguros (string/boolean) en todos los campos.
+   Neutraliza datos malformados o maliciosos de copias externas. */
+function sanitizeEntry(e){
+  if(!e || typeof e!=="object") return { sets:[], note:"" };
+  const sets = Array.isArray(e.sets) ? e.sets.map(s=>({
+    w:    (s && s.w!=null)   ? String(s.w)   : "",
+    r:    (s && s.r!=null)   ? String(s.r)   : "",
+    done: !!(s && s.done),
+    rpe:  (s && s.rpe!=null) ? String(s.rpe) : "",
+    warm: !!(s && s.warm)
+  })) : [];
+  return { sets, note: (e.note!=null ? String(e.note) : ""), molestia: !!(e && e.molestia) };
+}
 
 /* Migración: las versiones antiguas guardaban "week|sessionKey|exId" (3 partes).
    Ahora la clave lleva el lugar: "week|location|sessionKey|exId" (4 partes).
-   Los registros antiguos se asignan a "gym". */
+   Los registros antiguos se asignan a "gym". Además sanea cada entrada. */
 function migrateLog(obj){
-  if(!obj || typeof obj!=="object") return obj || {};
+  if(!obj || typeof obj!=="object") return {};
   const out={};
   Object.keys(obj).forEach(k=>{
     const parts=k.split("|");
-    if(parts.length===3){ out[parts[0]+"|gym|"+parts[1]+"|"+parts[2]] = obj[k]; }
-    else { out[k] = obj[k]; }
+    const nk = parts.length===3 ? parts[0]+"|gym|"+parts[1]+"|"+parts[2] : k;
+    out[nk] = sanitizeEntry(obj[k]);
   });
   return out;
 }
@@ -918,15 +956,34 @@ const logKey = (week,sessionKey,exId,loc)=> week+"|"+(loc||LOCATION)+"|"+session
 function getEntry(sessionKey,exId,nSets,week,loc){
   week = week==null? WEEK : week;
   const k = logKey(week,sessionKey,exId,loc);
+  const blank = ()=>({w:"",r:"",done:false,rpe:"",warm:false});
   if(!LOG[k]){
-    LOG[k] = { sets:Array.from({length:nSets},()=>({w:"",r:"",done:false})), note:"" };
+    LOG[k] = { sets:Array.from({length:nSets},blank), note:"" };
   }
   // ajustar longitud si cambió nSets
-  while(LOG[k].sets.length < nSets) LOG[k].sets.push({w:"",r:"",done:false});
+  while(LOG[k].sets.length < nSets) LOG[k].sets.push(blank());
   return LOG[k];
 }
 function persistLocal(){ saveJSON(LS_LOG, LOG); saveJSON(LS_BACKUP, LOG); }
 function persist(){ persistLocal(); scheduleCloudSync(); }
+
+/* Snapshot de seguridad antes de una operación destructiva (restaurar/traer de la nube).
+   Permite "deshacer" desde la copia manual. */
+function snapshotBefore(){ saveJSON(LS_PREDO, { log:LOG, week:WEEK, at:Date.now() }); }
+
+/* Puntúa una entrada por cantidad de datos (para fusionar sin perder lo más completo) */
+function entryScore(e){
+  if(!e || !e.sets) return -1;
+  return e.sets.reduce((n,s)=>n + (s.done?2:0) + ((s.w!==""||s.r!=="")?1:0), 0);
+}
+/* Fusiona dos LOG por clave: mantiene todo, y ante conflicto conserva la entrada con más datos */
+function mergeLogs(base, incoming){
+  const out = { ...(base||{}) };
+  Object.keys(incoming||{}).forEach(k=>{
+    if(!(k in out) || entryScore(incoming[k]) > entryScore(out[k])) out[k] = incoming[k];
+  });
+  return out;
+}
 
 /* Devuelve la variante (gym/casa/hotel) de una sesión según el lugar activo */
 function sess(day){ return day.variants[LOCATION] || day.variants.gym; }
@@ -1212,7 +1269,7 @@ function renderExercise(day,ex,num){
     ref.className="last-time";
     if(prev && prev.sets.some(s=>s.w!==""||s.r!=="")){
       const str = prev.sets.filter(s=>s.w!==""||s.r!=="")
-        .map(s=>`${s.w||"–"}kg × ${s.r||"–"}`).join(", ");
+        .map(s=>`${esc(s.w)||"–"}kg × ${esc(s.r)||"–"}`).join(", ");
       ref.innerHTML = `📌 <b>Última vez (sem ${WEEK-1}):</b> ${str}`;
     }else{
       ref.innerHTML = `📌 Sin registro de la semana anterior. ¡A estrenar!`;
@@ -1371,7 +1428,7 @@ function drawHistory(container,sessionKey,ex){
   let rows = `<div class="hist-rows">`;
   points.slice().reverse().forEach(p=>{
     const e=LOG[logKey(p.w,sessionKey,ex.id)];
-    const detail = e.sets.filter(s=>s.w!==""||s.r!=="").map(s=>`${s.w||"–"}×${s.r||"–"}`).join("  ");
+    const detail = e.sets.filter(s=>s.w!==""||s.r!=="").map(s=>`${esc(s.w)||"–"}×${esc(s.r)||"–"}`).join("  ");
     rows += `<div><span>Semana ${p.w}</span><b>${detail||"–"}</b></div>`;
   });
   rows += `</div>`;
@@ -1577,12 +1634,27 @@ document.getElementById("restoreBackup").onclick=()=>{
   let data;
   try{ data=JSON.parse(raw); }catch(e){ toast("El texto no es una copia válida"); return; }
   if(!data || typeof data.log!=="object"){ toast("El texto no es una copia válida"); return; }
-  if(!confirm("¿Restaurar esta copia? Reemplazará los datos actuales de la app.")) return;
+  if(!confirm("¿Restaurar esta copia? Reemplazará los datos actuales de la app.\n(Podrás deshacerlo con el botón ↩️)")) return;
+  snapshotBefore();                 // guarda lo actual por si hay que deshacer
   LOG = migrateLog(data.log);
-  if(data.week){ setWeek(parseInt(data.week,10)); }
+  const w=parseInt(data.week,10); if(Number.isFinite(w)) setWeek(w);
   persist();
   backupModal.classList.remove("show");
   toast("Datos restaurados");
+  render();
+};
+document.getElementById("undoRestore").onclick=()=>{
+  const p=loadJSON(LS_PREDO,null);
+  if(!p || !p.log || !Object.keys(p.log).length){ toast("No hay nada que deshacer"); return; }
+  const when = p.at ? new Date(p.at).toLocaleString("es-ES") : "antes";
+  if(!confirm("¿Recuperar los datos que había antes del último cambio? ("+when+")")) return;
+  const current = { log:LOG, week:WEEK, at:Date.now() }; // permite rehacer
+  LOG = migrateLog(p.log);
+  const w=parseInt(p.week,10); if(Number.isFinite(w)) setWeek(w);
+  saveJSON(LS_PREDO, current);
+  persist();
+  backupModal.classList.remove("show");
+  toast("Datos previos recuperados");
   render();
 };
 
@@ -1635,16 +1707,46 @@ function scheduleCloudSync(){
   cloudT=setTimeout(cloudPush, 2500); // espera a que dejes de escribir
 }
 
+// Lee y parsea el contenido del Gist remoto; devuelve {log,week} o null
+async function cloudFetchRemote(token, id){
+  const r=await fetch("https://api.github.com/gists/"+id,{headers:ghHeaders(token)});
+  if(r.status===404) return "gone";
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  const g=await r.json();
+  const f=g.files && g.files[CLOUD_FILE];
+  if(!f) return null;
+  let content=f.content;
+  if(f.truncated && f.raw_url){ content=await (await fetch(f.raw_url)).text(); }
+  const data=JSON.parse(content);
+  if(!data || typeof data.log!=="object") return null;
+  return { log:migrateLog(data.log), week:data.week };
+}
+
 async function cloudPush(){
   const token=localStorage.getItem(LS_GH_TOKEN);
   if(!token || cloudBusy) return;
   cloudBusy=true; setCloudState("syncing");
-  const files={}; files[CLOUD_FILE]={content:cloudPayload()};
   try{
-    let id=localStorage.getItem(LS_GH_GIST), res;
+    let id=localStorage.getItem(LS_GH_GIST);
+    // 1) Fusión defensiva: trae claves remotas que falten en local (no pisar otro dispositivo).
+    //    Solo AÑADE claves nuevas; nunca reemplaza objetos locales (que puedes estar editando).
+    if(id){
+      try{
+        const remote=await cloudFetchRemote(token, id);
+        if(remote==="gone"){ id=null; localStorage.removeItem(LS_GH_GIST); }
+        else if(remote && remote.log){
+          let added=false;
+          Object.keys(remote.log).forEach(k=>{ if(!(k in LOG)){ LOG[k]=remote.log[k]; added=true; } });
+          if(added) persistLocal();
+        }
+      }catch(e){ /* si el GET falla seguimos y subimos lo local */ }
+    }
+    // 2) Subir el LOG resultante
+    const files={}; files[CLOUD_FILE]={content:cloudPayload()};
+    let res;
     if(id){
       res=await fetch("https://api.github.com/gists/"+id,{method:"PATCH",headers:ghHeaders(token),body:JSON.stringify({files})});
-      if(res.status===404){ id=null; localStorage.removeItem(LS_GH_GIST); } // gist borrado → recrear
+      if(res.status===404){ id=null; localStorage.removeItem(LS_GH_GIST); }
     }
     if(!id){
       res=await fetch("https://api.github.com/gists",{method:"POST",headers:ghHeaders(token),body:JSON.stringify({description:CLOUD_DESC,public:false,files})});
@@ -1662,17 +1764,11 @@ async function cloudPull(){
   if(!token || !id){ toast("Conecta primero la nube"); return; }
   setCloudState("syncing");
   try{
-    const r=await fetch("https://api.github.com/gists/"+id,{headers:ghHeaders(token)});
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    const g=await r.json();
-    const f=g.files && g.files[CLOUD_FILE];
-    if(!f) throw new Error("la copia en la nube está vacía");
-    let content=f.content;
-    if(f.truncated && f.raw_url){ content=await (await fetch(f.raw_url)).text(); }
-    const data=JSON.parse(content);
-    if(!data || typeof data.log!=="object") throw new Error("copia no válida");
-    LOG=migrateLog(data.log);
-    if(data.week){ setWeek(parseInt(data.week,10)); }
+    const remote=await cloudFetchRemote(token, id);
+    if(!remote || remote==="gone") throw new Error("la copia en la nube está vacía");
+    snapshotBefore();              // guarda lo actual por si hay que deshacer
+    LOG=remote.log;
+    const w=parseInt(remote.week,10); if(Number.isFinite(w)) setWeek(w);
     persistLocal();
     localStorage.setItem(LS_GH_LASTSYNC,String(Date.now()));
     setCloudState("ok");
@@ -1695,17 +1791,24 @@ async function cloudConnect(){
     const found=Array.isArray(list) ? list.find(g=>g.files && g.files[CLOUD_FILE]) : null;
     if(found){
       localStorage.setItem(LS_GH_GIST,found.id);
-      if(confirm("Encontré una copia tuya en la nube.\n\nAceptar = traerla a este dispositivo.\nCancelar = mantener lo de aquí y subirlo a la nube.")){
-        await cloudPull();
-      }else{
-        await cloudPush();
-      }
+      // Fusiona lo de la nube con lo local: no se pierde nada de ningún lado
+      try{
+        const remote=await cloudFetchRemote(token, found.id);
+        if(remote && remote.log){
+          snapshotBefore();
+          LOG = mergeLogs(remote.log, LOG);
+          const w=parseInt(remote.week,10); if(Number.isFinite(w) && w>WEEK) setWeek(w);
+          persistLocal();
+        }
+      }catch(e){ /* si falla, conservamos lo local */ }
+      await cloudPush(); // sube el resultado fusionado
     }else{
       await cloudPush(); // crea el Gist privado con lo que tengas ahora
     }
     document.getElementById("ghToken").value="";
-    toast("Nube conectada · guardado automático activado");
+    toast("Nube conectada · datos fusionados y a salvo");
     updateCloudUI();
+    render();
   }catch(e){ setCloudState("error",e.message); toast("No se pudo conectar: "+e.message); }
 }
 
@@ -1927,8 +2030,33 @@ function renderProgress(){
   }
 }
 
+/* ===========================================================
+   Service Worker: offline + auto-actualización con aviso
+   =========================================================== */
+let waitingSW=null;
+function showUpdate(){ const b=document.getElementById("updateBanner"); if(b) b.classList.add("show"); }
+(function registerSW(){
+  if(!("serviceWorker" in navigator)) return;
+  const ub=document.getElementById("updateBtn");
+  if(ub) ub.onclick=()=>{ if(waitingSW){ ub.textContent="Actualizando…"; waitingSW.postMessage("skipWaiting"); } };
+  navigator.serviceWorker.register("sw.js").then(reg=>{
+    if(reg.waiting && navigator.serviceWorker.controller){ waitingSW=reg.waiting; showUpdate(); }
+    reg.addEventListener("updatefound",()=>{
+      const nw=reg.installing;
+      if(!nw) return;
+      nw.addEventListener("statechange",()=>{
+        if(nw.state==="installed" && navigator.serviceWorker.controller){ waitingSW=nw; showUpdate(); }
+      });
+    });
+  }).catch(()=>{});
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{
+    if(refreshing) return; refreshing=true; location.reload();
+  });
+})();
+
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.09-6 · BIELA";
+const APP_VERSION = "2026.06.10-1 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();

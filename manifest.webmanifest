@@ -1,0 +1,19 @@
+{
+  "name": "Mi Reset Saludable",
+  "short_name": "Mi Reset",
+  "description": "Registro de entrenamiento — gym, casa y hotel",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0c0f",
+  "theme_color": "#0b0c0f",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230b0c0f'/%3E%3Crect x='62' y='74' width='56' height='9' rx='2' fill='%231bb4e8'/%3E%3Crect x='62' y='90' width='56' height='9' rx='2' fill='%231bb4e8'/%3E%3Crect x='62' y='106' width='56' height='9' rx='2' fill='%231bb4e8'/%3E%3Ctext x='90' y='60' font-size='44' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'%3E%F0%9F%92%AA%3C/text%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
