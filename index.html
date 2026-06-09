@@ -335,6 +335,14 @@
   .p-empty .big{font-size:48px;margin-bottom:10px}
   .p-empty h2{margin:0 0 8px;font-size:19px;color:var(--header)}
   .p-empty p{color:var(--muted);font-size:14px;line-height:1.5;margin:0}
+
+  /* Modal de nube */
+  .cloud-state{font-size:12.5px;font-weight:700;color:var(--header);background:var(--soft);
+    border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:12px;line-height:1.4}
+  .cloud-input{width:100%;border:1.5px solid var(--line);border-radius:11px;padding:11px 12px;
+    font-size:15px;font-family:ui-monospace,Menlo,monospace;color:var(--ink);margin-bottom:11px;background:#fff}
+  .cloud-input:focus{outline:none;border-color:var(--accent)}
+  #cloudModal .modal-box{max-width:430px}
 </style>
 </head>
 <body>
@@ -400,6 +408,51 @@
       <button class="btn btn-skip" id="copyBackup">Copiar todo</button>
       <button class="btn btn-add" id="restoreBackup">Restaurar</button>
       <button class="btn btn-soft" id="closeBackup">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cloud sync modal -->
+<div class="modal" id="cloudModal">
+  <div class="modal-box">
+    <h3>☁️ Copia automática en la nube</h3>
+    <div id="cloudState" class="cloud-state"></div>
+
+    <!-- Vista cuando NO está conectado -->
+    <div id="cloudSetup">
+      <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px;line-height:1.5">
+        Guarda tus datos solos en un <b>Gist privado</b> de tu GitHub. El token se queda
+        <b>solo en este iPhone</b>, nunca se publica, y tu copia es <b>privada</b>.
+      </p>
+      <ol style="font-size:12.5px;color:var(--ink);margin:0 0 10px;padding-left:18px;line-height:1.6">
+        <li>Crea un token con permiso <b>gist</b>:
+          <a href="https://github.com/settings/tokens/new?scopes=gist&description=Mi%20Reset%20backup" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">abrir GitHub ▸</a>
+          <br><span style="color:var(--muted)">(expiración "No expiration" si no quieres repetirlo) → Generate token → cópialo)</span>
+        </li>
+        <li>Pégalo aquí abajo y toca <b>Conectar</b>.</li>
+      </ol>
+      <input id="ghToken" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"
+             placeholder="Pega tu token (empieza por ghp_…)" class="cloud-input">
+      <div class="modal-actions">
+        <button class="btn btn-add" id="cloudConnect">Conectar</button>
+        <button class="btn btn-soft" id="closeCloud">Cerrar</button>
+      </div>
+    </div>
+
+    <!-- Vista cuando SÍ está conectado -->
+    <div id="cloudConnected" style="display:none">
+      <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px;line-height:1.5">
+        Tus datos se guardan solos en la nube cada vez que registras algo. En otro dispositivo,
+        conéctate con el mismo token y toca <b>Traer de la nube</b>.
+      </p>
+      <div class="modal-actions">
+        <button class="btn btn-skip" id="cloudSyncNow">Sincronizar ahora</button>
+        <button class="btn btn-add" id="cloudPull">Traer de la nube</button>
+      </div>
+      <div class="modal-actions" style="margin-top:9px">
+        <button class="btn btn-soft" id="cloudDisconnect">Desconectar</button>
+        <button class="btn btn-soft" id="closeCloud2" onclick="document.getElementById('cloudModal').classList.remove('show')">Cerrar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -723,6 +776,9 @@ const LS_UI = "reset_gym_ui_v1";
 const LS_LOC = "reset_gym_location_v1"; // lugar de entreno actual: gym | casa | hotel
 const LS_BACKUP = "reset_gym_log_backup_v1"; // copia redundante de seguridad
 const LS_LASTEXPORT = "reset_gym_lastexport_v1"; // fecha del último export a libreta
+const LS_GH_TOKEN = "reset_gym_gh_token_v1";     // token de GitHub (SOLO en este dispositivo)
+const LS_GH_GIST  = "reset_gym_gh_gist_v1";      // id del Gist privado de respaldo
+const LS_GH_LASTSYNC = "reset_gym_gh_lastsync_v1"; // fecha de la última sincronización en la nube
 
 function loadJSON(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
 function saveJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -766,7 +822,8 @@ function getEntry(sessionKey,exId,nSets,week,loc){
   while(LOG[k].sets.length < nSets) LOG[k].sets.push({w:"",r:"",done:false});
   return LOG[k];
 }
-function persist(){ saveJSON(LS_LOG, LOG); saveJSON(LS_BACKUP, LOG); }
+function persistLocal(){ saveJSON(LS_LOG, LOG); saveJSON(LS_BACKUP, LOG); }
+function persist(){ persistLocal(); scheduleCloudSync(); }
 
 /* Devuelve la variante (gym/casa/hotel) de una sesión según el lugar activo */
 function sess(day){ return day.variants[LOCATION] || day.variants.gym; }
@@ -1199,16 +1256,21 @@ function renderSummary(){
       <button class="btn" id="btnClear">🗑 Borrar ${LOCATIONS[LOCATION].label.toLowerCase()} sem ${WEEK}</button>
     </div>
     <div class="tiny-actions" style="margin-top:8px">
-      <button class="btn" id="btnBackup">💾 Copia de seguridad completa</button>
+      <button class="btn" id="btnCloud">☁️ Copia automática en la nube</button>
+    </div>
+    <div style="font-size:11.5px;color:var(--muted);text-align:center;margin-top:7px;line-height:1.45">${cloudStatusText()}</div>
+    <div class="tiny-actions" style="margin-top:10px">
+      <button class="btn" id="btnBackup">💾 Copia manual (texto)</button>
     </div>
     <div style="font-size:11.5px;color:var(--muted);text-align:center;margin-top:9px;line-height:1.45">
-      La copia completa guarda <b>todo</b> (todas las semanas) en un texto que puedes pegar en Notas o enviarte por correo. Si el iPhone llegara a borrar los datos, lo recuperas desde ahí.
+      La copia manual guarda <b>todo</b> en un texto que puedes pegar en Notas o enviarte por correo. Alternativa por si no usas la nube.
     </div>`;
   card.querySelector(".card-head").onclick=()=>card.classList.toggle("collapsed");
   content.appendChild(card);
 
   document.getElementById("btnExport").onclick=openExport;
   document.getElementById("btnBackup").onclick=openBackup;
+  document.getElementById("btnCloud").onclick=openCloud;
   document.getElementById("btnClear").onclick=()=>{
     if(confirm(`¿Borrar los registros de ${LOCATIONS[LOCATION].label} de la semana ${WEEK}? Esto no se puede deshacer.`)){
       const prefix = WEEK+"|"+LOCATION+"|";
@@ -1366,6 +1428,161 @@ document.getElementById("restoreBackup").onclick=()=>{
   toast("Datos restaurados");
   render();
 };
+
+/* ===========================================================
+   Copia automática en la nube (Gist privado de GitHub)
+   El token se guarda SOLO en este dispositivo (localStorage),
+   nunca en el código público. Los datos van a un Gist PRIVADO.
+   =========================================================== */
+const CLOUD_FILE = "mi-reset-saludable-backup.json";
+const CLOUD_DESC = "Mi Reset Saludable — copia automática (privado, no borrar)";
+const cloudModal = document.getElementById("cloudModal");
+
+function cloudConfigured(){ return !!localStorage.getItem(LS_GH_TOKEN); }
+function ghHeaders(token){
+  return { "Authorization":"Bearer "+token, "Accept":"application/vnd.github+json", "Content-Type":"application/json" };
+}
+function cloudPayload(){
+  return JSON.stringify({ v:1, week:WEEK, log:LOG, savedAt:new Date().toISOString() }, null, 2);
+}
+function fmtSince(ts){
+  if(!ts) return "";
+  const mins=Math.floor((Date.now()-parseInt(ts,10))/60000);
+  if(mins<1) return "hace un momento";
+  if(mins<60) return "hace "+mins+" min";
+  const h=Math.floor(mins/60); if(h<24) return "hace "+h+" h";
+  return "hace "+Math.floor(h/24)+" días";
+}
+function cloudStatusText(){
+  if(!cloudConfigured()) return "☁️ Copia automática en la nube: desactivada";
+  const ls=localStorage.getItem(LS_GH_LASTSYNC);
+  return ls ? "☁️ Copia automática activa · guardado "+fmtSince(ls) : "☁️ Conectado · aún sin sincronizar";
+}
+// Refresca el texto de estado dentro del modal (sin re-render para no robar el foco al escribir)
+function setCloudState(state, msg){
+  const el=document.getElementById("cloudState");
+  if(!el) return;
+  const map={
+    idle: cloudStatusText(),
+    syncing:"⏳ Sincronizando…",
+    ok:"✅ Guardado en la nube · "+fmtSince(localStorage.getItem(LS_GH_LASTSYNC)),
+    error:"⚠️ No se pudo sincronizar"+(msg?": "+msg:"")
+  };
+  el.textContent = map[state]||map.idle;
+}
+
+let cloudT=null, cloudBusy=false;
+function scheduleCloudSync(){
+  if(!cloudConfigured()) return;
+  clearTimeout(cloudT);
+  cloudT=setTimeout(cloudPush, 2500); // espera a que dejes de escribir
+}
+
+async function cloudPush(){
+  const token=localStorage.getItem(LS_GH_TOKEN);
+  if(!token || cloudBusy) return;
+  cloudBusy=true; setCloudState("syncing");
+  const files={}; files[CLOUD_FILE]={content:cloudPayload()};
+  try{
+    let id=localStorage.getItem(LS_GH_GIST), res;
+    if(id){
+      res=await fetch("https://api.github.com/gists/"+id,{method:"PATCH",headers:ghHeaders(token),body:JSON.stringify({files})});
+      if(res.status===404){ id=null; localStorage.removeItem(LS_GH_GIST); } // gist borrado → recrear
+    }
+    if(!id){
+      res=await fetch("https://api.github.com/gists",{method:"POST",headers:ghHeaders(token),body:JSON.stringify({description:CLOUD_DESC,public:false,files})});
+      if(res.ok){ const d=await res.json(); localStorage.setItem(LS_GH_GIST,d.id); }
+    }
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    localStorage.setItem(LS_GH_LASTSYNC,String(Date.now()));
+    setCloudState("ok");
+  }catch(e){ setCloudState("error", e.message); }
+  finally{ cloudBusy=false; }
+}
+
+async function cloudPull(){
+  const token=localStorage.getItem(LS_GH_TOKEN), id=localStorage.getItem(LS_GH_GIST);
+  if(!token || !id){ toast("Conecta primero la nube"); return; }
+  setCloudState("syncing");
+  try{
+    const r=await fetch("https://api.github.com/gists/"+id,{headers:ghHeaders(token)});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const g=await r.json();
+    const f=g.files && g.files[CLOUD_FILE];
+    if(!f) throw new Error("la copia en la nube está vacía");
+    let content=f.content;
+    if(f.truncated && f.raw_url){ content=await (await fetch(f.raw_url)).text(); }
+    const data=JSON.parse(content);
+    if(!data || typeof data.log!=="object") throw new Error("copia no válida");
+    LOG=migrateLog(data.log);
+    if(data.week){ setWeek(parseInt(data.week,10)); }
+    persistLocal();
+    localStorage.setItem(LS_GH_LASTSYNC,String(Date.now()));
+    setCloudState("ok");
+    toast("Datos traídos de la nube");
+    render();
+  }catch(e){ setCloudState("error",e.message); toast("No se pudo restaurar: "+e.message); }
+}
+
+async function cloudConnect(){
+  const token=(document.getElementById("ghToken").value||"").trim();
+  if(!token){ toast("Pega primero tu token"); return; }
+  setCloudState("syncing");
+  try{
+    // Valida el token y busca si ya hay una copia anterior
+    const r=await fetch("https://api.github.com/gists?per_page=100",{headers:ghHeaders(token)});
+    if(r.status===401) throw new Error("token inválido o sin permiso 'gist'");
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const list=await r.json();
+    localStorage.setItem(LS_GH_TOKEN,token);
+    const found=Array.isArray(list) ? list.find(g=>g.files && g.files[CLOUD_FILE]) : null;
+    if(found){
+      localStorage.setItem(LS_GH_GIST,found.id);
+      if(confirm("Encontré una copia tuya en la nube.\n\nAceptar = traerla a este dispositivo.\nCancelar = mantener lo de aquí y subirlo a la nube.")){
+        await cloudPull();
+      }else{
+        await cloudPush();
+      }
+    }else{
+      await cloudPush(); // crea el Gist privado con lo que tengas ahora
+    }
+    document.getElementById("ghToken").value="";
+    toast("Nube conectada · guardado automático activado");
+    updateCloudUI();
+  }catch(e){ setCloudState("error",e.message); toast("No se pudo conectar: "+e.message); }
+}
+
+function cloudDisconnect(){
+  if(!confirm("¿Desconectar la copia en la nube? El token se borrará de este dispositivo. Tu copia en GitHub no se elimina.")) return;
+  localStorage.removeItem(LS_GH_TOKEN);
+  localStorage.removeItem(LS_GH_GIST);
+  localStorage.removeItem(LS_GH_LASTSYNC);
+  updateCloudUI();
+  toast("Nube desconectada");
+}
+
+// Muestra/oculta controles del modal según si está conectado
+function updateCloudUI(){
+  const on=cloudConfigured();
+  const setup=document.getElementById("cloudSetup");
+  const conn=document.getElementById("cloudConnected");
+  if(setup) setup.style.display = on?"none":"block";
+  if(conn)  conn.style.display  = on?"block":"none";
+  setCloudState("idle");
+}
+
+function openCloud(){
+  updateCloudUI();
+  cloudModal.classList.add("show");
+}
+document.getElementById("closeCloud").onclick=()=>cloudModal.classList.remove("show");
+cloudModal.onclick=(e)=>{ if(e.target===cloudModal) cloudModal.classList.remove("show"); };
+document.getElementById("cloudConnect").onclick=cloudConnect;
+document.getElementById("cloudSyncNow").onclick=()=>{ cloudPush().then(()=>toast("Sincronizado")); };
+document.getElementById("cloudPull").onclick=()=>{
+  if(confirm("¿Traer los datos de la nube? Reemplazará lo que haya en este dispositivo.")) cloudPull();
+};
+document.getElementById("cloudDisconnect").onclick=cloudDisconnect;
 
 /* ---- Semana ---- */
 function setWeek(w){
