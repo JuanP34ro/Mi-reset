@@ -362,7 +362,7 @@
 
   <div id="content"></div>
 
-  <p class="footnote">Constancia sobre intensidad · Recuperación = progreso<br>Solo entreno se registra aquí. Comida, agua y sueño → libreta.</p>
+  <p class="footnote">Constancia sobre intensidad · Recuperación = progreso<br>Solo entreno se registra aquí. Comida, agua y sueño → libreta.<br><span style="opacity:.65">versión <span id="appVer">—</span></span></p>
 </div>
 
 <!-- Rest timer -->
@@ -1771,6 +1771,8 @@ function renderProgress(){
 }
 
 /* ---- Init ---- */
+const APP_VERSION = "2026.06.09-4";
+const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
 </script>
