@@ -262,6 +262,79 @@
     background:var(--ink);color:#fff;padding:11px 20px;border-radius:999px;font-size:13.5px;font-weight:600;
     z-index:300;opacity:0;transition:.25s;pointer-events:none}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ===== Mejoras visuales (look & feel tipo app nativa) ===== */
+  .btn,.day-btn,.loc-btn,.set-done,.mini,.prefill-btn,.tab{transition:transform .12s ease,background .15s,color .15s,border-color .15s,box-shadow .15s}
+  .btn:active,.day-btn:active,.loc-btn:active,.set-done:active,.mini:active,.prefill-btn:active,.tab:active{transform:scale(.95)}
+  .ex-head:active,.card-head:active{opacity:.85}
+
+  /* Barra de pestañas inferior */
+  .tabbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:120;display:flex;gap:4px;
+    padding:7px 16px calc(7px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.88);backdrop-filter:saturate(160%) blur(14px);
+    -webkit-backdrop-filter:saturate(160%) blur(14px);
+    border-top:1px solid var(--line);box-shadow:0 -4px 20px rgba(31,38,48,.06);
+  }
+  .tab{flex:1;border:none;background:none;cursor:pointer;font-family:inherit;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:6px 4px;border-radius:14px;color:var(--muted);font-size:11px;font-weight:700}
+  .tab .ti{font-size:21px;line-height:1;transition:transform .15s}
+  .tab.active{color:var(--header)}
+  .tab.active .ti{transform:translateY(-2px) scale(1.06)}
+  body.tab-progreso .locs,body.tab-progreso .days,body.tab-progreso .footnote{display:none}
+  .wrap{padding-bottom:calc(94px + env(safe-area-inset-bottom))}
+
+  /* Panel de progreso */
+  .hero{background:linear-gradient(135deg,#2B5797,#5b6fd6);color:#fff;border-radius:var(--radius);
+    padding:22px 20px;box-shadow:var(--shadow);margin-bottom:14px;animation:rise .35s ease both;
+    display:flex;align-items:center;gap:18px}
+  .hero .big{flex:1}
+  .hero .big .n{font-size:40px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .hero .big .l{font-size:13px;opacity:.92;margin-top:4px;font-weight:600}
+  .hero .big .sub{font-size:11.5px;opacity:.75;margin-top:7px;line-height:1.4}
+  .ring-wrap{position:relative;width:84px;height:84px;flex:0 0 84px}
+  .ring-wrap .rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .ring-wrap .rc .rv{font-size:20px;font-weight:800;line-height:1}
+  .ring-wrap .rc .rl{font-size:9px;opacity:.85;font-weight:600;margin-top:2px}
+  .ring-wrap circle.prog{transition:stroke-dashoffset .7s cubic-bezier(.2,.8,.2,1)}
+
+  .pcards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .pcard{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:14px 6px;text-align:center;animation:rise .35s ease both}
+  .pcard .v{font-size:22px;font-weight:800;color:var(--header);font-variant-numeric:tabular-nums}
+  .pcard .l{font-size:10.5px;color:var(--muted);margin-top:3px;font-weight:600;line-height:1.3}
+
+  .psec{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px;animation:rise .35s ease both}
+  .psec h3{margin:0 0 12px;font-size:14px;color:var(--ink);font-weight:800}
+  .psec .hint{font-size:12px;color:var(--muted);margin:-6px 0 12px;line-height:1.4}
+
+  .bars{display:flex;align-items:flex-end;gap:6px;min-height:120px;overflow:hidden}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;justify-content:flex-end}
+  .bar-col .bar{width:100%;max-width:30px;border-radius:7px 7px 3px 3px;
+    background:linear-gradient(180deg,#5b6fd6,#2B5797);transition:height .6s cubic-bezier(.2,.8,.2,1)}
+  .bar-col .bv{font-size:10px;font-weight:700;color:var(--ink);height:13px}
+  .bar-col .bl{font-size:9px;color:var(--muted)}
+  .bar-col.cur .bar{background:linear-gradient(180deg,#34c97b,#2e9e6b)}
+
+  .locbars{display:flex;flex-direction:column;gap:11px}
+  .locbar{display:flex;align-items:center;gap:10px;font-size:13px}
+  .locbar .ic{font-size:18px;flex:0 0 24px;text-align:center}
+  .locbar .lab{flex:0 0 50px;font-weight:700}
+  .locbar .track{flex:1;height:10px;background:var(--soft);border-radius:999px;overflow:hidden}
+  .locbar .fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#5b6fd6,#2B5797);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  .locbar .cnt{flex:0 0 auto;font-weight:700;color:var(--muted);font-size:12px;min-width:16px;text-align:right}
+
+  .pr{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .pr:last-child{border-bottom:none}
+  .pr .medal{font-size:17px;flex:0 0 auto}
+  .pr .nm{flex:1;min-width:0;font-size:13px;font-weight:600;line-height:1.25}
+  .pr .nm small{display:block;color:var(--muted);font-weight:500;font-size:11px;margin-top:1px}
+  .pr .val{flex:0 0 auto;font-weight:800;color:var(--header);font-size:13.5px;white-space:nowrap}
+
+  .p-empty{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:42px 24px;text-align:center;animation:rise .35s ease both}
+  .p-empty .big{font-size:48px;margin-bottom:10px}
+  .p-empty h2{margin:0 0 8px;font-size:19px;color:var(--header)}
+  .p-empty p{color:var(--muted);font-size:14px;line-height:1.5;margin:0}
 </style>
 </head>
 <body>
@@ -330,6 +403,9 @@
     </div>
   </div>
 </div>
+
+<!-- Barra de pestañas inferior -->
+<nav class="tabbar" id="tabbar"></nav>
 
 <div class="toast" id="toast"></div>
 
@@ -711,7 +787,35 @@ function renderDaySelector(){
   });
 }
 
+let activeTab = "entreno"; // entreno | progreso
+
 function render(){
+  document.body.classList.toggle("tab-progreso", activeTab==="progreso");
+  renderTabbar();
+  if(activeTab==="progreso"){
+    content.innerHTML = "";
+    renderProgress();
+    window.scrollTo(0,0);
+    return;
+  }
+  renderEntreno();
+}
+
+function renderTabbar(){
+  const bar=document.getElementById("tabbar");
+  if(!bar) return;
+  const tabs=[{k:"entreno",ic:"🏋️",l:"Entreno"},{k:"progreso",ic:"📈",l:"Progreso"}];
+  bar.innerHTML="";
+  tabs.forEach(t=>{
+    const b=document.createElement("button");
+    b.className="tab"+(activeTab===t.k?" active":"");
+    b.innerHTML=`<span class="ti">${t.ic}</span>${t.l}`;
+    b.onclick=()=>{ if(activeTab!==t.k){ activeTab=t.k; render(); } };
+    bar.appendChild(b);
+  });
+}
+
+function renderEntreno(){
   renderLocationSelector();
   renderDaySelector();
   const day = PROGRAM[selectedDay];
@@ -1279,6 +1383,174 @@ function toast(msg){
   const t=document.getElementById("toast");
   t.textContent=msg; t.classList.add("show");
   clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),1900);
+}
+
+/* ===========================================================
+   Panel de progreso global
+   =========================================================== */
+const fmt = n => Math.round(n).toLocaleString("es-ES");
+
+// Índice id de ejercicio -> nombre (para mostrar nombres en los récords)
+const EX_INDEX = (()=>{
+  const idx={};
+  Object.values(PROGRAM).forEach(day=>{
+    if(!day.variants) return;
+    Object.keys(day.variants).forEach(loc=>{
+      day.variants[loc].exercises.forEach(ex=>{ idx[ex.id]={name:ex.name, session:day.key, loc}; });
+    });
+  });
+  return idx;
+})();
+
+function parseKey(k){ const p=k.split("|"); return {week:parseInt(p[0],10), loc:p[1], session:p[2], ex:p[3]}; }
+
+function computeProgress(){
+  const weeksSet=new Set();
+  Object.keys(LOG).forEach(k=>{ const w=parseKey(k).week; if(!isNaN(w)) weeksSet.add(w); });
+  weeksSet.add(WEEK);
+  const maxWeek=Math.max(1, ...weeksSet);
+
+  const perWeek={};
+  for(let w=1; w<=maxWeek; w++) perWeek[w]={sets:0, volume:0};
+
+  let totalSets=0, totalVolume=0;
+  const prs={}; // exId -> {w, r, week, loc}
+  Object.keys(LOG).forEach(k=>{
+    const {week,loc,ex}=parseKey(k);
+    const e=LOG[k]; if(!e || !e.sets) return;
+    e.sets.forEach(s=>{
+      const wv=parseFloat(s.w), rv=parseFloat(s.r);
+      if(s.done){ totalSets++; if(perWeek[week]) perWeek[week].sets++; }
+      if(!isNaN(wv) && !isNaN(rv)){
+        const vol=wv*rv; totalVolume+=vol; if(perWeek[week]) perWeek[week].volume+=vol;
+      }
+      if(!isNaN(wv) && wv>0){
+        if(!prs[ex] || wv>prs[ex].w){ prs[ex]={w:wv, r:(isNaN(rv)?null:rv), week, loc}; }
+      }
+    });
+  });
+
+  // Sesiones completas y reparto por lugar
+  let sessionsComplete=0; const byLoc={gym:0,casa:0,hotel:0};
+  for(let w=1; w<=maxWeek; w++){
+    Object.keys(LOCATIONS).forEach(loc=>{
+      DAY_ORDER.forEach(d=>{
+        const day=PROGRAM[d]; if(day.type!=="session") return;
+        const variant=day.variants[loc]; if(!variant) return;
+        const complete=variant.exercises.every(ex=>{
+          const e=LOG[logKey(w,day.key,ex.id,loc)];
+          return e && e.sets.every(s=>s.done) && e.sets.some(s=>s.w!==""||s.r!=="");
+        });
+        if(complete){ sessionsComplete++; if(byLoc[loc]!=null) byLoc[loc]++; }
+      });
+    });
+  }
+
+  const weeksActive=Object.keys(perWeek).filter(w=>perWeek[w].sets>0).length;
+  return {maxWeek, perWeek, totalSets, totalVolume, prs, sessionsComplete, byLoc, weeksActive};
+}
+
+function renderProgress(){
+  const p=computeProgress();
+
+  if(p.totalSets===0 && p.totalVolume===0){
+    const e=document.createElement("div");
+    e.className="p-empty";
+    e.innerHTML=`<div class="big">📈</div><h2>Aún no hay datos</h2>
+      <p>Registra tus primeras series en la pestaña <b>Entreno</b> y aquí verás tu evolución semana a semana.</p>`;
+    content.appendChild(e);
+    return;
+  }
+
+  // Hero con anillo de constancia (sesiones por semana, objetivo 4)
+  const avg = p.weeksActive ? (p.sessionsComplete/p.weeksActive) : 0;
+  const pct = Math.max(0, Math.min(1, avg/4));
+  const R=34, C=2*Math.PI*R, off=C*(1-pct);
+  const hero=document.createElement("div");
+  hero.className="hero";
+  hero.innerHTML=`
+    <div class="ring-wrap">
+      <svg width="84" height="84" viewBox="0 0 84 84" style="transform:rotate(-90deg)">
+        <circle cx="42" cy="42" r="${R}" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="8"/>
+        <circle class="prog" cx="42" cy="42" r="${R}" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"
+          stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${C.toFixed(1)}"/>
+      </svg>
+      <div class="rc"><div class="rv">${avg.toFixed(1)}</div><div class="rl">ses/sem</div></div>
+    </div>
+    <div class="big">
+      <div class="n">${fmt(p.totalSets)}</div>
+      <div class="l">series completadas en total</div>
+      <div class="sub">Constancia: objetivo 4 sesiones por semana 🎯</div>
+    </div>`;
+  content.appendChild(hero);
+  // anima el anillo tras pintar
+  const ring=hero.querySelector("circle.prog");
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ ring.setAttribute("stroke-dashoffset", off.toFixed(1)); }));
+
+  // Tarjetas resumen
+  const cards=document.createElement("div");
+  cards.className="pcards";
+  const ton=(p.totalVolume/1000);
+  cards.innerHTML=`
+    <div class="pcard"><div class="v">${p.weeksActive}</div><div class="l">Semanas<br>activas</div></div>
+    <div class="pcard"><div class="v">${p.sessionsComplete}</div><div class="l">Sesiones<br>completas</div></div>
+    <div class="pcard"><div class="v">${ton>=1?ton.toFixed(1):fmt(p.totalVolume)}<span style="font-size:12px;color:var(--muted)">${ton>=1?" t":" kg"}</span></div><div class="l">Peso total<br>movido</div></div>`;
+  content.appendChild(cards);
+
+  // Barras: series por semana
+  const maxSets=Math.max(1, ...Object.keys(p.perWeek).map(w=>p.perWeek[w].sets));
+  const bars=document.createElement("div");
+  bars.className="psec";
+  let bhtml=`<h3>Series completadas por semana</h3><div class="bars">`;
+  for(let w=1; w<=p.maxWeek; w++){
+    const v=p.perWeek[w].sets;
+    const px = v ? Math.max(Math.round(v/maxSets*96), 5) : 2;
+    bhtml+=`<div class="bar-col${w===WEEK?' cur':''}">
+      <div class="bv">${v||""}</div>
+      <div class="bar" style="height:0px" data-h="${px}"></div>
+      <div class="bl">s${w}</div></div>`;
+  }
+  bhtml+=`</div>`;
+  bars.innerHTML=bhtml;
+  content.appendChild(bars);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    bars.querySelectorAll(".bar").forEach(b=>{ b.style.height=b.getAttribute("data-h")+"px"; });
+  }));
+
+  // Reparto por lugar
+  const totalLoc=p.byLoc.gym+p.byLoc.casa+p.byLoc.hotel;
+  if(totalLoc>0){
+    const ls=document.createElement("div"); ls.className="psec";
+    let lh=`<h3>Sesiones por lugar</h3><div class="locbars">`;
+    Object.keys(LOCATIONS).forEach(loc=>{
+      const c=p.byLoc[loc]; const wpct=Math.round(c/totalLoc*100);
+      lh+=`<div class="locbar"><span class="ic">${LOCATIONS[loc].icon}</span>
+        <span class="lab">${LOCATIONS[loc].label}</span>
+        <span class="track"><span class="fill" style="width:0%" data-w="${wpct}"></span></span>
+        <span class="cnt">${c}</span></div>`;
+    });
+    lh+=`</div>`; ls.innerHTML=lh; content.appendChild(ls);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      ls.querySelectorAll(".fill").forEach(f=>{ f.style.width=f.getAttribute("data-w")+"%"; });
+    }));
+  }
+
+  // Mejores marcas (récords de peso)
+  const prList=Object.keys(p.prs)
+    .map(id=>({id, w:p.prs[id].w, r:p.prs[id].r, week:p.prs[id].week, loc:p.prs[id].loc,
+               name:(EX_INDEX[id]?EX_INDEX[id].name:id)}))
+    .sort((a,b)=>b.w-a.w).slice(0,8);
+  if(prList.length){
+    const rs=document.createElement("div"); rs.className="psec";
+    let rh=`<h3>Tus mejores marcas</h3><div class="hint">Peso máximo levantado en cada ejercicio.</div>`;
+    const medals=["🥇","🥈","🥉"];
+    prList.forEach((r,i)=>{
+      rh+=`<div class="pr"><span class="medal">${medals[i]||"🏅"}</span>
+        <span class="nm">${r.name}<small>${LOCATIONS[r.loc]?LOCATIONS[r.loc].label:""} · semana ${r.week}</small></span>
+        <span class="val">${r.w} kg${r.r?` × ${r.r}`:""}</span></div>`;
+    });
+    rs.innerHTML=rh; content.appendChild(rs);
+  }
 }
 
 /* ---- Init ---- */
