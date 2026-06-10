@@ -1103,7 +1103,7 @@ function persist(){ persistLocal(); scheduleCloudSync(); }
 
 /* Snapshot de seguridad antes de una operación destructiva (restaurar/traer de la nube).
    Permite "deshacer" desde la copia manual. */
-function snapshotBefore(){ saveJSON(LS_PREDO, { log:LOG, week:WEEK, at:Date.now() }); }
+function snapshotBefore(){ saveJSON(LS_PREDO, { log:LOG, week:WEEK, dates:TRAINED, plan:PLAN, at:Date.now() }); }
 
 /* Puntúa una entrada por cantidad de datos (para fusionar sin perder lo más completo) */
 function entryScore(e){
@@ -1127,6 +1127,30 @@ function entryCompleteN(e, n){
   const k = Math.max(1, Math.min(n, e.sets.length));
   const slice = e.sets.slice(0,k);
   return slice.every(s=>s.done) && slice.some(s=>s.w!==""||s.r!=="");
+}
+
+/* Saneado y fusión de datos secundarios (calendario e hitos) para copia/nube */
+function sanitizeDates(o){
+  const out={};
+  if(o && typeof o==="object") Object.keys(o).forEach(k=>{
+    if(/^\d{4}-\d{2}-\d{2}$/.test(k) && Array.isArray(o[k])) out[k]=o[k].filter(x=>typeof x==="string");
+  });
+  return out;
+}
+function sanitizePlan(o){
+  const out={};
+  if(o && typeof o==="object") Object.keys(o).forEach(k=>{ if(o[k]) out[k]=true; });
+  return out;
+}
+function mergeDates(a,b){
+  const out={...(a||{})};
+  Object.keys(b||{}).forEach(k=>{ out[k]=Array.from(new Set([...(out[k]||[]),...(b[k]||[])])); });
+  return out;
+}
+function mergePlan(a,b){
+  const out={...(a||{})};
+  Object.keys(b||{}).forEach(k=>{ if(b[k]) out[k]=true; });
+  return out;
 }
 
 /* ¿Una entrada está "completa"? (todas las series marcadas y con algún dato) */
@@ -2238,8 +2262,7 @@ document.getElementById("copyExport").onclick=async()=>{
 /* ---- Copia de seguridad completa (JSON) ---- */
 const backupModal=document.getElementById("backupModal");
 function openBackup(){
-  const payload = { v:1, week:WEEK, log:LOG, savedAt:new Date().toISOString() };
-  document.getElementById("backupText").value = JSON.stringify(payload);
+  document.getElementById("backupText").value = cloudPayload();
   backupModal.classList.add("show");
 }
 document.getElementById("closeBackup").onclick=()=>backupModal.classList.remove("show");
@@ -2258,6 +2281,8 @@ document.getElementById("restoreBackup").onclick=()=>{
   if(!confirm("¿Restaurar esta copia? Reemplazará los datos actuales de la app.\n(Podrás deshacerlo con el botón ↩️)")) return;
   snapshotBefore();                 // guarda lo actual por si hay que deshacer
   LOG = migrateLog(data.log);
+  TRAINED = mergeDates(TRAINED, sanitizeDates(data.dates)); saveJSON(LS_DATES, TRAINED); // calendario: unión
+  PLAN = mergePlan(PLAN, sanitizePlan(data.plan)); saveJSON(LS_PLAN, PLAN);               // hitos: unión
   const w=parseInt(data.week,10); if(Number.isFinite(w)) setWeek(w);
   persist();
   backupModal.classList.remove("show");
@@ -2269,8 +2294,10 @@ document.getElementById("undoRestore").onclick=()=>{
   if(!p || !p.log || !Object.keys(p.log).length){ toast("No hay nada que deshacer"); return; }
   const when = p.at ? new Date(p.at).toLocaleString("es-ES") : "antes";
   if(!confirm("¿Recuperar los datos que había antes del último cambio? ("+when+")")) return;
-  const current = { log:LOG, week:WEEK, at:Date.now() }; // permite rehacer
+  const current = { log:LOG, week:WEEK, dates:TRAINED, plan:PLAN, at:Date.now() }; // permite rehacer
   LOG = migrateLog(p.log);
+  if(p.dates){ TRAINED = sanitizeDates(p.dates); saveJSON(LS_DATES, TRAINED); }
+  if(p.plan){ PLAN = sanitizePlan(p.plan); saveJSON(LS_PLAN, PLAN); }
   const w=parseInt(p.week,10); if(Number.isFinite(w)) setWeek(w);
   saveJSON(LS_PREDO, current);
   persist();
@@ -2293,7 +2320,7 @@ function ghHeaders(token){
   return { "Authorization":"Bearer "+token, "Accept":"application/vnd.github+json", "Content-Type":"application/json" };
 }
 function cloudPayload(){
-  return JSON.stringify({ v:1, week:WEEK, log:LOG, savedAt:new Date().toISOString() }, null, 2);
+  return JSON.stringify({ v:2, week:WEEK, log:LOG, dates:TRAINED, plan:PLAN, savedAt:new Date().toISOString() }, null, 2);
 }
 function fmtSince(ts){
   if(!ts) return "";
@@ -2340,7 +2367,7 @@ async function cloudFetchRemote(token, id){
   if(f.truncated && f.raw_url){ content=await (await fetch(f.raw_url)).text(); }
   const data=JSON.parse(content);
   if(!data || typeof data.log!=="object") return null;
-  return { log:migrateLog(data.log), week:data.week };
+  return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan) };
 }
 
 async function cloudPush(){
@@ -2359,6 +2386,9 @@ async function cloudPush(){
           let added=false;
           Object.keys(remote.log).forEach(k=>{ if(!(k in LOG)){ LOG[k]=remote.log[k]; added=true; } });
           if(added) persistLocal();
+          // Calendario e hitos: fusiona lo remoto con lo local (nunca se pierde un día)
+          TRAINED = mergeDates(TRAINED, remote.dates); saveJSON(LS_DATES, TRAINED);
+          PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);
         }
       }catch(e){ /* si el GET falla seguimos y subimos lo local */ }
     }
@@ -2389,6 +2419,8 @@ async function cloudPull(){
     if(!remote || remote==="gone") throw new Error("la copia en la nube está vacía");
     snapshotBefore();              // guarda lo actual por si hay que deshacer
     LOG=remote.log;
+    TRAINED = mergeDates(TRAINED, remote.dates); saveJSON(LS_DATES, TRAINED); // calendario: unión
+    PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);             // hitos: unión
     const w=parseInt(remote.week,10); if(Number.isFinite(w)) setWeek(w);
     persistLocal();
     localStorage.setItem(LS_GH_LASTSYNC,String(Date.now()));
@@ -2418,6 +2450,8 @@ async function cloudConnect(){
         if(remote && remote.log){
           snapshotBefore();
           LOG = mergeLogs(remote.log, LOG);
+          TRAINED = mergeDates(TRAINED, remote.dates); saveJSON(LS_DATES, TRAINED);
+          PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);
           const w=parseInt(remote.week,10); if(Number.isFinite(w) && w>WEEK) setWeek(w);
           persistLocal();
         }
@@ -2678,7 +2712,7 @@ function showUpdate(){ const b=document.getElementById("updateBanner"); if(b) b.
 })();
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.10-9 · BIELA";
+const APP_VERSION = "2026.06.10-10 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
