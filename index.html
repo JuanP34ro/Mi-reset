@@ -536,6 +536,24 @@
   .express-note{background:rgba(27,180,232,.1);border:1.5px solid rgba(27,180,232,.32);color:#bfe6f7;
     border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.5}
   .express-note b{color:#eaf7fd}
+
+  /* Calendario de entrenos */
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .cal-head h3{margin:0;font-size:15px;color:var(--accent);font-weight:800}
+  .cal-nav{border:1.5px solid var(--line);background:var(--soft);color:var(--accent);border-radius:9px;
+    width:34px;height:34px;font-size:18px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal-wd{text-align:center;font-size:10.5px;font-weight:700;color:var(--muted);padding-bottom:2px}
+  .cal-cell{position:relative;aspect-ratio:1;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    font-size:13px;color:var(--ink);background:var(--soft);border:1px solid transparent}
+  .cal-cell.blank{background:none}
+  .cal-cell.trained{background:rgba(47,208,127,.16);border-color:rgba(47,208,127,.45);color:#bff3d6;font-weight:700}
+  .cal-cell.today{border-color:var(--accent);box-shadow:0 0 10px rgba(27,180,232,.45)}
+  .cal-dot{position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--ok)}
+  .cal-foot{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:11px;font-size:12px;color:var(--muted)}
+  .cal-foot b{color:var(--accent);font-size:14px}
+  .cal-leg{display:inline-flex;align-items:center;gap:6px}
+  .cal-leg .cal-dot{position:static}
 </style>
 </head>
 <body>
@@ -1016,9 +1034,13 @@ const LS_GH_GIST  = "reset_gym_gh_gist_v1";      // id del Gist privado de respa
 const LS_GH_LASTSYNC = "reset_gym_gh_lastsync_v1"; // fecha de la última sincronización en la nube
 const LS_PREDO = "reset_gym_predo_v1";           // snapshot anterior al último cambio destructivo (deshacer)
 const LS_PLAN = "reset_gym_plan_v1";             // hitos del plan marcados por el usuario
+const LS_DATES = "reset_gym_dates_v1";           // fechas reales en las que se entrenó (para el calendario)
 
 function loadJSON(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
 function saveJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+const pad2 = n => String(n).padStart(2,"0");
+const dateStr = d => d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+const todayStr = () => dateStr(new Date());
 // Escapa texto antes de meterlo en innerHTML (evita inyección desde copias externas)
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
@@ -1151,7 +1173,16 @@ function sess(day){ return day.variants[LOCATION] || day.variants.gym; }
    PLAN DE MEJORA (40 años) — doble progresión autorregulada por RIR
    Bloques de 6 semanas (5 de carga + 1 de descarga). Máquinas → peso libre.
    =========================================================== */
-let PLAN = loadJSON(LS_PLAN, {});   // hitos marcados por el usuario
+let PLAN = loadJSON(LS_PLAN, {});      // hitos marcados por el usuario
+let TRAINED = loadJSON(LS_DATES, {});  // { "YYYY-MM-DD": ["torso_a", ...] } fechas entrenadas
+let calRef = null;                     // {y, m} mes mostrado en el calendario
+const SESSION_LABEL = (()=>{ const o={}; Object.values(PROGRAM).forEach(d=>{ if(d.key) o[d.key]=d.label; }); return o; })();
+// Registra que HOY se entrenó esta sesión (para el calendario)
+function markTrainedToday(sessionKey){
+  const ds=todayStr();
+  if(!TRAINED[ds]) TRAINED[ds]=[];
+  if(!TRAINED[ds].includes(sessionKey)){ TRAINED[ds].push(sessionKey); saveJSON(LS_DATES, TRAINED); }
+}
 
 // Bloque/fase según la semana
 function planBlock(week){
@@ -1329,6 +1360,53 @@ function renderTabbar(){
   });
 }
 
+/* ---- Calendario mensual de entrenos ---- */
+const MONTH_NAMES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+function renderCalendar(){
+  const now=new Date();
+  if(!calRef) calRef={y:now.getFullYear(), m:now.getMonth()};
+  const {y,m}=calRef;
+  const card=document.createElement("div"); card.className="plan-card cal-card";
+
+  // Cabecera con navegación
+  const headRow=document.createElement("div"); headRow.className="cal-head";
+  headRow.innerHTML=`<button class="cal-nav" id="calPrev" aria-label="Mes anterior">‹</button>
+    <h3>📆 ${MONTH_NAMES[m]} ${y}</h3>
+    <button class="cal-nav" id="calNext" aria-label="Mes siguiente">›</button>`;
+  card.appendChild(headRow);
+
+  // Rejilla
+  const grid=document.createElement("div"); grid.className="cal-grid";
+  ["L","M","X","J","V","S","D"].forEach(w=>{ const h=document.createElement("div"); h.className="cal-wd"; h.textContent=w; grid.appendChild(h); });
+  const startWd=(new Date(y,m,1).getDay()+6)%7; // lunes=0
+  const days=new Date(y,m+1,0).getDate();
+  const tS=todayStr();
+  for(let i=0;i<startWd;i++){ const c=document.createElement("div"); c.className="cal-cell blank"; grid.appendChild(c); }
+  for(let d=1; d<=days; d++){
+    const ds=`${y}-${pad2(m+1)}-${pad2(d)}`;
+    const trained=TRAINED[ds];
+    const c=document.createElement("div");
+    c.className="cal-cell"+(trained?" trained":"")+(ds===tS?" today":"");
+    c.innerHTML=`<span>${d}</span>`+(trained?'<i class="cal-dot"></i>':"");
+    if(trained){ c.title=trained.map(k=>SESSION_LABEL[k]||k).join(", "); }
+    grid.appendChild(c);
+  }
+  card.appendChild(grid);
+
+  // Resumen del mes + leyenda
+  const mk=`${y}-${pad2(m+1)}`;
+  const sesMes=Object.keys(TRAINED).filter(k=>k.startsWith(mk)).length;
+  const sesTotal=Object.keys(TRAINED).length;
+  const foot=document.createElement("div"); foot.className="cal-foot";
+  foot.innerHTML=`<span><b>${sesMes}</b> días este mes</span><span><b>${sesTotal}</b> en total</span>
+    <span class="cal-leg"><i class="cal-dot"></i> entrenado</span>`;
+  card.appendChild(foot);
+
+  content.appendChild(card);
+  card.querySelector("#calPrev").onclick=()=>{ let mm=m-1,yy=y; if(mm<0){mm=11;yy--;} calRef={y:yy,m:mm}; render(); };
+  card.querySelector("#calNext").onclick=()=>{ let mm=m+1,yy=y; if(mm>11){mm=0;yy++;} calRef={y:yy,m:mm}; render(); };
+}
+
 /* ---- Pestaña Plan de mejora ---- */
 function renderPlan(){
   const b = planBlock(WEEK);
@@ -1345,6 +1423,9 @@ function renderPlan(){
     d.innerHTML=`🌙 <b>Semana de DESCARGA.</b> Haz la mitad de las series, sube el RIR a 4-5 (lejos del fallo) y mantén la técnica. Sin récords: deja que tendones y articulaciones se pongan al día.`;
     content.appendChild(d);
   }
+
+  // Calendario de entrenos
+  renderCalendar();
 
   const card=document.createElement("div"); card.className="plan-card";
   card.innerHTML=`<h3>🎯 Objetivo del bloque</h3>
@@ -1789,9 +1870,9 @@ function renderExercise(day,ex,num){
       s.done=!s.done;
       bd.classList.toggle("on", s.done);
       bd.setAttribute("aria-pressed", s.done ? "true" : "false");
-      if(s.done && navigator.vibrate) navigator.vibrate(30);   // háptica al marcar
+      if(s.done){ if(navigator.vibrate) navigator.vibrate(30); markTrainedToday(day.key); } // háptica + calendario
       persist();
-      wrap.classList.toggle("done", entryComplete(entry));     // actualiza estado del ejercicio
+      wrap.classList.toggle("done", entryCompleteN(entry, visN)); // actualiza estado del ejercicio
       const r = updateDayProgress();                            // barra del día + detección de cierre
       if(s.done && !s.warm) startRest(ex.rest);                 // descanso autostart (no en calentamiento)
       if(r.transition) render();                                // muestra/oculta cierre + confeti
@@ -2597,7 +2678,7 @@ function showUpdate(){ const b=document.getElementById("updateBanner"); if(b) b.
 })();
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.10-8 · BIELA";
+const APP_VERSION = "2026.06.10-9 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
