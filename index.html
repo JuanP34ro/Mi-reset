@@ -490,6 +490,42 @@
   .warm-tip{font-size:12px;color:var(--muted);margin:3px 0 9px 31px;line-height:1.4}
   .stretch-intro{font-size:12.5px;color:var(--warn);background:rgba(240,163,60,.1);
     border:1px solid rgba(240,163,60,.28);border-radius:10px;padding:8px 11px;margin:4px 0 11px;line-height:1.45}
+
+  /* Sugerencia de progresión por ejercicio */
+  .prog-hint{border-radius:10px;padding:8px 11px;font-size:12.5px;line-height:1.4;margin:10px 0 2px;font-weight:600}
+  .prog-up{background:rgba(47,208,127,.13);border:1px solid rgba(47,208,127,.4);color:#7fe3b0}
+  .prog-reps{background:rgba(27,180,232,.1);border:1px solid rgba(27,180,232,.32);color:#9fdcf2}
+  .prog-new{background:var(--soft);border:1px solid var(--line);color:var(--muted)}
+
+  /* Pestaña Plan */
+  .plan-hero{background:linear-gradient(135deg,#0e89c0,#1bb4e8);color:#fff;border-radius:var(--radius);
+    padding:18px 18px 16px;margin-bottom:14px;box-shadow:0 10px 34px rgba(27,180,232,.3)}
+  .plan-hero .ph-phase{font-size:12px;opacity:.9;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .plan-hero h2{margin:3px 0 0;font-size:21px;font-weight:800;line-height:1.15}
+  .plan-hero .ph-meta{margin-top:7px;font-size:12.5px;opacity:.92}
+  .plan-deload{background:rgba(120,140,255,.12);border:1.5px solid rgba(120,140,255,.4);color:#c7cdff;
+    border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.45;margin-bottom:14px}
+  .plan-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:15px 16px;margin-bottom:14px}
+  .plan-card h3{margin:0 0 8px;font-size:15px;color:var(--accent);font-weight:800;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .plan-card p{margin:0 0 8px;font-size:13.5px;color:var(--ink);line-height:1.5}
+  .plan-card .plan-tip{color:var(--muted);font-size:12.5px;margin:0}
+  .plan-rows{margin-top:6px}
+  .plan-rows div{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+  .plan-rows b{color:var(--ink)}
+  .plan-ul{margin:0;padding-left:18px;font-size:13px;color:var(--ink);line-height:1.55}
+  .plan-ul li{margin-bottom:5px}
+  .ms-count{font-size:12px;color:var(--muted);font-weight:700;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
+  .ms-list{display:flex;flex-direction:column;gap:7px}
+  .ms-item{display:flex;align-items:center;gap:10px;text-align:left;width:100%;cursor:pointer;font-family:inherit;
+    background:var(--soft);border:1.5px solid var(--line);border-radius:11px;padding:10px 11px;color:var(--ink);touch-action:manipulation}
+  .ms-item.on{background:rgba(47,208,127,.1);border-color:rgba(47,208,127,.4)}
+  .ms-check{flex:0 0 22px;height:22px;border-radius:6px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent}
+  .ms-item.on .ms-check{background:var(--ok);border-color:var(--ok);color:#04221a}
+  .ms-txt{flex:1;font-size:13px;line-height:1.35}
+  .ms-tag{flex:0 0 auto;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;border-radius:6px;padding:2px 7px}
+  .ms-tag.proceso{background:rgba(27,180,232,.14);color:#9fdcf2}
+  .ms-tag.resultado{background:rgba(240,163,60,.14);color:#f0bd72}
+  .plan-foot{text-align:center;color:var(--muted);font-size:11.5px;line-height:1.5;margin:4px 0 0;padding:0 6px}
 </style>
 </head>
 <body>
@@ -969,6 +1005,7 @@ const LS_GH_TOKEN = "reset_gym_gh_token_v1";     // token de GitHub (SOLO en est
 const LS_GH_GIST  = "reset_gym_gh_gist_v1";      // id del Gist privado de respaldo
 const LS_GH_LASTSYNC = "reset_gym_gh_lastsync_v1"; // fecha de la última sincronización en la nube
 const LS_PREDO = "reset_gym_predo_v1";           // snapshot anterior al último cambio destructivo (deshacer)
+const LS_PLAN = "reset_gym_plan_v1";             // hitos del plan marcados por el usuario
 
 function loadJSON(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
 function saveJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -1090,6 +1127,105 @@ function bestBefore(sessionKey, exId, week, loc){
 /* Devuelve la variante (gym/casa/hotel) de una sesión según el lugar activo */
 function sess(day){ return day.variants[LOCATION] || day.variants.gym; }
 
+/* ===========================================================
+   PLAN DE MEJORA (40 años) — doble progresión autorregulada por RIR
+   Bloques de 6 semanas (5 de carga + 1 de descarga). Máquinas → peso libre.
+   =========================================================== */
+let PLAN = loadJSON(LS_PLAN, {});   // hitos marcados por el usuario
+
+// Bloque/fase según la semana
+function planBlock(week){
+  const weekInBlock = ((week-1)%6)+1;       // 1..6
+  const isDeload = weekInBlock===6;          // la 6ª semana de cada bloque es descarga
+  let phase, block, objetivo, reps, rir;
+  if(week<=6){
+    phase="Fase 1 · Máquinas"; block="A1 — Adaptación y técnica";
+    objetivo="Dominar la técnica, fijar tus pesos base y aprender a medir el RIR. Reps altas.";
+    reps="12-15"; rir="3-4 (conservador)";
+  }else if(week<=12){
+    phase="Fase 1 · Máquinas"; block="A2 — Acumulación de volumen";
+    objetivo="Doble progresión de verdad: sube reps y luego peso. Empiezas a cargar más.";
+    reps="10-15"; rir="2-3 · hombro/escápula 3-4";
+  }else if(week<=18){
+    phase="Fase 1 · Máquinas"; block="A3 — Consolidación";
+    objetivo="Afianza fuerza en máquinas e introduce 1-2 patrones de peso libre MUY ligeros (aprendizaje).";
+    reps="8-15"; rir="2-3 · hombro/escápula 3-4";
+  }else if(week<=24){
+    phase="Fase 2 · Peso libre básico"; block="B1 — Patrones libres ligeros";
+    objetivo="Los básicos (goblet, press mancuerna, remo, peso muerto rumano, hip thrust) pasan al centro; máquinas como accesorio.";
+    reps="8-12"; rir="2-3 · press vertical 3-4";
+  }else{
+    phase="Fase 2 · Peso libre básico"; block="B2+ — Progresión gradual";
+    objetivo="Sube carga poco a poco en los básicos. Reevalúa cada ~3 meses si añadir frecuencia o variar ejercicios.";
+    reps="8-12"; rir="2-3 · press vertical 3-4";
+  }
+  return { phase, block, objetivo, reps, rir, weekInBlock, isDeload, blockNum:Math.ceil(week/6) };
+}
+
+// Extrae el rango de repeticiones de un esquema tipo "4 × 8-12" o "4 × 15"
+function repRange(scheme){
+  if(!scheme) return null;
+  if(/seg|por pierna|por brazo/i.test(scheme)){
+    // esquemas no comparables por reps simples (tiempo o unilateral) salvo rango explícito
+    const r2=scheme.match(/(\d+)\s*-\s*(\d+)/);
+    if(r2) return {min:+r2[1], max:+r2[2], unilateral:/por (pierna|brazo)/i.test(scheme)};
+    return null;
+  }
+  const r=scheme.match(/×\s*(\d+)\s*-\s*(\d+)/);
+  if(r) return {min:+r[1], max:+r[2]};
+  const s=scheme.match(/×\s*(\d+)\b/);
+  if(s) return {min:+s[1], max:+s[1]};
+  return null;
+}
+
+/* Sugerencia de progresión para un ejercicio, según el último entreno con datos.
+   Implementa la "luz verde": tope de reps en TODAS las series de trabajo → subir peso. */
+function progressionHint(day, ex){
+  const range = repRange(ex.scheme);
+  if(!range) return null;
+  const prev = lastFilledBefore(day.key, ex.id, WEEK);
+  if(!prev) return {kind:"new", text:"Primer registro: elige un peso con el que llegues a "+range.min+" reps dejando 2-3 en reserva (RIR)."};
+  const work = prev.e.sets.filter(s=>!s.warm && (s.r!==""||s.w!==""));
+  if(!work.length) return null;
+  const allTop = work.every(s=>{ const r=parseFloat(s.r); return !isNaN(r) && r>=range.max; });
+  const isShoulder = /hombro|escápula|escapula|face\s*pull|facepull/i.test(ex.name) || ex.key;
+  if(allTop){
+    return {kind:"up", text:`🟢 Sube al peso mínimo siguiente (la última vez llegaste al tope de ${range.max} reps en todas las series). Reinicia en ~${range.min} reps.`+(isShoulder?" Aquí, conservador: solo si fue sin molestia y con RIR 3-4.":"")};
+  }
+  return {kind:"reps", text:`Mantén el peso y suma reps hacia ${range.max} en todas las series (la última vez no llegaste al tope). Deja 2-3 reps en reserva.`};
+}
+
+// Hitos del plan por horizonte temporal (metas de proceso y de resultado)
+const MILESTONES = [
+  { h:"1 mes", items:[
+    {id:"m1_asist", tipo:"proceso", t:"Asistir al 100% de las sesiones que toquen"},
+    {id:"m1_prote", tipo:"proceso", t:"Proteína ≥ 1,6 g/kg la mayoría de días"},
+    {id:"m1_sueno", tipo:"proceso", t:"Dormir 7-9 h"},
+    {id:"m1_escap", tipo:"proceso", t:"Hacer el trabajo escapular en cada calentamiento"},
+    {id:"m1_base", tipo:"resultado", t:"Pesos base fijados en todos los ejercicios"},
+    {id:"m1_reps", tipo:"resultado", t:"+1-2 reps respecto al inicio, sin dolor escapular"}
+  ]},
+  { h:"3 meses", items:[
+    {id:"m3_adh", tipo:"proceso", t:"Adherencia > 90% y deloads cumplidos"},
+    {id:"m3_rir", tipo:"proceso", t:"Controlar el RIR con confianza"},
+    {id:"m3_carga", tipo:"resultado", t:"1ª subida de carga en casi todos los patrones"},
+    {id:"m3_musc", tipo:"resultado", t:"~1-2 kg de músculo / cinturón una muesca"},
+    {id:"m3_escap", tipo:"resultado", t:"Control escapular notablemente mejor"}
+  ]},
+  { h:"6 meses", items:[
+    {id:"m6_auto", tipo:"proceso", t:"Autorregulación por RIR fluida"},
+    {id:"m6_libre", tipo:"proceso", t:"Peso libre ligero introducido sin dolor"},
+    {id:"m6_fuerza", tipo:"resultado", t:"+20-40% de fuerza en básicos (no en press vertical)"},
+    {id:"m6_comp", tipo:"resultado", t:"Composición corporal mejorando"}
+  ]},
+  { h:"12 meses", items:[
+    {id:"m12_sost", tipo:"proceso", t:"Rutina autosostenible, hábito consolidado"},
+    {id:"m12_fase2", tipo:"proceso", t:"Transición a Fase 2 (peso libre) completada"},
+    {id:"m12_basicos", tipo:"resultado", t:"Básicos con peso libre dominados"},
+    {id:"m12_result", tipo:"resultado", t:"Fuerza y composición claramente mejores, articulaciones sanas"}
+  ]}
+];
+
 /* ---- Render principal ---- */
 const content = document.getElementById("content");
 const daySelector = document.getElementById("daySelector");
@@ -1128,11 +1264,17 @@ function launchConfetti(){
 }
 
 function render(){
-  document.body.classList.toggle("tab-progreso", activeTab==="progreso");
+  document.body.classList.toggle("tab-progreso", activeTab!=="entreno"); // oculta selectores fuera de Entreno
   renderTabbar();
   if(activeTab==="progreso"){
     content.innerHTML = "";
     renderProgress();
+    window.scrollTo(0,0);
+    return;
+  }
+  if(activeTab==="plan"){
+    content.innerHTML = "";
+    renderPlan();
     window.scrollTo(0,0);
     return;
   }
@@ -1142,7 +1284,7 @@ function render(){
 function renderTabbar(){
   const bar=document.getElementById("tabbar");
   if(!bar) return;
-  const tabs=[{k:"entreno",ic:"🏋️",l:"Entreno"},{k:"progreso",ic:"📈",l:"Progreso"}];
+  const tabs=[{k:"entreno",ic:"🏋️",l:"Entreno"},{k:"plan",ic:"📅",l:"Plan"},{k:"progreso",ic:"📈",l:"Progreso"}];
   bar.innerHTML="";
   tabs.forEach(t=>{
     const b=document.createElement("button");
@@ -1151,6 +1293,74 @@ function renderTabbar(){
     b.onclick=()=>{ if(activeTab!==t.k){ activeTab=t.k; render(); } };
     bar.appendChild(b);
   });
+}
+
+/* ---- Pestaña Plan de mejora ---- */
+function renderPlan(){
+  const b = planBlock(WEEK);
+
+  const head=document.createElement("div");
+  head.className="plan-hero";
+  head.innerHTML = `<div class="ph-phase">${b.phase}</div>
+    <h2>${b.block}</h2>
+    <div class="ph-meta">Semana ${WEEK} · semana ${b.weekInBlock}/6 del bloque ${b.blockNum}</div>`;
+  content.appendChild(head);
+
+  if(b.isDeload){
+    const d=document.createElement("div"); d.className="plan-deload";
+    d.innerHTML=`🌙 <b>Semana de DESCARGA.</b> Haz la mitad de las series, sube el RIR a 4-5 (lejos del fallo) y mantén la técnica. Sin récords: deja que tendones y articulaciones se pongan al día.`;
+    content.appendChild(d);
+  }
+
+  const card=document.createElement("div"); card.className="plan-card";
+  card.innerHTML=`<h3>🎯 Objetivo del bloque</h3>
+    <p>${b.objetivo}</p>
+    <div class="plan-rows">
+      <div><span>Reps objetivo</span><b>${b.reps}</b></div>
+      <div><span>RIR (reps en reserva)</span><b>${b.rir}</b></div>
+      <div><span>Descarga</span><b>1 semana de cada 6</b></div>
+    </div>`;
+  content.appendChild(card);
+
+  const rule=document.createElement("div"); rule.className="plan-card";
+  rule.innerHTML=`<h3>📈 Cómo progresar (doble progresión)</h3>
+    <p>Sube <b>reps</b> hacia el tope del rango cada semana manteniendo tu RIR. Cuando llegues al tope en <b>todas las series</b> con técnica limpia y sin dolor, <b>sube al peso mínimo siguiente</b> y reinicia en la parte baja del rango.</p>
+    <p class="plan-tip">💡 En <b>Entreno</b>, cada ejercicio te dirá si toca <b>subir peso</b> o <b>sumar reps</b> según tu último registro.</p>`;
+  content.appendChild(rule);
+
+  const g=document.createElement("div"); g.className="plan-card";
+  g.innerHTML=`<h3>🧭 Claves a los 40</h3>
+    <ul class="plan-ul">
+      <li><b>No al fallo:</b> deja 2-3 reps en reserva (3-4 en hombro/escápula). Ganas casi el mismo músculo con mucha menos fatiga y riesgo.</li>
+      <li><b>Proteína:</b> 1,6-2,0 g/kg al día.</li>
+      <li><b>Sueño:</b> 7-9 h — tu mejor recuperación.</li>
+      <li><b>Constancia y técnica</b> por encima de cargas máximas: la adherencia es lo que más resultado da.</li>
+      <li><b>Escápula primero:</b> trabajo escapular en cada calentamiento; press de hombro sin prisa.</li>
+    </ul>`;
+  content.appendChild(g);
+
+  MILESTONES.forEach(group=>{
+    const sec=document.createElement("div"); sec.className="plan-card";
+    const done=group.items.filter(it=>PLAN[it.id]).length;
+    sec.innerHTML=`<h3>🏁 Hitos · ${group.h} <span class="ms-count">${done}/${group.items.length}</span></h3><div class="ms-list"></div>`;
+    const list=sec.querySelector(".ms-list");
+    group.items.forEach(it=>{
+      const row=document.createElement("button");
+      row.className="ms-item"+(PLAN[it.id]?" on":"");
+      row.innerHTML=`<span class="ms-check">✓</span><span class="ms-txt">${it.t}</span><span class="ms-tag ${it.tipo}">${it.tipo}</span>`;
+      row.onclick=()=>{
+        PLAN[it.id]=!PLAN[it.id]; saveJSON(LS_PLAN,PLAN);
+        row.classList.toggle("on", PLAN[it.id]);
+        sec.querySelector(".ms-count").textContent=group.items.filter(x=>PLAN[x.id]).length+"/"+group.items.length;
+      };
+      list.appendChild(row);
+    });
+    content.appendChild(sec);
+  });
+
+  const f=document.createElement("p"); f.className="plan-foot";
+  f.textContent="Plan basado en evidencia (doble progresión, RIR, deload) adaptado a 40 años. Si hay molestia, ajústalo con tu fisio.";
+  content.appendChild(f);
 }
 
 function renderEntreno(){
@@ -1166,11 +1376,11 @@ function renderEntreno(){
 
   const sv = sess(day);
 
-  // Phase 12 notice
-  if(WEEK>=12){
+  // Aviso de semana de descarga (deload), 1 de cada 6
+  if(planBlock(WEEK).isDeload){
     const n=document.createElement("div");
     n.className="phase12";
-    n.innerHTML = `🎯 <b>Semana ${WEEK}.</b> Has completado el bloque de Fase 1. Buen momento para <b>valorar el paso a Fase 2</b>: introducir progresivamente peso libre básico. Sin prisa — si algún día notas molestia en la escápula, mantén Fase 1.`;
+    n.innerHTML = `🌙 <b>Semana ${WEEK}: descarga.</b> Haz la <b>mitad de las series</b> y deja más reps en reserva (RIR 4-5). Mantén la técnica, sin récords — recuperas tendones y articulaciones. Ver <b>📅 Plan</b>.`;
     content.appendChild(n);
   }
 
@@ -1455,6 +1665,15 @@ function renderExercise(day,ex,num){
     n.className="note-tech"+(ex.key?" key":"");
     n.textContent=(ex.key?"⚠️ ":"💡 ")+ex.note;
     detail.appendChild(n);
+  }
+
+  // Sugerencia de progresión (doble progresión / luz verde)
+  const hint = progressionHint(day, ex);
+  if(hint){
+    const ph=document.createElement("div");
+    ph.className="prog-hint prog-"+hint.kind;
+    ph.textContent=hint.text;
+    detail.appendChild(ph);
   }
 
   // sets table
@@ -2321,7 +2540,7 @@ function showUpdate(){ const b=document.getElementById("updateBanner"); if(b) b.
 })();
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.10-5 · BIELA";
+const APP_VERSION = "2026.06.10-6 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
