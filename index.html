@@ -1097,6 +1097,16 @@ function mergeLogs(base, incoming){
   return out;
 }
 
+/* Tope de series visibles según el modo (express recorta también las series) */
+function setCap(){ return sessionMode==="min" ? 2 : sessionMode==="corto" ? 3 : Infinity; }
+/* ¿Completa considerando solo las primeras n series? (para el modo express) */
+function entryCompleteN(e, n){
+  if(!e || !e.sets || !e.sets.length) return false;
+  const k = Math.max(1, Math.min(n, e.sets.length));
+  const slice = e.sets.slice(0,k);
+  return slice.every(s=>s.done) && slice.some(s=>s.w!==""||s.r!=="");
+}
+
 /* ¿Una entrada está "completa"? (todas las series marcadas y con algún dato) */
 function entryComplete(e){
   return !!(e && e.sets && e.sets.length && e.sets.every(s=>s.done) && e.sets.some(s=>s.w!==""||s.r!==""));
@@ -1414,11 +1424,8 @@ function renderEntreno(){
   // Ejercicios visibles según el tiempo disponible (modo express)
   const exList = expressSubset(sv);
 
-  // Progreso del día: ejercicios completados (sobre los visibles)
-  const isExDone = ex=>{
-    const e=LOG[logKey(WEEK,day.key,ex.id)];
-    return e && e.sets.every(s=>s.done) && e.sets.some(s=>s.w!==""||s.r!=="");
-  };
+  // Progreso del día: ejercicios completados (sobre los visibles y el tope de series del modo)
+  const isExDone = ex=> entryCompleteN(LOG[logKey(WEEK,day.key,ex.id)], setCap());
   const nEx = exList.length;
   const completedEx = exList.filter(isExDone).length;
   const dayPct = nEx ? Math.round(completedEx/nEx*100) : 0;
@@ -1427,7 +1434,7 @@ function renderEntreno(){
   // Session banner con barra de progreso del día
   const banner=document.createElement("div");
   banner.className="session-banner";
-  const totalSets = exList.reduce((a,e)=>a+e.sets,0);
+  const totalSets = exList.reduce((a,e)=>a+Math.min(e.sets,setCap()),0);
   const modeTag = sessionMode==="full" ? "" : ` · ⏱️ ${MODE_INFO[sessionMode].label}`;
   banner.innerHTML = `<div class="label">${DAY_SHORT[selectedDay]} · ${selectedDay==todayKey()?"hoy":"sesión"} · ${LOCATIONS[LOCATION].tag}${modeTag}</div>
     <h2>${sv.title}</h2>
@@ -1456,7 +1463,7 @@ function renderEntreno(){
   if(sessionMode!=="full"){
     const note=document.createElement("div");
     note.className="express-note";
-    note.innerHTML = `⚡ <b>Modo express (${MODE_INFO[sessionMode].label}).</b> Lo esencial del día${sv.exercises.some(e=>e.key)?", incluido el trabajo de escápula":""}. Haz <b>${MODE_INFO[sessionMode].sets}</b>, ${MODE_INFO[sessionMode].rest}, deja 2-3 reps en reserva. Mejor poco que nada. 💪`;
+    note.innerHTML = `⚡ <b>Modo express (${MODE_INFO[sessionMode].label}).</b> Te dejo lo esencial del día${sv.exercises.some(e=>e.key)?", incluido el trabajo de escápula":""}: <b>${MODE_INFO[sessionMode].sets}</b> (ya recortadas en la tabla). ${MODE_INFO[sessionMode].rest}, deja 2-3 reps en reserva. Mejor poco que nada. 💪`;
     content.appendChild(note);
   }
 
@@ -1652,7 +1659,7 @@ function updateDayProgress(){
   const sv=sess(day);
   const exList=expressSubset(sv);
   const nEx=exList.length;
-  const completed=exList.filter(ex=>entryComplete(LOG[logKey(WEEK,day.key,ex.id)])).length;
+  const completed=exList.filter(ex=>entryCompleteN(LOG[logKey(WEEK,day.key,ex.id)], setCap())).length;
   const complete = completed===nEx && nEx>0;
   const fill=document.querySelector(".dp-fill");
   if(fill) fill.style.width=(nEx?Math.round(completed/nEx*100):0)+"%";
@@ -1669,7 +1676,8 @@ function updateDayProgress(){
 function renderExercise(day,ex,num){
   const entry = getEntry(day.key,ex.id,ex.sets);
   const open = UI.openEx[ex.id];
-  const allDone = entry.sets.every(s=>s.done) && entry.sets.some(s=>s.w!==""||s.r!=="");
+  const visN = Math.min(entry.sets.length, setCap());   // series visibles (express recorta)
+  const allDone = entryCompleteN(entry, visN);
   const wrap=document.createElement("div");
   wrap.className="ex"+(open?" open":"")+(allDone?" done":"");
 
@@ -1683,7 +1691,7 @@ function renderExercise(day,ex,num){
   head.querySelector(".ex-check").onclick=(e)=>{
     e.stopPropagation();
     const target = !allDone;
-    entry.sets.forEach(s=>s.done=target);
+    entry.sets.slice(0,visN).forEach(s=>s.done=target); // marca solo las series visibles
     persist(); render();
   };
   head.onclick=()=>{ UI.openEx[ex.id]=!UI.openEx[ex.id]; saveJSON(LS_UI,UI); render(); };
@@ -1732,7 +1740,7 @@ function renderExercise(day,ex,num){
   table.className="sets";
   table.innerHTML=`<thead><tr><th>Serie</th><th>Peso (kg)</th><th>Reps</th><th>RPE</th><th>✓</th></tr></thead>`;
   const tb=document.createElement("tbody");
-  entry.sets.forEach((s,si)=>{
+  entry.sets.slice(0,visN).forEach((s,si)=>{
     const tr=document.createElement("tr");
     if(s.warm) tr.className="warm-set";
     const prevSet = prevRef && prevRef.e.sets[si]; // para autocompletar (placeholder)
@@ -1796,8 +1804,8 @@ function renderExercise(day,ex,num){
   table.appendChild(tb);
   detail.appendChild(table);
 
-  // Resumen e1RM del ejercicio (mejor serie de trabajo de esta semana)
-  const workE = entry.sets.filter(s=>!s.warm).map(s=>e1rm(s.w,s.r)).filter(Boolean);
+  // Resumen e1RM del ejercicio (mejor serie de trabajo de esta semana, sobre las visibles)
+  const workE = entry.sets.slice(0,visN).filter(s=>!s.warm).map(s=>e1rm(s.w,s.r)).filter(Boolean);
   if(workE.length){
     const best=Math.max(...workE);
     const e1=document.createElement("div");
@@ -2589,7 +2597,7 @@ function showUpdate(){ const b=document.getElementById("updateBanner"); if(b) b.
 })();
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.10-7 · BIELA";
+const APP_VERSION = "2026.06.10-8 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
