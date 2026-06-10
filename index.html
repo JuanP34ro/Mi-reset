@@ -480,6 +480,16 @@
   .hist-toggle .ht{border:1.5px solid var(--line);background:var(--card);color:var(--muted);
     border-radius:9px;padding:5px 13px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;touch-action:manipulation}
   .hist-toggle .ht.on{background:var(--accent);color:#04232f;border-color:var(--accent)}
+
+  /* Calentamiento y estiramientos: vídeo por ítem + consejos */
+  .warm-item{align-items:flex-start}
+  .wi-txt{flex:1}
+  .item-vid{flex:0 0 auto;margin-left:8px;background:var(--soft);border:1px solid var(--line);color:var(--accent);
+    border-radius:8px;padding:3px 10px;font-size:12px;font-weight:800;text-decoration:none;line-height:1.5;
+    touch-action:manipulation}
+  .warm-tip{font-size:12px;color:var(--muted);margin:3px 0 9px 31px;line-height:1.4}
+  .stretch-intro{font-size:12.5px;color:var(--warn);background:rgba(240,163,60,.1);
+    border:1px solid rgba(240,163,60,.28);border-radius:10px;padding:8px 11px;margin:4px 0 11px;line-height:1.45}
 </style>
 </head>
 <body>
@@ -913,6 +923,41 @@ const DAY_ORDER = ["lunes","martes","miercoles","jueves","viernes","sabado","dom
 const DAY_SHORT = {lunes:"Lun",martes:"Mar",miercoles:"Mié",jueves:"Jue",viernes:"Vie",sabado:"Sáb",domingo:"Dom"};
 const DAY_TAG = {lunes:"Pierna A",martes:"Torso A",miercoles:"Descanso",jueves:"Pierna B",viernes:"Torso B",sabado:"Descanso",domingo:"Descanso"};
 
+/* ---- Estiramientos finales (cool-down) ----
+   Compartidos por sesión (no dependen del material). Cada uno: texto (t),
+   búsqueda de vídeo (q) y consejo (tip). Mantener 20-30 s, sin rebotes. */
+const STRETCH = {
+  pierna_a:[
+    {t:"Cuádriceps de pie (talón al glúteo)", q:"estiramiento de cuadriceps de pie tecnica", tip:"Mete la cadera adelante y mantén las rodillas juntas. 20-30 s por pierna."},
+    {t:"Flexor de cadera en zancada (psoas)", q:"estiramiento flexor de cadera psoas zancada", tip:"Aprieta el glúteo de atrás y no arquees la lumbar."},
+    {t:"Glúteo en figura 4 (tumbado)", q:"estiramiento de gluteo figura 4 tumbado", tip:"Acerca la rodilla al pecho con calma."},
+    {t:"Gemelo en la pared", q:"estiramiento de gemelo en pared tecnica", tip:"Talón pegado al suelo, pierna estirada detrás."}
+  ],
+  torso_a:[
+    {t:"Pecho en el marco de la puerta", q:"estiramiento de pecho en puerta tecnica", tip:"Codo a la altura del hombro; no fuerces si notas la escápula."},
+    {t:"Hombro posterior (brazo cruzado)", q:"estiramiento deltoides posterior brazo cruzado", tip:"Lleva el brazo cruzado al pecho sin encoger el hombro."},
+    {t:"Tríceps por encima de la cabeza", q:"estiramiento de triceps sobre la cabeza", tip:"Codo arriba, empuja suave con la otra mano."},
+    {t:"Cuello y trapecio (suave)", q:"estiramiento de cuello y trapecio suave", tip:"Inclina la cabeza despacio; sin tirones."}
+  ],
+  pierna_b:[
+    {t:"Isquiotibiales sentado", q:"estiramiento de isquiotibiales sentado tecnica", tip:"Espalda recta, lleva el pecho hacia los muslos."},
+    {t:"Glúteo en figura 4", q:"estiramiento de gluteo figura 4 tumbado", tip:"20-30 s por lado, respira hondo."},
+    {t:"Flexor de cadera (psoas)", q:"estiramiento flexor de cadera psoas", tip:"Compensa el trabajo de cadena posterior."},
+    {t:"Gemelo en la pared", q:"estiramiento de gemelo en pared tecnica", tip:"Mantén el talón en el suelo."}
+  ],
+  torso_b:[
+    {t:"Dorsal (brazo arriba, inclínate al lado)", q:"estiramiento de dorsal lat tecnica", tip:"Crece hacia arriba y luego inclínate; nota el costado."},
+    {t:"Gato-camello (movilidad de columna)", q:"ejercicio gato camello movilidad columna", tip:"Alterna lento, sincronizado con la respiración."},
+    {t:"Pecho en el marco de la puerta", q:"estiramiento de pecho en puerta tecnica", tip:"Reequilibra tras el trabajo de tirón."},
+    {t:"Bíceps y antebrazo en la pared", q:"estiramiento de biceps en pared tecnica", tip:"Palma en la pared, gira el cuerpo despacio."}
+  ]
+};
+// Deriva una búsqueda de YouTube a partir del texto de un ítem de calentamiento
+function warmQuery(text){
+  const base=String(text).split(":")[0].split("(")[0].trim();
+  return ytSearch(base+" ejercicio tecnica");
+}
+
 /* ---- Estado / persistencia ---- */
 const LS_LOG = "reset_gym_log_v1";   // { "week|location|sessionKey|exId": {sets:[{w,r,done}], note} }
 const LS_WEEK = "reset_gym_week_v1";
@@ -1179,6 +1224,9 @@ function renderEntreno(){
   // Exercises
   sv.exercises.forEach((ex,i)=> content.appendChild(renderExercise(day,ex,i+1)));
 
+  // Estiramientos finales (cool-down)
+  renderStretch(day);
+
   // Weekly summary
   renderSummary();
 }
@@ -1278,12 +1326,58 @@ function renderWarmup(day,sv){
   sv.warmup.forEach((w,i)=>{
     const it=document.createElement("div");
     it.className="warm-item";
-    it.innerHTML=`<span class="n">${i+1}</span><span>${w}</span>`;
+    it.innerHTML=`<span class="n">${i+1}</span><span class="wi-txt">${w}</span>`+
+      `<a class="item-vid" href="${warmQuery(w)}" target="_blank" rel="noopener" aria-label="Ver vídeo">▶</a>`;
     body.appendChild(it);
   });
   const fw=document.createElement("div");
   fw.className="frase-warm";
   fw.innerHTML=`<span>${fraseDe("inicio")}</span>`;
+  body.appendChild(fw);
+  card.querySelector(".card-head").onclick=()=>{
+    UI.collapsed[id]=!UI.collapsed[id]; saveJSON(LS_UI,UI);
+    card.classList.toggle("collapsed");
+  };
+  content.appendChild(card);
+}
+
+/* Estiramientos finales (cool-down) — tarjeta colapsable con vídeo y consejo por ítem */
+function renderStretch(day){
+  const list = STRETCH[day.key];
+  if(!list) return;
+  const id = "stretch_"+day.key;
+  const collapsed = UI.collapsed[id];
+  const card=document.createElement("div");
+  card.className="card"+(collapsed?" collapsed":"");
+  card.innerHTML = `
+    <div class="card-head">
+      <span class="icon">🧘</span>
+      <h2>Estiramientos finales</h2>
+      <span class="sub">5-8 min</span>
+      <span class="chev">▾</span>
+    </div>
+    <div class="card-body"></div>`;
+  const body = card.querySelector(".card-body");
+  const intro=document.createElement("div");
+  intro.className="stretch-intro";
+  intro.textContent="Mantén cada estiramiento 20-30 s, sin rebotes y respirando hondo. Nunca hasta el dolor.";
+  body.appendChild(intro);
+  list.forEach((s,i)=>{
+    const it=document.createElement("div");
+    it.className="warm-item";
+    it.innerHTML=`<span class="n">${i+1}</span><span class="wi-txt">${s.t}</span>`+
+      `<a class="item-vid" href="${ytSearch(s.q)}" target="_blank" rel="noopener" aria-label="Ver vídeo">▶</a>`;
+    body.appendChild(it);
+    if(s.tip){
+      const tp=document.createElement("div");
+      tp.className="warm-tip";
+      tp.textContent="💡 "+s.tip;
+      body.appendChild(tp);
+    }
+  });
+  const fw=document.createElement("div");
+  fw.className="frase-warm";
+  fw.innerHTML=`<span>${fraseDe("final")}</span>`;
   body.appendChild(fw);
   card.querySelector(".card-head").onclick=()=>{
     UI.collapsed[id]=!UI.collapsed[id]; saveJSON(LS_UI,UI);
@@ -2227,7 +2321,7 @@ function showUpdate(){ const b=document.getElementById("updateBanner"); if(b) b.
 })();
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.10-3 · BIELA";
+const APP_VERSION = "2026.06.10-4 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
