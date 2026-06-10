@@ -526,6 +526,16 @@
   .ms-tag.proceso{background:rgba(27,180,232,.14);color:#9fdcf2}
   .ms-tag.resultado{background:rgba(240,163,60,.14);color:#f0bd72}
   .plan-foot{text-align:center;color:var(--muted);font-size:11.5px;line-height:1.5;margin:4px 0 0;padding:0 6px}
+
+  /* Selector de tiempo disponible (modo express) */
+  .mode-sel{display:flex;gap:6px;margin-bottom:12px}
+  .mode-btn{flex:1;border:1.5px solid var(--line);background:var(--card);color:var(--muted);
+    border-radius:11px;padding:8px 6px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;
+    touch-action:manipulation;transition:.12s}
+  .mode-btn.active{background:var(--accent);color:#04232f;border-color:var(--accent);box-shadow:0 0 14px rgba(27,180,232,.45)}
+  .express-note{background:rgba(27,180,232,.1);border:1.5px solid rgba(27,180,232,.32);color:#bfe6f7;
+    border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.5}
+  .express-note b{color:#eaf7fd}
 </style>
 </head>
 <body>
@@ -1242,8 +1252,22 @@ function renderDaySelector(){
   });
 }
 
-let activeTab = "entreno"; // entreno | progreso
+let activeTab = "entreno"; // entreno | plan | progreso
 const SESSION_DONE = {}; // recuerda qué sesiones estaban completas (para celebrar solo en la transición)
+let sessionMode = "full"; // full | corto (~20') | min (~10') — se reinicia al recargar
+
+/* Subconjunto de ejercicios según el tiempo disponible.
+   Mantiene siempre el ejercicio CLAVE (escápula/face pull) aunque caiga fuera del recorte. */
+function expressSubset(sv){
+  if(sessionMode==="full") return sv.exercises;
+  const n = sessionMode==="min" ? 2 : 3;
+  return sv.exercises.filter((ex,i)=> i<n || ex.key);
+}
+const MODE_INFO = {
+  full:{label:"Completa", sets:"todas las series", rest:"descansos normales"},
+  corto:{label:"~20 min", sets:"2-3 series por ejercicio", rest:"descansa 45-60 s o encadena en superserie"},
+  min:{label:"~10 min", sets:"2 series por ejercicio", rest:"descansos muy cortos / superserie continua"}
+};
 
 function launchConfetti(){
   const box=document.createElement("div");
@@ -1387,21 +1411,25 @@ function renderEntreno(){
   // Recordatorio suave de copia a libreta (domingo o 7+ días sin exportar)
   renderBackupReminder();
 
-  // Progreso del día: ejercicios completados
+  // Ejercicios visibles según el tiempo disponible (modo express)
+  const exList = expressSubset(sv);
+
+  // Progreso del día: ejercicios completados (sobre los visibles)
   const isExDone = ex=>{
     const e=LOG[logKey(WEEK,day.key,ex.id)];
     return e && e.sets.every(s=>s.done) && e.sets.some(s=>s.w!==""||s.r!=="");
   };
-  const nEx = sv.exercises.length;
-  const completedEx = sv.exercises.filter(isExDone).length;
+  const nEx = exList.length;
+  const completedEx = exList.filter(isExDone).length;
   const dayPct = nEx ? Math.round(completedEx/nEx*100) : 0;
   const sessionComplete = completedEx===nEx && nEx>0;
 
   // Session banner con barra de progreso del día
   const banner=document.createElement("div");
   banner.className="session-banner";
-  const totalSets = sv.exercises.reduce((a,e)=>a+e.sets,0);
-  banner.innerHTML = `<div class="label">${DAY_SHORT[selectedDay]} · ${selectedDay==todayKey()?"hoy":"sesión"} · ${LOCATIONS[LOCATION].tag}</div>
+  const totalSets = exList.reduce((a,e)=>a+e.sets,0);
+  const modeTag = sessionMode==="full" ? "" : ` · ⏱️ ${MODE_INFO[sessionMode].label}`;
+  banner.innerHTML = `<div class="label">${DAY_SHORT[selectedDay]} · ${selectedDay==todayKey()?"hoy":"sesión"} · ${LOCATIONS[LOCATION].tag}${modeTag}</div>
     <h2>${sv.title}</h2>
     <div class="meta">${nEx} ejercicios · ${totalSets} series · Fase 1</div>
     <div class="day-progress"><div class="dp-fill" data-w="${dayPct}"></div></div>
@@ -1412,18 +1440,38 @@ function renderEntreno(){
     const f=banner.querySelector(".dp-fill"); if(f) f.style.width=f.getAttribute("data-w")+"%";
   }));
 
+  // Selector de tiempo disponible
+  const modeSel=document.createElement("div");
+  modeSel.className="mode-sel";
+  ["full","corto","min"].forEach(m=>{
+    const b=document.createElement("button");
+    b.className="mode-btn"+(sessionMode===m?" active":"");
+    b.innerHTML = (m==="full"?"":"⏱️ ")+MODE_INFO[m].label;
+    b.onclick=()=>{ sessionMode=m; render(); };
+    modeSel.appendChild(b);
+  });
+  content.appendChild(modeSel);
+
+  // Nota del modo express
+  if(sessionMode!=="full"){
+    const note=document.createElement("div");
+    note.className="express-note";
+    note.innerHTML = `⚡ <b>Modo express (${MODE_INFO[sessionMode].label}).</b> Lo esencial del día${sv.exercises.some(e=>e.key)?", incluido el trabajo de escápula":""}. Haz <b>${MODE_INFO[sessionMode].sets}</b>, ${MODE_INFO[sessionMode].rest}, deja 2-3 reps en reserva. Mejor poco que nada. 💪`;
+    content.appendChild(note);
+  }
+
   // Celebración: solo cuando la sesión pasa de incompleta a completa
   const skey = WEEK+"|"+LOCATION+"|"+day.key;
   const wasDone = SESSION_DONE[skey];
   SESSION_DONE[skey] = sessionComplete;
   if(sessionComplete && wasDone===false){ launchConfetti(); }
 
-  // Cierre de sesión: si todos los ejercicios del día están completos
+  // Cierre de sesión: si todos los ejercicios visibles están completos
   if(sessionComplete){
     const cierre=document.createElement("div");
     cierre.className="cierre";
     cierre.innerHTML=`<div class="ico">🏛️</div>
-      <div class="ttl">Sesión completada</div>
+      <div class="ttl">Sesión completada${sessionMode!=="full"?" (express)":""}</div>
       <div class="txt">${fraseDe("final")}</div>`;
     content.appendChild(cierre);
   }
@@ -1431,8 +1479,8 @@ function renderEntreno(){
   // Warmup card
   renderWarmup(day,sv);
 
-  // Exercises
-  sv.exercises.forEach((ex,i)=> content.appendChild(renderExercise(day,ex,i+1)));
+  // Exercises (subconjunto según el modo)
+  exList.forEach((ex,i)=> content.appendChild(renderExercise(day,ex,i+1)));
 
   // Estiramientos finales (cool-down)
   renderStretch(day);
@@ -1602,8 +1650,9 @@ function updateDayProgress(){
   const day=PROGRAM[selectedDay];
   if(!day || day.type!=="session") return {complete:false, transition:false};
   const sv=sess(day);
-  const nEx=sv.exercises.length;
-  const completed=sv.exercises.filter(ex=>entryComplete(LOG[logKey(WEEK,day.key,ex.id)])).length;
+  const exList=expressSubset(sv);
+  const nEx=exList.length;
+  const completed=exList.filter(ex=>entryComplete(LOG[logKey(WEEK,day.key,ex.id)])).length;
   const complete = completed===nEx && nEx>0;
   const fill=document.querySelector(".dp-fill");
   if(fill) fill.style.width=(nEx?Math.round(completed/nEx*100):0)+"%";
@@ -2540,7 +2589,7 @@ function showUpdate(){ const b=document.getElementById("updateBanner"); if(b) b.
 })();
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.10-6 · BIELA";
+const APP_VERSION = "2026.06.10-7 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
