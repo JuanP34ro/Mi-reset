@@ -1035,12 +1035,17 @@ const LS_GH_LASTSYNC = "reset_gym_gh_lastsync_v1"; // fecha de la última sincro
 const LS_PREDO = "reset_gym_predo_v1";           // snapshot anterior al último cambio destructivo (deshacer)
 const LS_PLAN = "reset_gym_plan_v1";             // hitos del plan marcados por el usuario
 const LS_DATES = "reset_gym_dates_v1";           // fechas reales en las que se entrenó (para el calendario)
+const LS_WEEK_ANCHOR = "reset_gym_week_anchor_v1"; // lunes (real) al que corresponde la semana actual (auto-avance)
 
 function loadJSON(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
 function saveJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 const pad2 = n => String(n).padStart(2,"0");
 const dateStr = d => d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
 const todayStr = () => dateStr(new Date());
+const parseLocalDate = s => { const p=String(s).split("-"); return new Date(+p[0], (+p[1])-1, +p[2]); };
+// Lunes (00:00) de la semana de una fecha
+function mondayOf(d){ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); return x; }
+function weeksBetween(a,b){ return Math.floor((b.getTime()-a.getTime())/(7*86400000)); }
 // Escapa texto antes de meterlo en innerHTML (evita inyección desde copias externas)
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
@@ -2711,11 +2716,33 @@ function showUpdate(){ const b=document.getElementById("updateBanner"); if(b) b.
   });
 })();
 
+/* ---- Auto-avance de semana: cada lunes pasa sola a la siguiente ---- */
+let weekAutoAdvancedTo = 0;
+(function autoAdvanceWeek(){
+  const todayMon = mondayOf(new Date());
+  let anchorStr = localStorage.getItem(LS_WEEK_ANCHOR);
+  if(!anchorStr){
+    // Primera vez: ancla a la semana del último entreno registrado (si lo hay) o a esta semana
+    const ds = Object.keys(TRAINED).sort();
+    const base = ds.length ? parseLocalDate(ds[ds.length-1]) : new Date();
+    anchorStr = dateStr(mondayOf(base));
+    localStorage.setItem(LS_WEEK_ANCHOR, anchorStr);
+  }
+  const wks = weeksBetween(parseLocalDate(anchorStr), todayMon);
+  if(wks>0){
+    WEEK = WEEK + wks;
+    localStorage.setItem(LS_WEEK, String(WEEK));
+    localStorage.setItem(LS_WEEK_ANCHOR, dateStr(todayMon));
+    weekAutoAdvancedTo = WEEK;
+  }
+})();
+
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.10-10 · BIELA";
+const APP_VERSION = "2026.06.11-1 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
+if(weekAutoAdvancedTo){ setTimeout(()=>toast("Nueva semana "+weekAutoAdvancedTo+" — ¡a por ella! 💪"), 500); }
 </script>
 </body>
 </html>

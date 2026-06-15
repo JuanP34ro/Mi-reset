@@ -2,7 +2,7 @@
    Estrategia: network-first para el HTML (siempre fresco si hay red),
    con respaldo en caché para funcionar sin internet.
    Sube CACHE en cada despliegue para forzar actualización. */
-const CACHE = "mireset-v16";
+const CACHE = "mireset-v17";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest"];
 
 self.addEventListener("install", e=>{
