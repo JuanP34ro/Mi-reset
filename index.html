@@ -1103,7 +1103,15 @@ function getEntry(sessionKey,exId,nSets,week,loc){
   while(LOG[k].sets.length < nSets) LOG[k].sets.push(blank());
   return LOG[k];
 }
-function persistLocal(){ saveJSON(LS_LOG, LOG); saveJSON(LS_BACKUP, LOG); }
+// ¿Entrada totalmente vacía? (sin datos, sin marcar, sin nota/molestia) → no merece persistirse
+function isEmptyEntry(e){
+  return e && e.sets && e.sets.every(s=>s.w===""&&s.r===""&&!s.done&&!s.warm&&(!s.rpe||s.rpe==="")) && !e.note && !e.molestia;
+}
+// Elimina las entradas vacías que getEntry crea al renderizar (evita engordar copia/nube)
+function pruneEmptyEntries(){
+  Object.keys(LOG).forEach(k=>{ if(isEmptyEntry(LOG[k])) delete LOG[k]; });
+}
+function persistLocal(){ pruneEmptyEntries(); saveJSON(LS_LOG, LOG); saveJSON(LS_BACKUP, LOG); }
 function persist(){ persistLocal(); scheduleCloudSync(); }
 
 /* Snapshot de seguridad antes de una operación destructiva (restaurar/traer de la nube).
@@ -1210,7 +1218,7 @@ const SESSION_LABEL = (()=>{ const o={}; Object.values(PROGRAM).forEach(d=>{ if(
 function markTrainedToday(sessionKey){
   const ds=todayStr();
   if(!TRAINED[ds]) TRAINED[ds]=[];
-  if(!TRAINED[ds].includes(sessionKey)){ TRAINED[ds].push(sessionKey); saveJSON(LS_DATES, TRAINED); }
+  if(!TRAINED[ds].includes(sessionKey)){ TRAINED[ds].push(sessionKey); saveJSON(LS_DATES, TRAINED); scheduleCloudSync(); }
 }
 
 // Bloque/fase según la semana
@@ -1493,7 +1501,7 @@ function renderPlan(){
       row.className="ms-item"+(PLAN[it.id]?" on":"");
       row.innerHTML=`<span class="ms-check">✓</span><span class="ms-txt">${it.t}</span><span class="ms-tag ${it.tipo}">${it.tipo}</span>`;
       row.onclick=()=>{
-        PLAN[it.id]=!PLAN[it.id]; saveJSON(LS_PLAN,PLAN);
+        PLAN[it.id]=!PLAN[it.id]; saveJSON(LS_PLAN,PLAN); scheduleCloudSync();
         row.classList.toggle("on", PLAN[it.id]);
         sec.querySelector(".ms-count").textContent=group.items.filter(x=>PLAN[x.id]).length+"/"+group.items.length;
       };
@@ -1802,6 +1810,7 @@ function renderExercise(day,ex,num){
     e.stopPropagation();
     const target = !allDone;
     entry.sets.slice(0,visN).forEach(s=>s.done=target); // marca solo las series visibles
+    if(target) markTrainedToday(day.key);               // registra el día en el calendario
     persist(); render();
   };
   head.onclick=()=>{ UI.openEx[ex.id]=!UI.openEx[ex.id]; saveJSON(LS_UI,UI); render(); };
@@ -1914,8 +1923,8 @@ function renderExercise(day,ex,num){
   table.appendChild(tb);
   detail.appendChild(table);
 
-  // Resumen e1RM del ejercicio (mejor serie de trabajo de esta semana, sobre las visibles)
-  const workE = entry.sets.slice(0,visN).filter(s=>!s.warm).map(s=>e1rm(s.w,s.r)).filter(Boolean);
+  // Resumen e1RM del ejercicio (mejor serie de trabajo con datos; independiente del modo de vista)
+  const workE = entry.sets.filter(s=>!s.warm).map(s=>e1rm(s.w,s.r)).filter(Boolean);
   if(workE.length){
     const best=Math.max(...workE);
     const e1=document.createElement("div");
@@ -1992,8 +2001,12 @@ function renderExercise(day,ex,num){
 /* ---- Historial por ejercicio: progresión de peso o de 1RM estimado ---- */
 function drawHistory(container,sessionKey,ex,metric){
   metric = (metric==="e1rm") ? "e1rm" : "peso";
+  // Incluye también semanas registradas por encima de la actual (navegación manual)
+  let maxLogW=WEEK;
+  const pre=logKey(0,sessionKey,ex.id).replace(/^0\|/,""); // "loc|session|ex"
+  Object.keys(LOG).forEach(k=>{ const p=k.split("|"); if(p.slice(1).join("|")===pre){ const w=parseInt(p[0],10); if(w>maxLogW) maxLogW=w; } });
   const points=[];
-  for(let w=1; w<=Math.max(WEEK,1); w++){
+  for(let w=1; w<=Math.max(maxLogW,1); w++){
     const e = LOG[logKey(w,sessionKey,ex.id)];
     if(!e) continue;
     const vals = metric==="e1rm"
@@ -2134,7 +2147,7 @@ function renderSummary(){
 /* ===========================================================
    Temporizador de descanso
    =========================================================== */
-let restTimer=null, restRemaining=0, restTotal=0, restPaused=false, restEndAt=0, restDone=false, audioCtx=null;
+let restTimer=null, restRemaining=0, restTotal=0, restPaused=false, restEndAt=0, restDone=false, restCloseT=null, audioCtx=null;
 const restOverlay=document.getElementById("restOverlay");
 const restTimeEl=document.getElementById("restTime");
 const restBar=document.getElementById("restBar");
@@ -2144,6 +2157,8 @@ function startRest(seconds){
   restTotal=seconds; restRemaining=seconds; restPaused=false; restDone=false;
   restEndAt=Date.now()+seconds*1000;
   restPauseBtn.textContent="Pausar";
+  restTimeEl.classList.remove("flash");
+  clearTimeout(restCloseT);
   const rf=document.getElementById("restFrase");
   if(rf) rf.textContent="“"+fraseDe("esfuerzo")+"”";
   updateRestUI();
@@ -2163,7 +2178,8 @@ function tickRest(){
     restTimeEl.classList.add("flash");
     beep();
     if(navigator.vibrate) navigator.vibrate([180,90,180]);
-    setTimeout(()=>{ restTimeEl.classList.remove("flash"); closeRest(); }, 2200);
+    clearTimeout(restCloseT);
+    restCloseT=setTimeout(()=>{ restTimeEl.classList.remove("flash"); closeRest(); }, 2200);
   }
 }
 function updateRestUI(){
@@ -2174,6 +2190,7 @@ function updateRestUI(){
 }
 function closeRest(){
   clearInterval(restTimer);
+  clearTimeout(restCloseT);
   restOverlay.classList.remove("show");
   restTimeEl.classList.remove("flash");
 }
@@ -2184,6 +2201,13 @@ restPauseBtn.onclick=()=>{
 };
 document.getElementById("restAdd").onclick=()=>{
   restRemaining+=30;
+  if(restDone){                 // si ya había sonado el pitido, reactiva el descanso
+    restDone=false;
+    clearTimeout(restCloseT);
+    restTimeEl.classList.remove("flash");
+    clearInterval(restTimer);
+    restTimer=setInterval(tickRest,250);
+  }
   if(!restPaused) restEndAt=Date.now()+restRemaining*1000;
   restTotal=Math.max(restTotal,restRemaining);
   updateRestUI();
@@ -2508,6 +2532,9 @@ document.getElementById("cloudDisconnect").onclick=cloudDisconnect;
 function setWeek(w){
   WEEK=Math.max(1,w);
   localStorage.setItem(LS_WEEK,String(WEEK));
+  // Reancla: al fijar la semana manualmente, ESTA pasa a ser la semana de la fecha actual
+  // (evita que el auto-avance del lunes reintroduzca deltas ya aplicados).
+  localStorage.setItem(LS_WEEK_ANCHOR, dateStr(mondayOf(new Date())));
   document.getElementById("weekNum").textContent=WEEK;
   render();
 }
@@ -2722,10 +2749,13 @@ let weekAutoAdvancedTo = 0;
   const todayMon = mondayOf(new Date());
   let anchorStr = localStorage.getItem(LS_WEEK_ANCHOR);
   if(!anchorStr){
-    // Primera vez: ancla a la semana del último entreno registrado (si lo hay) o a esta semana
+    // Primera vez: ancla a la semana del último entreno registrado (si lo hay) o a esta semana.
+    // Nunca en el futuro (evita congelar el auto-avance si hay fechas raras).
     const ds = Object.keys(TRAINED).sort();
     const base = ds.length ? parseLocalDate(ds[ds.length-1]) : new Date();
-    anchorStr = dateStr(mondayOf(base));
+    let baseMon = mondayOf(base);
+    if(baseMon.getTime() > todayMon.getTime()) baseMon = todayMon;
+    anchorStr = dateStr(baseMon);
     localStorage.setItem(LS_WEEK_ANCHOR, anchorStr);
   }
   const wks = weeksBetween(parseLocalDate(anchorStr), todayMon);
@@ -2738,7 +2768,7 @@ let weekAutoAdvancedTo = 0;
 })();
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.11-1 · BIELA";
+const APP_VERSION = "2026.06.11-2 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
