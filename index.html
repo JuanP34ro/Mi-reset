@@ -780,12 +780,48 @@ const PROGRAM = {
           "Aproximación hack squat: vacía 10 reps + 50% peso 6-8 reps."
         ],
         exercises:[
-          {id:"hack_squat", name:"Hack squat en máquina", scheme:"4 × 8-12", rest:90, sets:4, vid:ytSearch("hack squat tecnica powerexplosive")},
-          {id:"prensa", name:"Prensa de piernas", scheme:"3 × 12-15", rest:90, sets:3, vid:ytSearch("prensa de piernas tecnica sergio peinado")},
-          {id:"ext_cuad", name:"Extensión de cuádriceps", scheme:"3 × 12-15", rest:60, sets:3, vid:ytSearch("extension de cuadriceps maquina tecnica")},
-          {id:"curl_fem_tumb", name:"Curl femoral tumbado", scheme:"3 × 12-15", rest:60, sets:3, vid:ytSearch("curl femoral tumbado tecnica")},
-          {id:"gemelo_pie", name:"Gemelo de pie en máquina", scheme:"4 × 15", rest:45, sets:4, vid:ytSearch("gemelos de pie maquina tecnica")},
-          {id:"crunch_maq", name:"Crunch en máquina o plancha", scheme:"3 × 45 seg / 12 reps", rest:45, sets:3, vid:ytSearch("crunch en maquina abdominales tecnica")}
+          {id:"hack_squat", name:"Hack squat en máquina", scheme:"4 × 6-10", rest:150, sets:4, note:"Compuesto principal de cuádriceps. Profundo y controlado, RIR 2-3.", vid:ytSearch("hack squat tecnica powerexplosive"),
+            alts:[
+              {name:"Sentadilla libre con barra", vid:ytSearch("sentadilla con barra tecnica")},
+              {name:"Prensa de piernas (pies medios)", vid:ytSearch("prensa de piernas tecnica")},
+              {name:"Sentadilla en multipower (Smith)", vid:ytSearch("sentadilla en multipower smith tecnica")}
+            ]},
+          {id:"rdl", name:"Peso muerto rumano (RDL)", scheme:"3 × 8-12", rest:150, sets:3, note:"Bisagra de cadera: isquios en estiramiento + glúteo. Espalda recta, baja hasta media espinilla.", vid:ytSearch("peso muerto rumano barra tecnica sergio peinado"),
+            alts:[
+              {name:"RDL con mancuernas", vid:ytSearch("peso muerto rumano mancuernas tecnica")},
+              {name:"Buenos días con barra (carga ligera)", vid:ytSearch("buenos dias con barra tecnica")},
+              {name:"RDL a una pierna con mancuerna", vid:ytSearch("peso muerto rumano a una pierna tecnica")}
+            ]},
+          {id:"prensa", name:"Prensa de piernas", scheme:"2 × 12-15", rest:120, sets:2, note:"Complementa al hack; con 2 series basta (evita solape).", vid:ytSearch("prensa de piernas tecnica sergio peinado"),
+            alts:[
+              {name:"Zancadas con mancuernas", vid:ytSearch("zancadas con mancuernas tecnica")},
+              {name:"Sentadilla búlgara", vid:ytSearch("sentadilla bulgara tecnica")},
+              {name:"Sentadilla en multipower", vid:ytSearch("sentadilla en multipower smith tecnica")}
+            ]},
+          {id:"ext_cuad", name:"Extensión de cuádriceps", scheme:"3 × 12-15", rest:75, sets:3, note:"Tronco algo reclinado enfatiza el recto femoral.", vid:ytSearch("extension de cuadriceps maquina tecnica"),
+            alts:[
+              {name:"Extensión de cuádriceps a una pierna", vid:ytSearch("extension de cuadriceps una pierna tecnica")},
+              {name:"Sissy squat (asistido)", vid:ytSearch("sissy squat tecnica")},
+              {name:"Extensión con banda en el tobillo", vid:ytSearch("extension de cuadriceps con banda tecnica")}
+            ]},
+          {id:"curl_fem_tumb", name:"Curl femoral sentado", scheme:"3 × 10-15", rest:75, sets:3, note:"Sentado = isquio en longitud larga: más crecimiento que tumbado.", vid:ytSearch("curl femoral sentado maquina tecnica"),
+            alts:[
+              {name:"Curl femoral tumbado", vid:ytSearch("curl femoral tumbado tecnica")},
+              {name:"Curl femoral a una pierna", vid:ytSearch("curl femoral a una pierna tecnica")},
+              {name:"Curl nórdico (excéntrico asistido)", vid:ytSearch("curl nordico tecnica principiante")}
+            ]},
+          {id:"gemelo_pie", name:"Gemelo de pie en máquina", scheme:"4 × 12-20", rest:60, sets:4, note:"De pie cubre gastrocnemio y sóleo. Pausa arriba 1 seg, rango completo.", vid:ytSearch("gemelos de pie maquina tecnica"),
+            alts:[
+              {name:"Gemelo en la prensa", vid:ytSearch("gemelo en prensa tecnica")},
+              {name:"Gemelo de pie a una pierna con mancuerna", vid:ytSearch("gemelo a una pierna con mancuerna tecnica")},
+              {name:"Gemelo de pie en multipower", vid:ytSearch("gemelo de pie en multipower tecnica")}
+            ]},
+          {id:"crunch_maq", name:"Crunch en máquina o plancha", scheme:"3 × 45 seg / 12 reps", rest:45, sets:3, vid:ytSearch("crunch en maquina abdominales tecnica"),
+            alts:[
+              {name:"Rueda abdominal (ab wheel)", vid:ytSearch("rueda abdominal ab wheel tecnica")},
+              {name:"Plancha / plancha lateral", vid:ytSearch("plancha abdominal tecnica")},
+              {name:"Crunch en polea (arrodillado)", vid:ytSearch("crunch en polea arrodillado tecnica")}
+            ]}
         ]
       },
       casa:{
@@ -798,12 +834,48 @@ const PROGRAM = {
           "Sentadilla goblet ligera de aproximación: 10 reps suaves."
         ],
         exercises:[
-          {id:"casa_goblet", name:"Sentadilla goblet (mancuerna o kettlebell)", scheme:"4 × 8-12", rest:90, sets:4, note:"Pesa pegada al pecho, baja profundo y controlado.", vid:ytSearch("sentadilla goblet kettlebell tecnica")},
-          {id:"casa_bulgara", name:"Sentadilla búlgara (pie atrás en silla)", scheme:"3 × 10-12 por pierna", rest:75, sets:3, note:"Mancuernas a los lados. Más cuádriceps si el torso va recto.", vid:ytSearch("sentadilla bulgara mancuernas tecnica")},
-          {id:"casa_zancada", name:"Zancadas con mancuernas", scheme:"3 × 12 por pierna", rest:60, sets:3, vid:ytSearch("zancadas con mancuernas tecnica")},
-          {id:"casa_curl_banda", name:"Curl femoral deslizante o con banda", scheme:"3 × 12-15", rest:60, sets:3, note:"Talones en toalla y deslizar, o banda en los tobillos.", vid:ytSearch("curl femoral con banda elastica en casa")},
-          {id:"casa_gemelo", name:"Gemelo de pie con peso (a una o dos piernas)", scheme:"4 × 15", rest:45, sets:4, vid:ytSearch("gemelo de pie con mancuerna casa")},
-          {id:"casa_plancha", name:"Plancha o crunch", scheme:"3 × 45 seg / 12 reps", rest:45, sets:3, vid:ytSearch("plancha abdominal tecnica")}
+          {id:"casa_goblet", name:"Sentadilla goblet (mancuerna o kettlebell)", scheme:"4 × 8-12", rest:120, sets:4, note:"Pesa pegada al pecho, baja profundo y controlado.", vid:ytSearch("sentadilla goblet kettlebell tecnica"),
+            alts:[
+              {name:"Sentadilla búlgara con mancuernas", vid:ytSearch("sentadilla bulgara mancuernas tecnica")},
+              {name:"Sentadilla frontal con 2 mancuernas al hombro", vid:ytSearch("sentadilla frontal con mancuernas tecnica")},
+              {name:"Sentadilla peso corporal a tempo lento", vid:ytSearch("sentadilla peso corporal tempo lento tecnica")}
+            ]},
+          {id:"casa_rdl_a", name:"Peso muerto rumano con mancuernas o kettlebell", scheme:"3 × 8-12", rest:120, sets:3, note:"Bisagra de cadera: isquios en estiramiento + glúteo. Espalda recta.", vid:ytSearch("peso muerto rumano mancuernas tecnica"),
+            alts:[
+              {name:"RDL a una pierna con mancuerna", vid:ytSearch("peso muerto rumano a una pierna mancuerna tecnica")},
+              {name:"Buenos días con banda o mancuerna", vid:ytSearch("buenos dias con mancuerna tecnica")},
+              {name:"Hip hinge con banda (pull-through)", vid:ytSearch("pull through con banda gluteo tecnica")}
+            ]},
+          {id:"casa_bulgara", name:"Sentadilla búlgara (pie atrás en silla)", scheme:"3 × 10-12 por pierna", rest:90, sets:3, note:"Mancuernas a los lados. Más cuádriceps con el torso recto.", vid:ytSearch("sentadilla bulgara mancuernas tecnica"),
+            alts:[
+              {name:"Zancadas caminando con mancuernas", vid:ytSearch("zancadas con mancuernas tecnica")},
+              {name:"Step-up a una silla firme con mancuernas", vid:ytSearch("step up con mancuernas tecnica")},
+              {name:"Sentadilla dividida (split squat)", vid:ytSearch("split squat mancuernas tecnica")}
+            ]},
+          {id:"casa_zancada", name:"Zancadas con mancuernas", scheme:"3 × 12 por pierna", rest:75, sets:3, vid:ytSearch("zancadas con mancuernas tecnica"),
+            alts:[
+              {name:"Sentadilla sissy asistida (cuádriceps)", vid:ytSearch("sissy squat tecnica")},
+              {name:"Extensión de cuádriceps con banda", vid:ytSearch("extension de cuadriceps con banda tecnica")},
+              {name:"Zancada estática con mancuernas", vid:ytSearch("zancada estatica con mancuernas tecnica")}
+            ]},
+          {id:"casa_curl_banda", name:"Curl femoral deslizante o con banda", scheme:"3 × 12-15", rest:60, sets:3, note:"Talones en toalla y deslizar, o banda en los tobillos.", vid:ytSearch("curl femoral con banda elastica en casa"),
+            alts:[
+              {name:"Curl nórdico (excéntrico asistido)", vid:ytSearch("curl nordico tecnica principiante")},
+              {name:"Curl femoral con toalla en suelo liso", vid:ytSearch("curl femoral con toalla deslizante casa")},
+              {name:"Puente de glúteo con deslizamiento (leg curl)", vid:ytSearch("puente de gluteo deslizante isquios tecnica")}
+            ]},
+          {id:"casa_gemelo", name:"Gemelo de pie con peso (a una o dos piernas)", scheme:"4 × 12-20", rest:60, sets:4, note:"Pausa arriba 1 seg, rango completo.", vid:ytSearch("gemelo de pie con mancuerna casa"),
+            alts:[
+              {name:"Gemelo a una pierna en escalón con mancuerna", vid:ytSearch("gemelo a una pierna en escalon con mancuerna tecnica")},
+              {name:"Gemelo sentado con disco/mancuerna en las rodillas (sóleo)", vid:ytSearch("gemelo sentado con disco casa tecnica")},
+              {name:"Saltos suaves a la comba / talones", vid:ytSearch("gemelo saltos suaves tecnica")}
+            ]},
+          {id:"casa_plancha", name:"Plancha o crunch", scheme:"3 × 45 seg / 12 reps", rest:45, sets:3, vid:ytSearch("plancha abdominal tecnica"),
+            alts:[
+              {name:"Dead bug (control lumbar)", vid:ytSearch("dead bug ejercicio tecnica")},
+              {name:"Plancha lateral", vid:ytSearch("plancha lateral tecnica")},
+              {name:"Rueda abdominal (si tienes)", vid:ytSearch("rueda abdominal ab wheel tecnica")}
+            ]}
         ]
       },
       hotel:{
@@ -815,12 +887,42 @@ const PROGRAM = {
           "Glute bridge en suelo: 15 reps lentas."
         ],
         exercises:[
-          {id:"hotel_sentadilla", name:"Sentadilla peso corporal (tempo 3 seg bajada)", scheme:"4 × 15-20", rest:75, sets:4, note:"Lenta y profunda; el tempo crea la intensidad sin peso.", vid:ytSearch("sentadilla peso corporal tempo lento tecnica")},
-          {id:"hotel_bulgara", name:"Sentadilla búlgara (pie atrás en cama o silla)", scheme:"3 × 12-15 por pierna", rest:60, sets:3, vid:ytSearch("sentadilla bulgara peso corporal tecnica")},
-          {id:"hotel_zancada", name:"Zancadas caminando o estáticas", scheme:"3 × 12 por pierna", rest:60, sets:3, vid:ytSearch("zancadas peso corporal tecnica")},
-          {id:"hotel_wallsit", name:"Sentadilla isométrica en pared (wall sit)", scheme:"3 × 45 seg", rest:60, sets:3, vid:ytSearch("wall sit sentadilla pared tecnica")},
-          {id:"hotel_gemelo", name:"Gemelo de pie a una pierna (en borde/escalón)", scheme:"4 × 15-20", rest:45, sets:4, vid:ytSearch("gemelo a una pierna peso corporal")},
-          {id:"hotel_plancha", name:"Plancha", scheme:"3 × 45 seg", rest:45, sets:3, vid:ytSearch("plancha abdominal tecnica")}
+          {id:"hotel_sentadilla", name:"Sentadilla peso corporal (tempo 3 seg bajada)", scheme:"4 × 15-20", rest:75, sets:4, note:"Lenta y profunda; el tempo crea la intensidad sin peso.", vid:ytSearch("sentadilla peso corporal tempo lento tecnica"),
+            alts:[
+              {name:"Sentadilla búlgara (pie atrás en cama/silla)", vid:ytSearch("sentadilla bulgara peso corporal tecnica")},
+              {name:"Sentadilla con salto suave", vid:ytSearch("sentadilla con salto tecnica")},
+              {name:"Sentadilla a una pierna asistida (pistol)", vid:ytSearch("pistol squat asistida tecnica")}
+            ]},
+          {id:"hotel_rdl", name:"Peso muerto rumano a una pierna (sin peso o con mochila)", scheme:"3 × 10-12 por pierna", rest:75, sets:3, note:"Bisagra de cadera: isquios en estiramiento + glúteo + equilibrio.", vid:ytSearch("peso muerto rumano a una pierna peso corporal tecnica"),
+            alts:[
+              {name:"Buenos días peso corporal (bisagra)", vid:ytSearch("buenos dias peso corporal bisagra cadera")},
+              {name:"Puente de glúteo a una pierna", vid:ytSearch("puente de gluteo a una pierna tecnica")},
+              {name:"RDL a una pierna con mochila cargada", vid:ytSearch("peso muerto rumano a una pierna mochila tecnica")}
+            ]},
+          {id:"hotel_bulgara", name:"Sentadilla búlgara (pie atrás en cama o silla)", scheme:"3 × 12-15 por pierna", rest:75, sets:3, vid:ytSearch("sentadilla bulgara peso corporal tecnica"),
+            alts:[
+              {name:"Zancadas caminando", vid:ytSearch("zancadas peso corporal tecnica")},
+              {name:"Step-up a una silla firme", vid:ytSearch("step up peso corporal tecnica")},
+              {name:"Sentadilla dividida (split squat)", vid:ytSearch("split squat peso corporal tecnica")}
+            ]},
+          {id:"hotel_zancada", name:"Zancadas caminando o estáticas", scheme:"3 × 12 por pierna", rest:60, sets:3, vid:ytSearch("zancadas peso corporal tecnica"),
+            alts:[
+              {name:"Zancada inversa (más amable de rodilla)", vid:ytSearch("zancada inversa peso corporal tecnica")},
+              {name:"Sentadilla isométrica en pared (wall sit)", vid:ytSearch("wall sit sentadilla pared tecnica")},
+              {name:"Sentadilla cosaca (movilidad + aductor)", vid:ytSearch("sentadilla cosaca tecnica")}
+            ]},
+          {id:"hotel_gemelo", name:"Gemelo de pie a una pierna (en borde/escalón)", scheme:"4 × 15-20", rest:45, sets:4, note:"Pausa arriba, rango completo.", vid:ytSearch("gemelo a una pierna peso corporal"),
+            alts:[
+              {name:"Gemelo a dos piernas en escalón", vid:ytSearch("gemelo a dos piernas escalon tecnica")},
+              {name:"Gemelo sentado con mochila en las rodillas (sóleo)", vid:ytSearch("gemelo sentado con peso rodillas soleo tecnica")},
+              {name:"Saltos suaves a la comba / a los talones", vid:ytSearch("saltos a la comba gemelo tecnica")}
+            ]},
+          {id:"hotel_plancha", name:"Plancha", scheme:"3 × 45 seg", rest:45, sets:3, vid:ytSearch("plancha abdominal tecnica"),
+            alts:[
+              {name:"Dead bug (control lumbar)", vid:ytSearch("dead bug ejercicio tecnica")},
+              {name:"Hollow hold", vid:ytSearch("hollow hold tecnica")},
+              {name:"Mountain climbers lentos", vid:ytSearch("mountain climbers lentos tecnica")}
+            ]}
         ]
       }
     }
@@ -982,12 +1084,42 @@ const PROGRAM = {
           "Aproximación en hip thrust o prensa: peso vacío/ligero 10 reps."
         ],
         exercises:[
-          {id:"hip_thrust", name:"Hip thrust en máquina o glute bridge con mancuerna", scheme:"4 × 10-12", rest:90, sets:4, vid:ytSearch("hip thrust tecnica sergio peinado")},
-          {id:"prensa_alta", name:"Prensa de piernas, pies altos en la plataforma", scheme:"3 × 12-15", rest:90, sets:3, note:"Pies altos = más glúteo e isquios.", vid:ytSearch("prensa de piernas pies altos gluteo tecnica")},
-          {id:"curl_fem_sent", name:"Curl femoral sentado", scheme:"3 × 12-15", rest:60, sets:3, vid:ytSearch("curl femoral sentado maquina tecnica")},
-          {id:"kickback", name:"Abducción de cadera en máquina (glúteo medio)", scheme:"3 × 15-20", rest:60, sets:3, note:"Inclina el torso un poco adelante para enfatizar el glúteo.", vid:ytSearch("abduccion de cadera en maquina gluteo tecnica")},
-          {id:"aductores", name:"Aductores en máquina", scheme:"3 × 12-15", rest:45, sets:3, vid:ytSearch("aductores en maquina tecnica")},
-          {id:"gemelo_sent", name:"Gemelo de pie en máquina", scheme:"4 × 15", rest:45, sets:4, vid:ytSearch("gemelos de pie maquina tecnica")}
+          {id:"hip_thrust", name:"Hip thrust en máquina o con barra", scheme:"4 × 8-12", rest:150, sets:4, note:"Lo más específico de glúteo. Aprieta arriba 1 seg, barbilla metida.", vid:ytSearch("hip thrust tecnica sergio peinado"),
+            alts:[
+              {name:"Hip thrust con barra en banco", vid:ytSearch("hip thrust con barra tecnica")},
+              {name:"Puente de glúteo en multipower", vid:ytSearch("puente de gluteo en multipower tecnica")},
+              {name:"Hip thrust a una pierna", vid:ytSearch("hip thrust a una pierna tecnica")}
+            ]},
+          {id:"prensa_alta", name:"Prensa de piernas, pies altos en la plataforma", scheme:"3 × 12-15", rest:120, sets:3, note:"Pies altos = más glúteo e isquios.", vid:ytSearch("prensa de piernas pies altos gluteo tecnica"),
+            alts:[
+              {name:"Zancada inversa con mancuernas", vid:ytSearch("zancada inversa con mancuernas tecnica")},
+              {name:"Sentadilla profunda (pies juntos)", vid:ytSearch("sentadilla profunda tecnica")},
+              {name:"Peso muerto rumano", vid:ytSearch("peso muerto rumano tecnica")}
+            ]},
+          {id:"curl_fem_sent", name:"Curl femoral sentado", scheme:"3 × 10-15", rest:75, sets:3, note:"Sentado = isquio en longitud larga (más crecimiento).", vid:ytSearch("curl femoral sentado maquina tecnica"),
+            alts:[
+              {name:"Curl femoral tumbado", vid:ytSearch("curl femoral tumbado tecnica")},
+              {name:"Curl femoral a una pierna", vid:ytSearch("curl femoral a una pierna tecnica")},
+              {name:"Curl nórdico (excéntrico asistido)", vid:ytSearch("curl nordico tecnica principiante")}
+            ]},
+          {id:"kickback", name:"Abducción de cadera en máquina (glúteo medio)", scheme:"3 × 15-20", rest:60, sets:3, note:"Inclina el torso un poco adelante para enfatizar el glúteo.", vid:ytSearch("abduccion de cadera en maquina gluteo tecnica"),
+            alts:[
+              {name:"Abducción de cadera en polea (una pierna)", vid:ytSearch("abduccion de cadera en polea tecnica")},
+              {name:"Abducción con banda de pie", vid:ytSearch("abduccion de cadera con banda de pie tecnica")},
+              {name:"Monster walk con banda", vid:ytSearch("monster walk banda tecnica")}
+            ]},
+          {id:"aductores", name:"Aductores en máquina", scheme:"2 × 12-20", rest:60, sets:2, note:"Salud de cadera; con 2 series basta.", vid:ytSearch("aductores en maquina tecnica"),
+            alts:[
+              {name:"Sentadilla sumo con mancuerna/kettlebell", vid:ytSearch("sentadilla sumo con mancuerna tecnica")},
+              {name:"Plancha Copenhagen", vid:ytSearch("plancha copenhagen aductores tecnica")},
+              {name:"Aducción con banda elástica", vid:ytSearch("aduccion de cadera con banda tecnica")}
+            ]},
+          {id:"gemelo_sent", name:"Gemelo de pie en máquina", scheme:"4 × 12-20", rest:60, sets:4, note:"Cubre gastrocnemio y sóleo. Para sesgar sóleo: hazlo en la prensa con la rodilla algo flexionada.", vid:ytSearch("gemelos de pie maquina tecnica"),
+            alts:[
+              {name:"Gemelo en la prensa (rodilla algo flexionada = sóleo)", vid:ytSearch("gemelo en prensa soleo tecnica")},
+              {name:"Gemelo sentado con disco en las rodillas", vid:ytSearch("gemelo sentado con disco casa tecnica")},
+              {name:"Gemelo de pie a una pierna con mancuerna", vid:ytSearch("gemelo a una pierna con mancuerna tecnica")}
+            ]}
         ]
       },
       casa:{
@@ -1000,12 +1132,42 @@ const PROGRAM = {
           "Patada de glúteo en cuadrupedia: 10 por pierna."
         ],
         exercises:[
-          {id:"casa_hip_thrust", name:"Hip thrust con peso (espalda en sofá/cama)", scheme:"4 × 10-12", rest:90, sets:4, note:"Kettlebell o mancuerna sobre la cadera, apretar glúteo arriba.", vid:ytSearch("hip thrust con mancuerna en casa tecnica")},
-          {id:"casa_rdl", name:"Peso muerto rumano con mancuernas o kettlebell", scheme:"3 × 10-12", rest:75, sets:3, note:"Bisagra de cadera, espalda recta, baja hasta media espinilla.", vid:ytSearch("peso muerto rumano mancuernas tecnica")},
-          {id:"casa_curl_post", name:"Curl femoral deslizante o nórdico asistido", scheme:"3 × 10-15", rest:60, sets:3, note:"Talones en toalla deslizando, o banda en los tobillos.", vid:ytSearch("curl femoral nordico asistido casa")},
-          {id:"casa_kickback", name:"Patada de glúteo con banda", scheme:"3 × 12 por pierna", rest:45, sets:3, vid:ytSearch("patada de gluteo con banda elastica tecnica")},
-          {id:"casa_abduccion", name:"Abducción de cadera con banda", scheme:"3 × 15", rest:45, sets:3, vid:ytSearch("abduccion de cadera con banda tecnica")},
-          {id:"casa_gemelo_b", name:"Gemelo sentado con peso en las rodillas", scheme:"4 × 15", rest:45, sets:4, vid:ytSearch("gemelo sentado con mancuerna casa")}
+          {id:"casa_hip_thrust", name:"Hip thrust con peso (espalda en sofá/cama)", scheme:"4 × 10-12", rest:120, sets:4, note:"Kettlebell o mancuerna sobre la cadera, apretar glúteo 1 seg arriba.", vid:ytSearch("hip thrust con mancuerna en casa tecnica"),
+            alts:[
+              {name:"Hip thrust a una pierna (peso corporal)", vid:ytSearch("hip thrust a una pierna peso corporal tecnica")},
+              {name:"Puente de glúteo con banda sobre las rodillas", vid:ytSearch("puente de gluteo con banda tecnica")},
+              {name:"Empuje de cadera con barra (si tienes)", vid:ytSearch("hip thrust con barra tecnica")}
+            ]},
+          {id:"casa_rdl", name:"Peso muerto rumano con mancuernas o kettlebell", scheme:"3 × 8-12", rest:120, sets:3, note:"Bisagra de cadera, espalda recta, baja hasta media espinilla. Isquios en estiramiento.", vid:ytSearch("peso muerto rumano mancuernas tecnica"),
+            alts:[
+              {name:"RDL a una pierna con mancuerna", vid:ytSearch("peso muerto rumano a una pierna mancuerna tecnica")},
+              {name:"Buenos días con mancuerna/banda", vid:ytSearch("buenos dias con mancuerna tecnica")},
+              {name:"Pull-through con banda (bisagra)", vid:ytSearch("pull through con banda gluteo tecnica")}
+            ]},
+          {id:"casa_curl_post", name:"Curl femoral deslizante o nórdico asistido", scheme:"3 × 10-15", rest:60, sets:3, note:"Talones en toalla deslizando, o banda en los tobillos.", vid:ytSearch("curl femoral nordico asistido casa"),
+            alts:[
+              {name:"Curl nórdico (excéntrico asistido)", vid:ytSearch("curl nordico tecnica principiante")},
+              {name:"Curl femoral con banda tumbado", vid:ytSearch("curl femoral con banda tumbado tecnica")},
+              {name:"Puente deslizante a una pierna", vid:ytSearch("puente de gluteo deslizante isquios tecnica")}
+            ]},
+          {id:"casa_kickback", name:"Patada de glúteo con banda", scheme:"3 × 12 por pierna", rest:45, sets:3, vid:ytSearch("patada de gluteo con banda elastica tecnica"),
+            alts:[
+              {name:"Patada de glúteo en cuadrupedia (peso corporal)", vid:ytSearch("patada de gluteo cuadrupedia peso corporal")},
+              {name:"Extensión de cadera con mancuerna en la corva", vid:ytSearch("patada de gluteo con mancuerna cuadrupedia tecnica")},
+              {name:"Hip thrust a una pierna", vid:ytSearch("hip thrust a una pierna peso corporal tecnica")}
+            ]},
+          {id:"casa_abduccion", name:"Abducción de cadera con banda", scheme:"3 × 15", rest:45, sets:3, vid:ytSearch("abduccion de cadera con banda tecnica"),
+            alts:[
+              {name:"Almeja (clamshell) con banda", vid:ytSearch("clamshell almeja con banda tecnica")},
+              {name:"Abducción tumbado de lado", vid:ytSearch("abduccion de cadera tumbado lateral tecnica")},
+              {name:"Monster walk / marcha lateral con banda", vid:ytSearch("monster walk banda tecnica")}
+            ]},
+          {id:"casa_gemelo_b", name:"Gemelo de pie con peso (a una o dos piernas)", scheme:"4 × 12-20", rest:60, sets:4, note:"Pausa arriba, rango completo.", vid:ytSearch("gemelo de pie con mancuerna casa"),
+            alts:[
+              {name:"Gemelo sentado con disco/mancuerna en rodillas (sóleo)", vid:ytSearch("gemelo sentado con disco casa tecnica")},
+              {name:"Gemelo a una pierna en escalón", vid:ytSearch("gemelo a una pierna en escalon con mancuerna tecnica")},
+              {name:"Saltos suaves a la comba", vid:ytSearch("saltos a la comba gemelo tecnica")}
+            ]}
         ]
       },
       hotel:{
@@ -1017,12 +1179,42 @@ const PROGRAM = {
           "Patada de glúteo en cuadrupedia: 10 por pierna."
         ],
         exercises:[
-          {id:"hotel_hip_thrust", name:"Hip thrust a una pierna (espalda en cama/sofá)", scheme:"4 × 12 por pierna", rest:75, sets:4, note:"Apretar glúteo 1 seg arriba.", vid:ytSearch("hip thrust a una pierna peso corporal tecnica")},
-          {id:"hotel_puente", name:"Puente de glúteo (tempo, apretar arriba)", scheme:"3 × 15-20", rest:60, sets:3, vid:ytSearch("puente de gluteo peso corporal tecnica")},
-          {id:"hotel_buenosdias", name:"Buenos días peso corporal (bisagra de cadera)", scheme:"3 × 15", rest:60, sets:3, vid:ytSearch("buenos dias peso corporal bisagra cadera")},
-          {id:"hotel_curl_post", name:"Curl femoral deslizante con toalla", scheme:"3 × 8-12", rest:60, sets:3, note:"Talones en toalla sobre suelo liso, deslizar y volver con fuerza.", vid:ytSearch("curl femoral con toalla deslizante casa")},
-          {id:"hotel_kickback", name:"Patada de glúteo en cuadrupedia", scheme:"3 × 15 por pierna", rest:45, sets:3, vid:ytSearch("patada de gluteo cuadrupedia peso corporal")},
-          {id:"hotel_gemelo_b", name:"Gemelo de pie a una pierna", scheme:"4 × 15-20", rest:45, sets:4, vid:ytSearch("gemelo a una pierna peso corporal")}
+          {id:"hotel_hip_thrust", name:"Hip thrust a una pierna (espalda en cama/sofá)", scheme:"4 × 12 por pierna", rest:75, sets:4, note:"Apretar glúteo 1 seg arriba.", vid:ytSearch("hip thrust a una pierna peso corporal tecnica"),
+            alts:[
+              {name:"Hip thrust con mochila cargada sobre la cadera", vid:ytSearch("hip thrust con mochila casa tecnica")},
+              {name:"Marcha de glúteo (elevado, apoyo en cama)", vid:ytSearch("marcha de gluteo hip thrust tecnica")},
+              {name:"Puente de glúteo a dos piernas con pausa", vid:ytSearch("puente de gluteo peso corporal tecnica")}
+            ]},
+          {id:"hotel_puente", name:"Puente de glúteo (tempo, apretar arriba)", scheme:"3 × 15-20", rest:60, sets:3, vid:ytSearch("puente de gluteo peso corporal tecnica"),
+            alts:[
+              {name:"Puente de glúteo a una pierna", vid:ytSearch("puente de gluteo a una pierna tecnica")},
+              {name:"Puente con pies elevados en silla", vid:ytSearch("puente de gluteo pies elevados tecnica")},
+              {name:"Rana / frog pump", vid:ytSearch("frog pump gluteo tecnica")}
+            ]},
+          {id:"hotel_buenosdias", name:"Peso muerto rumano a una pierna (bisagra + isquios en estiramiento)", scheme:"3 × 10-12 por pierna", rest:60, sets:3, note:"Isquios en longitud larga. Añade mochila para más carga.", vid:ytSearch("peso muerto rumano a una pierna peso corporal tecnica"),
+            alts:[
+              {name:"Buenos días peso corporal (bisagra)", vid:ytSearch("buenos dias peso corporal bisagra cadera")},
+              {name:"RDL a una pierna con mochila", vid:ytSearch("peso muerto rumano a una pierna mochila tecnica")},
+              {name:"Bisagra de cadera con banda (pull-through)", vid:ytSearch("pull through con banda gluteo tecnica")}
+            ]},
+          {id:"hotel_curl_post", name:"Curl femoral deslizante con toalla", scheme:"3 × 8-12", rest:60, sets:3, note:"Talones en toalla sobre suelo liso, deslizar y volver con fuerza.", vid:ytSearch("curl femoral con toalla deslizante casa"),
+            alts:[
+              {name:"Curl nórdico (excéntrico asistido)", vid:ytSearch("curl nordico tecnica principiante")},
+              {name:"Puente deslizante a una pierna", vid:ytSearch("puente de gluteo deslizante isquios tecnica")},
+              {name:"Curl femoral con banda (si tienes)", vid:ytSearch("curl femoral con banda tumbado tecnica")}
+            ]},
+          {id:"hotel_kickback", name:"Patada de glúteo en cuadrupedia", scheme:"3 × 15 por pierna", rest:45, sets:3, vid:ytSearch("patada de gluteo cuadrupedia peso corporal"),
+            alts:[
+              {name:"Patada de glúteo con banda", vid:ytSearch("patada de gluteo con banda elastica tecnica")},
+              {name:"Abducción de cadera tumbado (glúteo medio)", vid:ytSearch("abduccion de cadera tumbado lateral tecnica")},
+              {name:"Fire hydrant (cuadrupedia lateral)", vid:ytSearch("fire hydrant gluteo tecnica")}
+            ]},
+          {id:"hotel_gemelo_b", name:"Gemelo de pie a una pierna", scheme:"4 × 15-20", rest:45, sets:4, note:"Pausa arriba, rango completo.", vid:ytSearch("gemelo a una pierna peso corporal"),
+            alts:[
+              {name:"Gemelo a dos piernas en escalón", vid:ytSearch("gemelo a dos piernas escalon tecnica")},
+              {name:"Gemelo sentado con mochila en rodillas (sóleo)", vid:ytSearch("gemelo sentado con peso rodillas soleo tecnica")},
+              {name:"Saltos suaves a la comba", vid:ytSearch("saltos a la comba gemelo tecnica")}
+            ]}
         ]
       }
     }
@@ -2961,7 +3153,7 @@ let weekAutoAdvancedTo = 0;
 })();
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.11-3 · BIELA";
+const APP_VERSION = "2026.06.11-4 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
