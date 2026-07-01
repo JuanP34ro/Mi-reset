@@ -554,6 +554,21 @@
   .cal-foot b{color:var(--accent);font-size:14px}
   .cal-leg{display:inline-flex;align-items:center;gap:6px}
   .cal-leg .cal-dot{position:static}
+
+  /* Selector de variante de ejercicio */
+  .alt-tag{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;
+    background:rgba(27,180,232,.16);color:#9fdcf2;border-radius:6px;padding:1px 6px;vertical-align:middle}
+  .var-sel{margin-top:11px}
+  .var-toggle{width:100%;border:1.5px dashed var(--line);background:var(--soft);color:var(--accent);
+    border-radius:11px;padding:9px 12px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;touch-action:manipulation}
+  .var-list{display:none;flex-direction:column;gap:6px;margin-top:8px}
+  .var-sel.open .var-list{display:flex}
+  .var-opt{display:flex;align-items:center;gap:9px;text-align:left;width:100%;cursor:pointer;font-family:inherit;
+    background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--ink);font-size:13px;touch-action:manipulation}
+  .var-opt.on{background:rgba(27,180,232,.1);border-color:var(--accent)}
+  .var-opt small{color:var(--muted)}
+  .var-check{flex:0 0 20px;height:20px;border-radius:6px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent}
+  .var-opt.on .var-check{background:var(--accent);border-color:var(--accent);color:#04232f}
 </style>
 </head>
 <body>
@@ -823,11 +838,41 @@ const PROGRAM = {
           "Band pull-apart en polea baja: 2 × 15."
         ],
         exercises:[
-          {id:"press_pecho_maq", name:"Press de pecho en máquina", scheme:"3 × 10-12", rest:90, sets:3, note:"Estabiliza, no exige al serrato.", vid:ytSearch("press de pecho en maquina tecnica")},
-          {id:"pec_deck", name:"Contractor de pecho (pec deck)", scheme:"3 × 12-15", rest:60, sets:3, note:"Sustituye al press inclinado con mancuernas.", vid:ytSearch("pec deck contractor pecho tecnica")},
-          {id:"press_hombro_maq", name:"Press de hombros en máquina sentado", scheme:"3 × 10-12", rest:90, sets:3, note:"Peso muy conservador hasta confirmar con fisio.", vid:ytSearch("press de hombros en maquina sentado tecnica")},
-          {id:"elev_lat", name:"Elevaciones laterales (sentado en banco con respaldo)", scheme:"3 × 12-15", rest:60, sets:3, note:"Sentado reduce el balanceo del torso.", vid:ytSearch("elevaciones laterales sentado tecnica sergio peinado")},
-          {id:"ext_triceps_polea", name:"Extensión de tríceps en polea", scheme:"3 × 12-15", rest:60, sets:3, vid:ytSearch("extension de triceps en polea tecnica")}
+          {id:"press_pecho_maq", name:"Press de pecho en máquina", scheme:"3 × 8-12", rest:120, sets:3, note:"Compuesto principal. Escápula estable, no exige al serrato.", vid:ytSearch("press de pecho en maquina tecnica"),
+            alts:[
+              {name:"Press de pecho con mancuernas en banco plano", vid:ytSearch("press de pecho con mancuernas banco plano tecnica")},
+              {name:"Press de pecho en multipower (Smith)", vid:ytSearch("press de pecho en multipower smith tecnica")}
+            ]},
+          {id:"press_inclinado", name:"Press inclinado en máquina", scheme:"3 × 10-12", rest:120, sets:3, note:"Parte alta del pecho (clavicular). Banco a ~30°.", vid:ytSearch("press inclinado en maquina tecnica"),
+            alts:[
+              {name:"Press inclinado con mancuernas (banco 30°)", vid:ytSearch("press inclinado con mancuernas 30 grados tecnica")},
+              {name:"Press inclinado en multipower (Smith)", vid:ytSearch("press inclinado smith multipower tecnica")}
+            ]},
+          {id:"press_hombro_maq", name:"Press de hombros en máquina sentado", scheme:"3 × 10-12", rest:90, sets:3, note:"Muy conservador (RIR 3-4). Si el hombro molesta, sáltalo y sube una serie de laterales.", vid:ytSearch("press de hombros en maquina sentado tecnica"),
+            alts:[
+              {name:"Landmine press (barra en esquina) — más amable para el hombro", vid:ytSearch("landmine press tecnica hombro")},
+              {name:"Press de hombro con mancuernas, agarre neutro", vid:ytSearch("press de hombro mancuernas agarre neutro tecnica")}
+            ]},
+          {id:"pec_deck", name:"Contractor de pecho (pec deck)", scheme:"3 × 12-15", rest:75, sets:3, vid:ytSearch("pec deck contractor pecho tecnica"),
+            alts:[
+              {name:"Cruce de poleas (crossover)", vid:ytSearch("cruce de poleas pecho crossover tecnica")},
+              {name:"Aperturas con mancuernas en banco", vid:ytSearch("aperturas con mancuernas banco tecnica")}
+            ]},
+          {id:"elev_lat", name:"Elevaciones laterales (sentado con respaldo)", scheme:"4 × 12-15", rest:75, sets:4, note:"Deltoides lateral, muy respondedor. No subas por encima de 90°.", vid:ytSearch("elevaciones laterales sentado tecnica sergio peinado"),
+            alts:[
+              {name:"Elevaciones laterales en polea (una mano)", vid:ytSearch("elevaciones laterales en polea una mano tecnica")},
+              {name:"Elevaciones laterales en máquina", vid:ytSearch("elevaciones laterales en maquina tecnica")}
+            ]},
+          {id:"ext_triceps_polea", name:"Extensión de tríceps sobre la cabeza (porción larga)", scheme:"3 × 12-15", rest:75, sets:3, note:"Brazos arriba: estira la porción larga del tríceps.", vid:ytSearch("extension de triceps sobre la cabeza polea cuerda tecnica"),
+            alts:[
+              {name:"Press francés con mancuerna o barra Z", vid:ytSearch("press frances triceps tecnica")},
+              {name:"Extensión de tríceps overhead con mancuerna a dos manos", vid:ytSearch("extension triceps overhead mancuerna tecnica")}
+            ]},
+          {id:"tri_pushdown", name:"Pushdown de tríceps en polea (porción lateral)", scheme:"2 × 12-15", rest:60, sets:2, vid:ytSearch("pushdown triceps polea tecnica"),
+            alts:[
+              {name:"Pushdown con cuerda", vid:ytSearch("pushdown triceps con cuerda tecnica")},
+              {name:"Fondos de tríceps en máquina asistida", vid:ytSearch("fondos en maquina triceps tecnica")}
+            ]}
         ]
       },
       casa:{
@@ -840,11 +885,41 @@ const PROGRAM = {
           "Band pull-apart con banda: 2 × 15."
         ],
         exercises:[
-          {id:"casa_floor_press", name:"Press de pecho con mancuernas en suelo (floor press)", scheme:"3 × 10-12", rest:90, sets:3, note:"El suelo frena el codo y protege el hombro: rango seguro.", vid:ytSearch("floor press mancuernas tecnica")},
-          {id:"casa_aperturas", name:"Aperturas con mancuernas en suelo o con banda", scheme:"3 × 12-15", rest:60, sets:3, vid:ytSearch("aperturas con mancuernas en suelo tecnica")},
-          {id:"casa_press_hombro", name:"Press de hombro con mancuernas sentado", scheme:"3 × 10-12", rest:90, sets:3, note:"Peso muy conservador hasta confirmar con fisio.", vid:ytSearch("press militar mancuernas sentado tecnica")},
-          {id:"casa_elev_lat", name:"Elevaciones laterales con mancuernas o banda", scheme:"3 × 12-15", rest:60, sets:3, vid:ytSearch("elevaciones laterales mancuernas tecnica")},
-          {id:"casa_triceps", name:"Extensión de tríceps con mancuerna (francés) o banda", scheme:"3 × 12-15", rest:60, sets:3, vid:ytSearch("extension de triceps frances mancuerna tecnica")}
+          {id:"casa_floor_press", name:"Press de pecho con mancuernas en suelo (floor press)", scheme:"3 × 8-12", rest:120, sets:3, note:"El suelo frena el codo y protege el hombro: rango seguro.", vid:ytSearch("floor press mancuernas tecnica"),
+            alts:[
+              {name:"Press con mancuernas en banco plano (si tienes banco)", vid:ytSearch("press de pecho con mancuernas banco plano tecnica")},
+              {name:"Press de pecho con banda elástica", vid:ytSearch("press de pecho con banda elastica tecnica")}
+            ]},
+          {id:"casa_incline", name:"Press inclinado con mancuernas (banco o cojines a ~30°)", scheme:"3 × 10-12", rest:120, sets:3, note:"Parte alta del pecho. Apoya la espalda en un plano inclinado firme.", vid:ytSearch("press inclinado con mancuernas 30 grados tecnica"),
+            alts:[
+              {name:"Press de pecho con banda desde abajo (ángulo alto)", vid:ytSearch("press pecho banda angulo alto tecnica")},
+              {name:"Flexiones con pies elevados", vid:ytSearch("flexiones pies elevados tecnica")}
+            ]},
+          {id:"casa_press_hombro", name:"Press de hombro con mancuernas, agarre neutro", scheme:"3 × 10-12", rest:90, sets:3, note:"Muy conservador (RIR 3-4). Agarre neutro = hombro más amable.", vid:ytSearch("press de hombro mancuernas agarre neutro tecnica"),
+            alts:[
+              {name:"Press de hombro con banda elástica", vid:ytSearch("press de hombro con banda elastica tecnica")},
+              {name:"Landmine press con kettlebell/mancuerna", vid:ytSearch("landmine press kettlebell tecnica")}
+            ]},
+          {id:"casa_aperturas", name:"Aperturas con mancuernas en suelo o con banda", scheme:"3 × 12-15", rest:75, sets:3, vid:ytSearch("aperturas con mancuernas en suelo tecnica"),
+            alts:[
+              {name:"Aperturas con banda de pie (crossover)", vid:ytSearch("aperturas con banda de pie crossover tecnica")},
+              {name:"Flexiones amplias lentas", vid:ytSearch("flexiones amplias pecho tecnica")}
+            ]},
+          {id:"casa_elev_lat", name:"Elevaciones laterales con mancuernas o banda", scheme:"4 × 12-15", rest:75, sets:4, note:"Deltoides lateral. No pases de 90°.", vid:ytSearch("elevaciones laterales mancuernas tecnica"),
+            alts:[
+              {name:"Elevaciones laterales con banda (pie sobre la banda)", vid:ytSearch("elevaciones laterales con banda elastica tecnica")},
+              {name:"Elevaciones laterales con kettlebell (una mano)", vid:ytSearch("elevaciones laterales kettlebell tecnica")}
+            ]},
+          {id:"casa_triceps", name:"Extensión de tríceps sobre la cabeza (mancuerna, porción larga)", scheme:"3 × 12-15", rest:75, sets:3, note:"Brazos arriba, estira el tríceps.", vid:ytSearch("extension triceps overhead mancuerna tecnica"),
+            alts:[
+              {name:"Press francés con mancuerna tumbado", vid:ytSearch("press frances mancuerna tumbado tecnica")},
+              {name:"Extensión de tríceps overhead con banda", vid:ytSearch("extension triceps overhead banda tecnica")}
+            ]},
+          {id:"casa_tri_pushdown", name:"Pushdown de tríceps con banda (porción lateral)", scheme:"2 × 12-15", rest:60, sets:2, note:"Banda anclada alto; codos pegados.", vid:ytSearch("pushdown triceps con banda tecnica"),
+            alts:[
+              {name:"Patada de tríceps con mancuerna", vid:ytSearch("patada de triceps con mancuerna tecnica")},
+              {name:"Fondos de tríceps en silla (rango corto)", vid:ytSearch("fondos de triceps en silla tecnica")}
+            ]}
         ]
       },
       hotel:{
@@ -857,11 +932,36 @@ const PROGRAM = {
           "Movilidad de hombro suave: 10 círculos hacia atrás."
         ],
         exercises:[
-          {id:"hotel_flexion", name:"Flexiones (rodillas o normales)", scheme:"3 × 8-15", rest:75, sets:3, note:"Mantén la escápula estable, no dejes caer los hombros.", vid:ytSearch("flexiones tecnica correcta escapula")},
-          {id:"hotel_flexion_incl", name:"Flexiones inclinadas (manos en cama/mesa)", scheme:"3 × 12", rest:60, sets:3, note:"Más fáciles y con rango controlado.", vid:ytSearch("flexiones inclinadas tecnica")},
-          {id:"hotel_pike", name:"Pike push-up suave (hombro)", scheme:"3 × 8-10", rest:75, sets:3, note:"Conservador: si notas la escápula, reduce rango o sáltalo.", vid:ytSearch("pike push up tecnica principiante")},
-          {id:"hotel_elev_lat", name:"Elevaciones laterales con botellas de agua", scheme:"3 × 15", rest:45, sets:3, vid:ytSearch("elevaciones laterales sin peso tecnica")},
-          {id:"hotel_triceps", name:"Fondos de tríceps en silla (rango corto)", scheme:"3 × 10-12", rest:60, sets:3, note:"Rango corto y sin forzar el hombro hacia atrás.", vid:ytSearch("fondos de triceps en silla tecnica")}
+          {id:"hotel_flexion", name:"Flexiones (rodillas o normales)", scheme:"3 × 8-15", rest:90, sets:3, note:"Escápula estable, no dejes caer los hombros.", vid:ytSearch("flexiones tecnica correcta escapula"),
+            alts:[
+              {name:"Flexiones inclinadas (manos en cama/mesa) — más fáciles", vid:ytSearch("flexiones inclinadas tecnica")},
+              {name:"Flexiones lentas (tempo 3 seg bajada)", vid:ytSearch("flexiones lentas tempo tecnica")}
+            ]},
+          {id:"hotel_flexion_incl", name:"Flexiones con pies elevados (parte alta del pecho)", scheme:"3 × 8-12", rest:90, sets:3, note:"Pies en cama/silla: más carga en pecho superior y hombro.", vid:ytSearch("flexiones pies elevados tecnica"),
+            alts:[
+              {name:"Flexiones declinadas amplias", vid:ytSearch("flexiones declinadas tecnica")},
+              {name:"Flexiones normales (si las de pies elevados son mucho)", vid:ytSearch("flexiones tecnica correcta")}
+            ]},
+          {id:"hotel_pike", name:"Pike push-up (hombro)", scheme:"3 × 8-10", rest:90, sets:3, note:"Conservador: si notas la escápula, reduce el rango o sáltalo.", vid:ytSearch("pike push up tecnica principiante"),
+            alts:[
+              {name:"Flexión contra la pared 'plus' (más suave para el hombro)", vid:ytSearch("flexion en pared push up plus tecnica")},
+              {name:"Press de hombro con mochila cargada, sentado", vid:ytSearch("press de hombro con mochila en casa tecnica")}
+            ]},
+          {id:"hotel_elev_lat", name:"Elevaciones laterales con mochila o botellas", scheme:"4 × 15", rest:60, sets:4, note:"Deltoides lateral. No pases de 90°.", vid:ytSearch("elevaciones laterales sin peso tecnica"),
+            alts:[
+              {name:"Elevaciones laterales isométricas (aguanta arriba)", vid:ytSearch("elevaciones laterales isometricas tecnica")},
+              {name:"Elevaciones con garrafas de agua", vid:ytSearch("elevaciones laterales botellas agua tecnica")}
+            ]},
+          {id:"hotel_triceps", name:"Flexiones diamante (tríceps)", scheme:"3 × 10-12", rest:75, sets:3, note:"Manos juntas bajo el pecho; enfatiza el tríceps.", vid:ytSearch("flexiones diamante triceps tecnica"),
+            alts:[
+              {name:"Extensión de tríceps sobre la cabeza con mochila", vid:ytSearch("extension triceps overhead mochila casa tecnica")},
+              {name:"Flexiones diamante de rodillas (más fáciles)", vid:ytSearch("flexiones diamante rodillas tecnica")}
+            ]},
+          {id:"hotel_tri_dips", name:"Fondos de tríceps en silla (rango corto)", scheme:"2 × 10-12", rest:60, sets:2, note:"Rango corto, sin forzar el hombro hacia atrás.", vid:ytSearch("fondos de triceps en silla tecnica"),
+            alts:[
+              {name:"Patada de tríceps con mochila/botella", vid:ytSearch("patada de triceps con mancuerna tecnica")},
+              {name:"Fondos entre dos sillas (avanzado)", vid:ytSearch("fondos entre dos sillas triceps tecnica")}
+            ]}
         ]
       }
     }
@@ -938,12 +1038,36 @@ const PROGRAM = {
           "Retracciones escapulares de pie: 2 × 15 (brazos al frente, juntar escápulas)."
         ],
         exercises:[
-          {id:"jalon", name:"Jalón al pecho en máquina, agarre ancho", scheme:"3 × 10-12", rest:90, sets:3, vid:ytSearch("jalon al pecho agarre ancho tecnica powerexplosive")},
-          {id:"remo_maq", name:"Remo en máquina sentado", scheme:"3 × 10-12", rest:90, sets:3, vid:ytSearch("remo en maquina sentado tecnica")},
-          {id:"remo_mancuernas", name:"Remo con dos mancuernas, pecho apoyado en banco 30°", scheme:"3 × 10-12", rest:60, sets:3, note:"Las dos a la vez. Pecho apoyado = sin demanda lumbar.", vid:ytSearch("remo con mancuernas pecho apoyado banco inclinado tecnica")},
-          {id:"facepull", name:"Facepull en polea", scheme:"3 × 15", rest:60, sets:3, key:true, note:"CLAVE para el serrato. No saltarse nunca.", vid:VID.facepull},
-          {id:"curl_mancuernas", name:"Curl con mancuernas sentado con respaldo", scheme:"3 × 12-15", rest:60, sets:3, vid:ytSearch("curl de biceps con mancuernas sentado tecnica")},
-          {id:"curl_martillo", name:"Curl martillo sentado", scheme:"3 × 12-15", rest:45, sets:3, vid:ytSearch("curl martillo tecnica")}
+          {id:"jalon", name:"Jalón al pecho en máquina, agarre ancho", scheme:"3 × 10-12", rest:120, sets:3, note:"Anchura de espalda. Lleva los codos abajo y atrás.", vid:ytSearch("jalon al pecho agarre ancho tecnica powerexplosive"),
+            alts:[
+              {name:"Jalón agarre neutro/estrecho (hombro más amable)", vid:ytSearch("jalon agarre neutro tecnica")},
+              {name:"Dominadas asistidas en máquina", vid:ytSearch("dominadas asistidas maquina tecnica")}
+            ]},
+          {id:"remo_maq", name:"Remo en máquina sentado", scheme:"3 × 10-12", rest:120, sets:3, note:"Grosor de espalda. Aprieta las escápulas al final.", vid:ytSearch("remo en maquina sentado tecnica"),
+            alts:[
+              {name:"Remo en polea sentado (agarre en V)", vid:ytSearch("remo en polea sentado agarre v tecnica")},
+              {name:"Remo en máquina con apoyo en pecho", vid:ytSearch("remo maquina apoyo pecho chest supported tecnica")}
+            ]},
+          {id:"remo_mancuernas", name:"Remo con dos mancuernas, pecho apoyado en banco 30°", scheme:"3 × 10-12", rest:90, sets:3, note:"Pecho apoyado = sin demanda lumbar.", vid:ytSearch("remo con mancuernas pecho apoyado banco inclinado tecnica"),
+            alts:[
+              {name:"Remo a una mano con mancuerna (apoyo en banco)", vid:ytSearch("remo a una mano con mancuerna tecnica")},
+              {name:"Remo en punta (T-bar) con apoyo", vid:ytSearch("remo t-bar apoyo pecho tecnica")}
+            ]},
+          {id:"facepull", name:"Facepull en polea", scheme:"3 × 15", rest:60, sets:3, key:true, note:"CLAVE para el serrato y deltoides posterior. No saltarse nunca.", vid:VID.facepull,
+            alts:[
+              {name:"Pájaros / reverse pec deck (deltoides posterior)", vid:ytSearch("reverse pec deck pajaros maquina tecnica")},
+              {name:"Y-T-W en banco inclinado con mancuernas ligeras", vid:ytSearch("YTW banco inclinado mancuernas tecnica")}
+            ]},
+          {id:"curl_mancuernas", name:"Curl con mancuernas sentado con respaldo", scheme:"3 × 12-15", rest:60, sets:3, vid:ytSearch("curl de biceps con mancuernas sentado tecnica"),
+            alts:[
+              {name:"Curl con barra Z", vid:ytSearch("curl con barra z tecnica")},
+              {name:"Curl en polea baja", vid:ytSearch("curl de biceps en polea baja tecnica")}
+            ]},
+          {id:"curl_martillo", name:"Curl martillo sentado", scheme:"3 × 12-15", rest:45, sets:3, note:"Braquial y antebrazo (agarre neutro).", vid:ytSearch("curl martillo tecnica"),
+            alts:[
+              {name:"Curl martillo en polea con cuerda", vid:ytSearch("curl martillo cuerda polea tecnica")},
+              {name:"Curl inverso (agarre prono)", vid:ytSearch("curl inverso agarre prono tecnica")}
+            ]}
         ]
       },
       casa:{
@@ -954,12 +1078,36 @@ const PROGRAM = {
           "Retracciones escapulares de pie: 2 × 15 (brazos al frente, juntar escápulas)."
         ],
         exercises:[
-          {id:"casa_remo_man", name:"Remo a una mano con mancuerna (apoyo en silla)", scheme:"3 × 10-12 por brazo", rest:75, sets:3, note:"Rodilla y mano en una silla; tira llevando el codo atrás.", vid:ytSearch("remo a una mano con mancuerna tecnica")},
-          {id:"casa_remo_banda", name:"Remo sentado con banda", scheme:"3 × 12-15", rest:60, sets:3, note:"Banda anclada a un punto firme o bajo los pies.", vid:ytSearch("remo sentado con banda elastica tecnica")},
-          {id:"casa_remo_apoyo", name:"Remo con mancuernas, pecho apoyado (banco/cama inclinada)", scheme:"3 × 10-12", rest:60, sets:3, note:"Pecho apoyado = sin demanda lumbar.", vid:ytSearch("remo con mancuernas pecho apoyado tecnica")},
-          {id:"casa_facepull", name:"Face pull con banda", scheme:"3 × 15", rest:60, sets:3, key:true, note:"CLAVE para el serrato. Banda a la altura de la cara, codos altos. No saltarse nunca.", vid:ytSearch("face pull con banda elastica tecnica")},
-          {id:"casa_curl", name:"Curl de bíceps con mancuernas", scheme:"3 × 12-15", rest:60, sets:3, vid:ytSearch("curl de biceps con mancuernas tecnica")},
-          {id:"casa_curl_martillo", name:"Curl martillo con mancuernas o kettlebell", scheme:"3 × 12-15", rest:45, sets:3, vid:ytSearch("curl martillo mancuernas tecnica")}
+          {id:"casa_remo_man", name:"Remo a una mano con mancuerna (apoyo en silla)", scheme:"3 × 10-12 por brazo", rest:90, sets:3, note:"Rodilla y mano en una silla; tira llevando el codo atrás.", vid:ytSearch("remo a una mano con mancuerna tecnica"),
+            alts:[
+              {name:"Remo con kettlebell a una mano", vid:ytSearch("remo con kettlebell una mano tecnica")},
+              {name:"Remo con banda a una mano", vid:ytSearch("remo con banda una mano tecnica")}
+            ]},
+          {id:"casa_remo_banda", name:"Remo sentado con banda", scheme:"3 × 12-15", rest:75, sets:3, note:"Banda anclada a un punto firme o bajo los pies.", vid:ytSearch("remo sentado con banda elastica tecnica"),
+            alts:[
+              {name:"Jalón con banda anclada alto (vertical)", vid:ytSearch("jalon con banda elastica anclada alto tecnica")},
+              {name:"Dominadas en barra de puerta (si tienes)", vid:ytSearch("dominadas barra puerta tecnica")}
+            ]},
+          {id:"casa_remo_apoyo", name:"Remo con mancuernas, pecho apoyado (banco/cama inclinada)", scheme:"3 × 10-12", rest:75, sets:3, note:"Pecho apoyado = sin demanda lumbar.", vid:ytSearch("remo con mancuernas pecho apoyado tecnica"),
+            alts:[
+              {name:"Remo con dos mancuernas inclinado (bisagra de cadera)", vid:ytSearch("remo con dos mancuernas inclinado tecnica")},
+              {name:"Remo invertido bajo una mesa firme", vid:ytSearch("remo invertido bajo mesa tecnica casa")}
+            ]},
+          {id:"casa_facepull", name:"Face pull con banda", scheme:"3 × 15", rest:60, sets:3, key:true, note:"CLAVE para el serrato. Banda a la altura de la cara, codos altos. No saltarse nunca.", vid:ytSearch("face pull con banda elastica tecnica"),
+            alts:[
+              {name:"Pájaros (reverse fly) con mancuernas ligeras", vid:ytSearch("pajaros reverse fly mancuernas tecnica")},
+              {name:"Y-T-W tumbado boca abajo", vid:ytSearch("ejercicio YTW tumbado escapula tecnica")}
+            ]},
+          {id:"casa_curl", name:"Curl de bíceps con mancuernas", scheme:"3 × 12-15", rest:60, sets:3, vid:ytSearch("curl de biceps con mancuernas tecnica"),
+            alts:[
+              {name:"Curl con banda elástica", vid:ytSearch("curl de biceps con banda tecnica")},
+              {name:"Curl concentrado con mancuerna", vid:ytSearch("curl concentrado mancuerna tecnica")}
+            ]},
+          {id:"casa_curl_martillo", name:"Curl martillo con mancuernas o kettlebell", scheme:"3 × 12-15", rest:45, sets:3, note:"Braquial y antebrazo (agarre neutro).", vid:ytSearch("curl martillo mancuernas tecnica"),
+            alts:[
+              {name:"Curl martillo con banda", vid:ytSearch("curl martillo con banda elastica tecnica")},
+              {name:"Curl inverso con mancuernas", vid:ytSearch("curl inverso mancuernas tecnica")}
+            ]}
         ]
       },
       hotel:{
@@ -970,11 +1118,31 @@ const PROGRAM = {
           "Movilidad de hombro: 10 círculos hacia atrás."
         ],
         exercises:[
-          {id:"hotel_remo_mesa", name:"Remo invertido bajo una mesa resistente", scheme:"3 × 8-12", rest:75, sets:3, note:"Túmbate bajo una mesa firme y tira del borde llevando el pecho arriba. Comprueba que aguanta tu peso.", vid:ytSearch("remo invertido bajo mesa tecnica casa")},
-          {id:"hotel_remo_toalla", name:"Remo con toalla en pomo de puerta", scheme:"3 × 12", rest:60, sets:3, note:"Toalla alrededor de un pomo firme, te inclinas atrás y tiras.", vid:ytSearch("remo con toalla en puerta tecnica casa")},
-          {id:"hotel_ytw", name:"Y-T-W tumbado boca abajo (escápula)", scheme:"3 × 10 cada letra", rest:60, sets:3, key:true, note:"CLAVE para el serrato/escápula: sustituye al face pull. Despega brazos del suelo juntando escápulas.", vid:ytSearch("ejercicio YTW tumbado escapula tecnica")},
-          {id:"hotel_superman", name:"Superman / extensiones de espalda", scheme:"3 × 12", rest:45, sets:3, vid:ytSearch("superman ejercicio espalda tecnica")},
-          {id:"hotel_curl", name:"Curl de bíceps con mochila cargada", scheme:"3 × 12-15", rest:45, sets:3, note:"Llena una mochila con libros/botellas como peso.", vid:ytSearch("curl de biceps con mochila en casa")}
+          {id:"hotel_remo_mesa", name:"Remo invertido bajo una mesa resistente", scheme:"3 × 8-12", rest:90, sets:3, note:"Túmbate bajo una mesa firme y tira del borde llevando el pecho arriba. Comprueba que aguanta tu peso.", vid:ytSearch("remo invertido bajo mesa tecnica casa"),
+            alts:[
+              {name:"Remo invertido con pies elevados (más difícil)", vid:ytSearch("remo invertido pies elevados tecnica")},
+              {name:"Dominadas en el marco de una puerta firme", vid:ytSearch("dominadas marco puerta tecnica")}
+            ]},
+          {id:"hotel_remo_toalla", name:"Remo con toalla en pomo de puerta", scheme:"3 × 12", rest:75, sets:3, note:"Toalla alrededor de un pomo firme, te inclinas atrás y tiras.", vid:ytSearch("remo con toalla en puerta tecnica casa"),
+            alts:[
+              {name:"Remo a una mano con mochila cargada", vid:ytSearch("remo a una mano con mochila casa tecnica")},
+              {name:"Remo invertido con sábana en la puerta", vid:ytSearch("remo invertido con sabana puerta tecnica")}
+            ]},
+          {id:"hotel_ytw", name:"Y-T-W tumbado boca abajo (escápula)", scheme:"3 × 10 cada letra", rest:60, sets:3, key:true, note:"CLAVE para el serrato/escápula: sustituye al face pull. Despega brazos del suelo juntando escápulas.", vid:ytSearch("ejercicio YTW tumbado escapula tecnica"),
+            alts:[
+              {name:"Pájaros (reverse fly) con mochila/botellas, inclinado", vid:ytSearch("pajaros reverse fly inclinado casa tecnica")},
+              {name:"Push-up plus (serrato) de rodillas", vid:ytSearch("push up plus serrato tecnica")}
+            ]},
+          {id:"hotel_superman", name:"Superman / extensiones de espalda", scheme:"3 × 12", rest:45, sets:3, vid:ytSearch("superman ejercicio espalda tecnica"),
+            alts:[
+              {name:"Superman alterno (brazo y pierna contrarios)", vid:ytSearch("superman alterno bird dog tecnica")},
+              {name:"Extensiones de espalda en suelo (cobra)", vid:ytSearch("extension de espalda cobra suelo tecnica")}
+            ]},
+          {id:"hotel_curl", name:"Curl de bíceps con mochila cargada", scheme:"3 × 12-15", rest:45, sets:3, note:"Llena una mochila con libros/botellas como peso.", vid:ytSearch("curl de biceps con mochila en casa"),
+            alts:[
+              {name:"Curl con banda elástica", vid:ytSearch("curl de biceps con banda tecnica")},
+              {name:"Curl isométrico con toalla (autorresistencia)", vid:ytSearch("curl isometrico toalla autorresistencia tecnica")}
+            ]}
         ]
       }
     }
@@ -1085,6 +1253,7 @@ if(Object.keys(LOG).length===0){
 }
 let WEEK = parseInt(localStorage.getItem(LS_WEEK) || "1", 10);
 let UI = loadJSON(LS_UI, { openEx:{}, collapsed:{} });
+if(!UI.altChoice) UI.altChoice = {};   // variante elegida por ejercicio (índice)
 let LOCATION = localStorage.getItem(LS_LOC) || "gym";
 if(!LOCATIONS[LOCATION]) LOCATION = "gym";
 
@@ -1796,6 +1965,13 @@ function renderExercise(day,ex,num){
   const open = UI.openEx[ex.id];
   const visN = Math.min(entry.sets.length, setCap());   // series visibles (express recorta)
   const allDone = entryCompleteN(entry, visN);
+
+  // Variante activa (el usuario puede elegir entre el ejercicio base y sus alternativas)
+  const variants = [{name:ex.name, vid:ex.vid, note:ex.note}].concat(ex.alts||[]);
+  const choiceKey = LOCATION+"|"+day.key+"|"+ex.id;
+  let ci = UI.altChoice[choiceKey]||0; if(ci>=variants.length) ci=0;
+  const active = variants[ci];
+
   const wrap=document.createElement("div");
   wrap.className="ex"+(open?" open":"")+(allDone?" done":"");
 
@@ -1803,7 +1979,7 @@ function renderExercise(day,ex,num){
   const head=document.createElement("div");
   head.className="ex-head";
   head.innerHTML=`<div class="ex-num">${num}</div>
-    <div class="ex-title"><div class="name">${ex.name}</div><div class="scheme">${ex.scheme} · descanso ${ex.rest}s</div></div>
+    <div class="ex-title"><div class="name">${esc(active.name)}${ci>0?' <span class="alt-tag">variante</span>':''}</div><div class="scheme">${ex.scheme} · descanso ${ex.rest}s</div></div>
     <div class="ex-check">✓</div>
     <span class="ex-chev">▾</span>`;
   head.querySelector(".ex-check").onclick=(e)=>{
@@ -1835,12 +2011,29 @@ function renderExercise(day,ex,num){
     detail.appendChild(ref);
   }
 
-  // technical note
-  if(ex.note){
+  // technical note (de la variante activa)
+  if(active.note){
     const n=document.createElement("div");
     n.className="note-tech"+(ex.key?" key":"");
-    n.textContent=(ex.key?"⚠️ ":"💡 ")+ex.note;
+    n.textContent=(ex.key?"⚠️ ":"💡 ")+active.note;
     detail.appendChild(n);
+  }
+
+  // Selector de variante (alternativas equivalentes del ejercicio)
+  if(ex.alts && ex.alts.length){
+    const vSel=document.createElement("div");
+    vSel.className="var-sel";
+    vSel.innerHTML=`<button class="var-toggle">⇄ Cambiar ejercicio (${variants.length} opciones)</button><div class="var-list"></div>`;
+    const list=vSel.querySelector(".var-list");
+    variants.forEach((v,i)=>{
+      const b=document.createElement("button");
+      b.className="var-opt"+(i===ci?" on":"");
+      b.innerHTML=`<span class="var-check">✓</span><span>${esc(v.name)}${i===0?' <small>(base)</small>':''}</span>`;
+      b.onclick=()=>{ UI.altChoice[choiceKey]=i; saveJSON(LS_UI,UI); render(); };
+      list.appendChild(b);
+    });
+    vSel.querySelector(".var-toggle").onclick=()=>vSel.classList.toggle("open");
+    detail.appendChild(vSel);
   }
 
   // Sugerencia de progresión (doble progresión / luz verde)
@@ -1981,7 +2174,7 @@ function renderExercise(day,ex,num){
   bRest.className="btn btn-rest"; bRest.innerHTML=`⏱ Descanso ${ex.rest}s`;
   bRest.onclick=()=>startRest(ex.rest);
   const aVid=document.createElement("a");
-  aVid.className="btn btn-video"; aVid.href=ex.vid; aVid.target="_blank"; aVid.rel="noopener";
+  aVid.className="btn btn-video"; aVid.href=active.vid; aVid.target="_blank"; aVid.rel="noopener";
   aVid.innerHTML="▶ Técnica";
   const bHist=document.createElement("button");
   bHist.className="btn btn-hist"; bHist.innerHTML="📈 Historial";
@@ -2768,7 +2961,7 @@ let weekAutoAdvancedTo = 0;
 })();
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.11-2 · BIELA";
+const APP_VERSION = "2026.06.11-3 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
