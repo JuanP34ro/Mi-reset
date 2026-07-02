@@ -1468,11 +1468,13 @@ function getEntry(sessionKey,exId,nSets,week,loc){
 function isEmptyEntry(e){
   return e && e.sets && e.sets.every(s=>s.w===""&&s.r===""&&!s.done&&!s.warm&&(!s.rpe||s.rpe==="")) && !e.note && !e.molestia;
 }
-// Elimina las entradas vacías que getEntry crea al renderizar (evita engordar copia/nube)
+// Elimina las entradas vacías que getEntry crea al renderizar (evita engordar copia/nube).
+// IMPORTANTE: NO llamar durante la edición: borraría entradas cuyas casillas están "en vivo"
+// (los inputs quedarían apuntando a objetos huérfanos y se perderían los datos). Solo al arrancar.
 function pruneEmptyEntries(){
   Object.keys(LOG).forEach(k=>{ if(isEmptyEntry(LOG[k])) delete LOG[k]; });
 }
-function persistLocal(){ pruneEmptyEntries(); saveJSON(LS_LOG, LOG); saveJSON(LS_BACKUP, LOG); }
+function persistLocal(){ saveJSON(LS_LOG, LOG); saveJSON(LS_BACKUP, LOG); }
 function persist(){ persistLocal(); scheduleCloudSync(); }
 
 /* Snapshot de seguridad antes de una operación destructiva (restaurar/traer de la nube).
@@ -1499,8 +1501,7 @@ function setCap(){ return sessionMode==="min" ? 2 : sessionMode==="corto" ? 3 : 
 function entryCompleteN(e, n){
   if(!e || !e.sets || !e.sets.length) return false;
   const k = Math.max(1, Math.min(n, e.sets.length));
-  const slice = e.sets.slice(0,k);
-  return slice.every(s=>s.done) && slice.some(s=>s.w!==""||s.r!=="");
+  return e.sets.slice(0,k).every(s=>s.done);
 }
 
 /* Saneado y fusión de datos secundarios (calendario e hitos) para copia/nube */
@@ -1527,9 +1528,9 @@ function mergePlan(a,b){
   return out;
 }
 
-/* ¿Una entrada está "completa"? (todas las series marcadas y con algún dato) */
+/* ¿Una entrada está "completa"? (todas las series marcadas) */
 function entryComplete(e){
-  return !!(e && e.sets && e.sets.length && e.sets.every(s=>s.done) && e.sets.some(s=>s.w!==""||s.r!==""));
+  return !!(e && e.sets && e.sets.length && e.sets.every(s=>s.done));
 }
 /* Devuelve el entreno más reciente CON datos anterior a `week` (para autocompletar) → {e, w} o null */
 function lastFilledBefore(sessionKey, exId, week, loc){
@@ -2489,7 +2490,7 @@ function renderSummary(){
         const completed = e.sets.filter(s=>s.done).length;
         totalSets += completed;
         if(completed>0) dayHasData=true;
-        if(e.sets.every(s=>s.done) && e.sets.some(s=>s.w!==""||s.r!=="")) doneEx++;
+        if(e.sets.every(s=>s.done)) doneEx++;
       }
     });
     if(dayHasData) trainedDays++;
@@ -2989,7 +2990,7 @@ function computeProgress(){
         const variant=day.variants[loc]; if(!variant) return;
         const complete=variant.exercises.every(ex=>{
           const e=LOG[logKey(w,day.key,ex.id,loc)];
-          return e && e.sets.every(s=>s.done) && e.sets.some(s=>s.w!==""||s.r!=="");
+          return e && e.sets.length && e.sets.every(s=>s.done);
         });
         if(complete){ sessionsComplete++; if(byLoc[loc]!=null) byLoc[loc]++; }
       });
@@ -3153,7 +3154,8 @@ let weekAutoAdvancedTo = 0;
 })();
 
 /* ---- Init ---- */
-const APP_VERSION = "2026.06.11-4 · BIELA";
+pruneEmptyEntries();  // limpieza única al arrancar (seguro: aún no hay casillas en pantalla)
+const APP_VERSION = "2026.06.11-5 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 render();
