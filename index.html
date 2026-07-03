@@ -11,6 +11,13 @@
 <meta name="apple-mobile-web-app-title" content="Mi Reset">
 <title>Mi Reset Saludable — Gimnasio</title>
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<!-- Pantallas de arranque iOS (splash) — sin flash blanco al abrir la PWA -->
+<link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash-1290x2796.png">
+<link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash-1284x2778.png">
+<link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash-1179x2556.png">
+<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash-1170x2532.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash-828x1792.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash-750x1334.png">
 <style>
   :root{
     /* Tema BIELA — oscuro */
@@ -595,6 +602,19 @@
   .pill.sync.syncing{background:var(--warn);box-shadow:0 0 8px rgba(240,163,60,.65);animation:syncPulse 1s ease infinite}
   .pill.sync.err{background:#ef4444;box-shadow:0 0 9px rgba(239,68,68,.75)}
   @keyframes syncPulse{50%{opacity:.35}}
+  /* Iconos vectoriales de la barra inferior (sustituyen a los emojis) */
+  .tab .ti svg{width:23px;height:23px;display:block}
+  .tab .ti{display:flex;align-items:center;justify-content:center}
+  /* Resumen del día en la tarjeta de cierre */
+  .cierre-stats{display:flex;justify-content:center;gap:22px;margin-top:14px;flex-wrap:wrap}
+  .cierre-stats>div{display:flex;flex-direction:column;align-items:center;gap:2px}
+  .cierre-stats b{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
+  .cierre-stats span{font-size:10.5px;opacity:.7;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  /* Copiar toda la semana anterior con un toque */
+  .bulk-copy{width:100%;border:1.5px dashed rgba(47,208,127,.4);background:rgba(47,208,127,.08);color:#7fe3b0;
+    border-radius:14px;padding:12px 14px;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;
+    margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation;
+    animation:rise .35s ease both}
   /* Temporizador minimizado: sigue contando mientras apuntas la serie */
   .rest-mini{position:fixed;left:14px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:150;
     display:none;align-items:center;gap:7px;border:1px solid var(--accent);background:var(--card);
@@ -1433,6 +1453,7 @@ const LS_PREDO = "reset_gym_predo_v1";           // snapshot anterior al último
 const LS_PLAN = "reset_gym_plan_v1";             // hitos del plan marcados por el usuario
 const LS_DATES = "reset_gym_dates_v1";           // fechas reales en las que se entrenó (para el calendario)
 const LS_WEEK_ANCHOR = "reset_gym_week_anchor_v1"; // lunes (real) al que corresponde la semana actual (auto-avance)
+const LS_SESSMETA = "reset_gym_sessmeta_v1";       // por sesión: hora de la primera y última serie (duración)
 
 function loadJSON(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
 function saveJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -1450,6 +1471,23 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;"
 const parseNum = v => parseFloat(String(v==null?"":v).trim().replace(",","."));
 // Marca la última edición de una entrada (para fusionar entre dispositivos sin perder lo más nuevo)
 function touchEntry(e){ e.up = Date.now(); }
+// Fecha corta legible a partir de una marca de tiempo ("3 jul")
+const fmtDate = ts => new Date(+ts).toLocaleDateString("es-ES",{day:"numeric",month:"short"});
+
+/* Duración de la sesión: primera y última serie marcada de cada sesión (semana|lugar|clave) */
+let SESSMETA = loadJSON(LS_SESSMETA, {});
+function sessMetaTouch(k){
+  const m = SESSMETA[k] || (SESSMETA[k]={start:Date.now()});
+  m.end = Date.now();
+  saveJSON(LS_SESSMETA, SESSMETA);
+}
+function sessDuration(k){
+  const m=SESSMETA[k];
+  if(!m || !m.end || m.end<=m.start) return "";
+  const mins=Math.round((m.end-m.start)/60000);
+  if(mins<1) return "";
+  return mins>=60 ? Math.floor(mins/60)+" h "+(mins%60)+" min" : mins+" min";
+}
 
 /* Sanea una entrada: fuerza tipos seguros (string/boolean) en todos los campos.
    Neutraliza datos malformados o maliciosos de copias externas. */
@@ -1817,15 +1855,21 @@ function render(){
   renderEntreno();
 }
 
+/* Iconos vectoriales monocromos (heredan el color del tab: gris / cian activo) */
+const TAB_ICONS={
+  entreno:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7.5v9M17 7.5v9M3.5 9.5v5M20.5 9.5v5M7 12h10"/></svg>',
+  plan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10.5h17"/><path d="M8.5 15l2.2 2.2 4.6-4.6"/></svg>',
+  progreso:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v15.5h16"/><path d="M7.5 14.5l3.6-4.4 3 2.6 4.4-5.7"/></svg>'
+};
 function renderTabbar(){
   const bar=document.getElementById("tabbar");
   if(!bar) return;
-  const tabs=[{k:"entreno",ic:"🏋️",l:"Entreno"},{k:"plan",ic:"📅",l:"Plan"},{k:"progreso",ic:"📈",l:"Progreso"}];
+  const tabs=[{k:"entreno",l:"Entreno"},{k:"plan",l:"Plan"},{k:"progreso",l:"Progreso"}];
   bar.innerHTML="";
   tabs.forEach(t=>{
     const b=document.createElement("button");
     b.className="tab"+(activeTab===t.k?" active":"");
-    b.innerHTML=`<span class="ti">${t.ic}</span>${t.l}`;
+    b.innerHTML=`<span class="ti">${TAB_ICONS[t.k]}</span>${t.l}`;
     b.onclick=()=>{ if(activeTab!==t.k){ activeTab=t.k; render(); } };
     bar.appendChild(b);
   });
@@ -2025,14 +2069,67 @@ function renderEntreno(){
   SESSION_DONE[skey] = sessionComplete;
   if(sessionComplete && wasDone===false){ launchConfetti(); }
 
-  // Cierre de sesión: si todos los ejercicios visibles están completos
+  // Cierre de sesión: si todos los ejercicios visibles están completos,
+  // con el resumen del día (series, kilos, récords y duración)
   if(sessionComplete){
+    let cSets=0, cVol=0, cPR=0;
+    exList.forEach(ex=>{
+      const e=LOG[logKey(WEEK,day.key,ex.id)];
+      if(!e || !e.sets) return;
+      const best=bestBefore(day.key, ex.id, WEEK);
+      let exPR=false;
+      e.sets.forEach(s=>{
+        if(!s.done) return;
+        cSets++;
+        if(s.warm) return;
+        const w=parseNum(s.w), r=parseNum(s.r);
+        if(!isNaN(w) && !isNaN(r)) cVol += w*r;
+        const er=e1rm(s.w,s.r);
+        if(!exPR && ((best.weight>0 && w>best.weight) || (best.e1rm>0 && er && er>best.e1rm))) exPR=true;
+      });
+      if(exPR) cPR++;
+    });
+    const dur=sessDuration(skey);
     const cierre=document.createElement("div");
     cierre.className="cierre";
     cierre.innerHTML=`<div class="ico">🏛️</div>
       <div class="ttl">Sesión completada${sessionMode!=="full"?" (express)":""}</div>
-      <div class="txt">${fraseDe("final")}</div>`;
+      <div class="txt">${fraseDe("final")}</div>
+      <div class="cierre-stats">
+        <div><b>${cSets}</b><span>series</span></div>
+        ${cVol>0?`<div><b>${fmt(cVol)}</b><span>kg movidos</span></div>`:""}
+        ${cPR>0?`<div><b>🥇 ${cPR}</b><span>récord${cPR>1?"s":""}</span></div>`:""}
+        ${dur?`<div><b>${dur}</b><span>duración</span></div>`:""}
+      </div>`;
     content.appendChild(cierre);
+  }
+
+  // Semana nueva sin fricción: si la sesión está vacía y hay datos anteriores,
+  // un toque copia los pesos del último entreno en TODOS los ejercicios
+  const sessionEmpty = exList.every(ex=>{
+    const e=LOG[logKey(WEEK,day.key,ex.id)];
+    return !e || e.sets.every(s=>s.w===""&&s.r==="");
+  });
+  if(sessionEmpty && !sessionComplete && exList.some(ex=>lastFilledBefore(day.key,ex.id,WEEK))){
+    const bc=document.createElement("button");
+    bc.className="bulk-copy";
+    bc.innerHTML="↻ Copiar los pesos del último entreno en todos los ejercicios";
+    bc.onclick=()=>{
+      let n=0;
+      exList.forEach(ex=>{
+        const prev=lastFilledBefore(day.key, ex.id, WEEK);
+        if(!prev) return;
+        const e=getEntry(day.key, ex.id, ex.sets);
+        e.sets.forEach((s,i)=>{
+          if(prev.e.sets[i]){ s.w=prev.e.sets[i].w; s.r=prev.e.sets[i].r; }
+        });
+        touchEntry(e); n++;
+      });
+      persist();
+      toast(n+" ejercicios rellenados — ajusta y a por más 💪");
+      render();
+    };
+    content.appendChild(bc);
   }
 
   // Warmup card
@@ -2251,7 +2348,7 @@ function renderExercise(day,ex,num){
     e.stopPropagation();
     const target = !allDone;
     entry.sets.slice(0,visN).forEach(s=>s.done=target); // marca solo las series visibles
-    if(target) markTrainedToday(day.key);               // registra el día en el calendario
+    if(target){ markTrainedToday(day.key); sessMetaTouch(WEEK+"|"+LOCATION+"|"+day.key); } // calendario + duración
     touchEntry(entry); persist(); render();
   };
   head.onclick=()=>{ UI.openEx[ex.id]=!UI.openEx[ex.id]; saveJSON(LS_UI,UI); render(); };
@@ -2269,7 +2366,9 @@ function renderExercise(day,ex,num){
     if(prevRef){
       const str = prevRef.e.sets.filter(s=>s.w!==""||s.r!=="")
         .map(s=>`${esc(s.w)||"–"}kg × ${esc(s.r)||"–"}`).join(", ");
-      const where = "sem "+prevRef.w + (prevRef.loc!==LOCATION ? " · "+LOCATIONS[prevRef.loc].label : "");
+      // Con marca de tiempo muestra la fecha real ("3 jul"); si no, la semana
+      const where = (prevRef.e.up ? fmtDate(prevRef.e.up)+" · sem "+prevRef.w : "sem "+prevRef.w)
+        + (prevRef.loc!==LOCATION ? " · "+LOCATIONS[prevRef.loc].label : "");
       ref.innerHTML = `📌 <b>Última vez (${where}):</b> ${str}`;
     }else{
       ref.innerHTML = `📌 Sin registro anterior. ¡A estrenar!`;
@@ -2383,7 +2482,11 @@ function renderExercise(day,ex,num){
       s.done=!s.done;
       bd.classList.toggle("on", s.done);
       bd.setAttribute("aria-pressed", s.done ? "true" : "false");
-      if(s.done){ if(navigator.vibrate) navigator.vibrate(30); markTrainedToday(day.key); } // háptica + calendario
+      if(s.done){
+        if(navigator.vibrate) navigator.vibrate(30);
+        markTrainedToday(day.key);                            // calendario
+        sessMetaTouch(WEEK+"|"+LOCATION+"|"+day.key);         // duración de la sesión
+      }
       touchEntry(entry); persist();
       wrap.classList.toggle("done", entryCompleteN(entry, visN)); // actualiza estado del ejercicio
       const r = updateDayProgress();                            // barra del día + detección de cierre
@@ -2545,7 +2648,8 @@ function drawHistory(container,sessionKey,ex,metric){
     const det = e.sets.filter(s=>s.w!==""||s.r!=="").map(s=>`${s.warm?"·":""}${esc(s.w)||"–"}×${esc(s.r)||"–"}`).join("  ");
     const we = e.sets.filter(s=>!s.warm).map(s=>e1rm(s.w,s.r)).filter(Boolean);
     const tag = we.length ? ` · e1RM ~${Math.max(...we)}` : "";
-    rows += `<div><span>Semana ${p.w}</span><b>${det||"–"}${tag}</b></div>`;
+    const lbl = e.up ? `${fmtDate(e.up)} (s${p.w})` : `Semana ${p.w}`;
+    rows += `<div><span>${lbl}</span><b>${det||"–"}${tag}</b></div>`;
   });
   rows += `</div>`;
 
@@ -2600,6 +2704,7 @@ function renderSummary(){
     <div style="font-size:11.5px;color:var(--muted);text-align:center;margin-top:7px;line-height:1.45">${cloudStatusText()}</div>
     <div class="tiny-actions" style="margin-top:10px">
       <button class="btn" id="btnBackup">💾 Copia manual (texto)</button>
+      <button class="btn" id="btnCsv">📄 CSV (Excel)</button>
     </div>
     <div style="font-size:11.5px;color:var(--muted);text-align:center;margin-top:9px;line-height:1.45">
       La copia manual guarda <b>todo</b> en un texto que puedes pegar en Notas o enviarte por correo. Alternativa por si no usas la nube.
@@ -2609,6 +2714,7 @@ function renderSummary(){
 
   document.getElementById("btnExport").onclick=openExport;
   document.getElementById("btnBackup").onclick=openBackup;
+  document.getElementById("btnCsv").onclick=exportCSV;
   document.getElementById("btnCloud").onclick=openCloud;
   document.getElementById("btnClear").onclick=()=>{
     if(confirm(`¿Borrar los registros de ${LOCATIONS[LOCATION].label} de la semana ${WEEK}? Esto no se puede deshacer.`)){
@@ -2788,6 +2894,48 @@ document.getElementById("copyExport").onclick=async()=>{
   localStorage.setItem(LS_LASTEXPORT, String(Date.now()));
   setTimeout(render, 400);
 };
+
+/* ---- Exportar CSV (abre en Excel/Numbers; separador ; para Excel en español) ---- */
+async function exportCSV(){
+  const rows=[["fecha","semana","lugar","sesion","ejercicio","serie","kg","reps","rpe","completada","calentamiento"]];
+  Object.keys(LOG).sort((a,b)=>{
+    const wa=parseInt(a,10), wb=parseInt(b,10);
+    return wa-wb || a.localeCompare(b);
+  }).forEach(k=>{
+    const p=parseKey(k), e=LOG[k];
+    if(!e || !e.sets) return;
+    const name=EX_INDEX[p.ex] ? EX_INDEX[p.ex].name : p.ex;
+    const fecha=e.up ? new Date(e.up).toISOString().slice(0,10) : "";
+    e.sets.forEach((s,i)=>{
+      if(s.w===""&&s.r===""&&!s.done) return; // series sin nada no van al CSV
+      rows.push([fecha, p.week, LOCATIONS[p.loc]?LOCATIONS[p.loc].label:p.loc,
+        SESSION_LABEL[p.session]||p.session, name, i+1,
+        s.w, s.r, s.rpe||"", s.done?"si":"no", s.warm?"si":"no"]);
+    });
+  });
+  const csv="\uFEFF"+rows.map(r=>r.map(v=>{ // BOM para que Excel detecte acentos (UTF-8)
+    const t=String(v==null?"":v);
+    return /[";\n]/.test(t) ? '"'+t.replace(/"/g,'""')+'"' : t;
+  }).join(";")).join("\r\n");
+  try{
+    const file=new File([csv], "mi-reset-registros.csv", {type:"text/csv"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:"Registros Mi Reset"});
+      return;
+    }
+  }catch(e){ if(e && e.name==="AbortError") return; /* canceló el share: no hacer nada */ }
+  try{
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+    a.download="mi-reset-registros.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+    toast("CSV descargado");
+  }catch(e){
+    try{ await navigator.clipboard.writeText(csv); toast("CSV copiado al portapapeles"); }
+    catch(e2){ toast("No se pudo exportar el CSV"); }
+  }
+}
 
 /* ---- Copia de seguridad completa (JSON) ---- */
 const backupModal=document.getElementById("backupModal");
@@ -3313,7 +3461,7 @@ let weekAutoAdvancedTo = 0;
 
 /* ---- Init ---- */
 pruneEmptyEntries();  // limpieza única al arrancar (seguro: aún no hay casillas en pantalla)
-const APP_VERSION = "2026.07.03-2 · BIELA";
+const APP_VERSION = "2026.07.03-3 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
