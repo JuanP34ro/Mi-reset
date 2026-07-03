@@ -1,9 +1,11 @@
 /* Service Worker — Mi Reset Saludable (BIELA)
-   Estrategia: network-first para el HTML (siempre fresco si hay red),
-   con respaldo en caché para funcionar sin internet.
+   Estrategia: stale-while-revalidate para el HTML — la app abre AL INSTANTE
+   desde caché (clave en el gimnasio, donde la cobertura es mala) y a la vez
+   descarga la versión nueva en segundo plano; si hay una, el banner
+   "Nueva versión disponible" de la app avisa para actualizar.
    Sube CACHE en cada despliegue para forzar actualización. */
-const CACHE = "mireset-v21";
-const ASSETS = ["./", "./index.html", "./manifest.webmanifest"];
+const CACHE = "mireset-v22";
+const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).catch(()=>{}));
@@ -26,17 +28,28 @@ self.addEventListener("fetch", e=>{
   const req=e.request;
   if(req.method!=="GET") return;
   const accept=req.headers.get("accept")||"";
-  // HTML/navegación → red primero, caché como respaldo (offline)
+  // HTML/navegación → caché al instante + revalidación en segundo plano
   if(req.mode==="navigate" || accept.includes("text/html")){
     e.respondWith(
-      fetch(req).then(res=>{
-        const copy=res.clone();
-        caches.open(CACHE).then(c=>c.put("./index.html", copy));
-        return res;
-      }).catch(()=>caches.match("./index.html").then(r=>r||caches.match("./")))
+      caches.match("./index.html").then(cached=>{
+        const fresh = fetch(req).then(res=>{
+          if(res && res.ok){
+            const copy=res.clone();
+            caches.open(CACHE).then(c=>c.put("./index.html", copy));
+          }
+          return res;
+        }).catch(()=>null);
+        // Si hay caché la servimos ya; si no (primera visita), esperamos a la red
+        return cached || fresh.then(r=>r || caches.match("./"));
+      })
     );
     return;
   }
-  // Resto → caché primero, red como respaldo
-  e.respondWith(caches.match(req).then(r=>r||fetch(req)));
+  // Resto → caché primero, red como respaldo (y se guarda para la próxima)
+  e.respondWith(
+    caches.match(req).then(r=> r || fetch(req).then(res=>{
+      if(res && res.ok){ const copy=res.clone(); caches.open(CACHE).then(c=>c.put(req, copy)); }
+      return res;
+    }))
+  );
 });

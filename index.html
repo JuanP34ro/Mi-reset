@@ -6,10 +6,11 @@
 <meta name="theme-color" content="#0b0c0f">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mi Reset">
 <title>Mi Reset Saludable — Gimnasio</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230b0c0f'/%3E%3Crect x='62' y='74' width='56' height='9' rx='2' fill='%231bb4e8'/%3E%3Crect x='62' y='90' width='56' height='9' rx='2' fill='%231bb4e8'/%3E%3Crect x='62' y='106' width='56' height='9' rx='2' fill='%231bb4e8'/%3E%3Ctext x='90' y='60' font-size='44' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'%3E%F0%9F%92%AA%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <style>
   :root{
     /* Tema BIELA — oscuro */
@@ -569,6 +570,38 @@
   .var-opt small{color:var(--muted)}
   .var-check{flex:0 0 20px;height:20px;border-radius:6px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent}
   .var-opt.on .var-check{background:var(--accent);border-color:var(--accent);color:#04232f}
+
+  /* ============================================================
+     Pulido profesional (guardado fiable + detalles de UI)
+     ============================================================ */
+  /* Placeholders = referencia del último entreno, NO datos guardados:
+     se ven claramente apagados y en cursiva para no confundirlos. */
+  .sets input::placeholder{color:var(--muted);opacity:.45;font-weight:500;font-style:italic}
+  .ex-note::placeholder{color:var(--muted);opacity:.55}
+  /* Botones − / + de semana con más área táctil (evita toques fallidos) */
+  .pill.week{padding:3px 4px;display:inline-flex;align-items:center;gap:0}
+  .pill.week button{font-size:15px;padding:4px 6px}
+  /* Cabecera compacta: el título no debe partirse en dos líneas ni recortar los pills */
+  .brand{gap:6px;position:relative}
+  .brand h1{font-size:15px;white-space:nowrap;letter-spacing:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .brand .dot{font-size:19px}
+  .phase{gap:4px;flex:0 0 auto;margin-left:6px}
+  .pill{padding:4px 8px}
+  /* Estado de guardado/sincronización: punto de color sobre el emoji, como un badge
+     (verde ok · ámbar sincronizando · rojo error) — no ocupa ancho en la cabecera */
+  .pill.sync{position:absolute;left:15px;top:-2px;width:9px;height:9px;padding:0;border-radius:50%;
+    border:2px solid var(--header);font-size:0;flex:0 0 auto;
+    background:var(--ok);box-shadow:0 0 8px rgba(47,208,127,.65);transition:background .25s}
+  .pill.sync.syncing{background:var(--warn);box-shadow:0 0 8px rgba(240,163,60,.65);animation:syncPulse 1s ease infinite}
+  .pill.sync.err{background:#ef4444;box-shadow:0 0 9px rgba(239,68,68,.75)}
+  @keyframes syncPulse{50%{opacity:.35}}
+  /* Temporizador minimizado: sigue contando mientras apuntas la serie */
+  .rest-mini{position:fixed;left:14px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:150;
+    display:none;align-items:center;gap:7px;border:1px solid var(--accent);background:var(--card);
+    color:var(--accent);font-family:inherit;font-size:15px;font-weight:800;border-radius:999px;
+    padding:10px 16px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 18px rgba(27,180,232,.35);
+    font-variant-numeric:tabular-nums;touch-action:manipulation;animation:rise .25s ease both}
+  .rest-mini.show{display:flex}
 </style>
 </head>
 <body>
@@ -578,8 +611,9 @@
       <span class="dot">💪</span>
       <h1>Mi Reset Saludable</h1>
       <div class="phase">
-        <span class="pill">Fase 1</span>
-        <span class="pill week">Sem <button id="weekDown">−</button><span id="weekNum">1</span><button id="weekUp">+</button></span>
+        <span class="pill sync" id="syncPill" title="Estado de guardado"></span>
+        <span class="pill" id="phasePill">Fase 1</span>
+        <span class="pill week">Sem <button id="weekDown" aria-label="Semana anterior">−</button><span id="weekNum">1</span><button id="weekUp" aria-label="Semana siguiente">+</button></span>
       </div>
     </div>
     <div class="locs" id="locSelector"></div>
@@ -608,6 +642,9 @@
     <div class="rest-frase" id="restFrase"></div>
   </div>
 </div>
+
+<!-- Temporizador minimizado (toca fuera del panel para seguir apuntando sin perder la cuenta) -->
+<button class="rest-mini" id="restMini" aria-label="Volver al descanso">⏱ <span id="restMiniT">90</span></button>
 
 <!-- Export modal -->
 <div class="modal" id="exportModal">
@@ -1409,6 +1446,11 @@ function weeksBetween(a,b){ return Math.floor((b.getTime()-a.getTime())/(7*86400
 // Escapa texto antes de meterlo en innerHTML (evita inyección desde copias externas)
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
+// Número robusto: acepta coma decimal (teclado español de iOS) además de punto
+const parseNum = v => parseFloat(String(v==null?"":v).trim().replace(",","."));
+// Marca la última edición de una entrada (para fusionar entre dispositivos sin perder lo más nuevo)
+function touchEntry(e){ e.up = Date.now(); }
+
 /* Sanea una entrada: fuerza tipos seguros (string/boolean) en todos los campos.
    Neutraliza datos malformados o maliciosos de copias externas. */
 function sanitizeEntry(e){
@@ -1420,7 +1462,7 @@ function sanitizeEntry(e){
     rpe:  (s && s.rpe!=null) ? String(s.rpe) : "",
     warm: !!(s && s.warm)
   })) : [];
-  return { sets, note: (e.note!=null ? String(e.note) : ""), molestia: !!(e && e.molestia) };
+  return { sets, note: (e.note!=null ? String(e.note) : ""), molestia: !!(e && e.molestia), up: (+e.up>0 ? +e.up : 0) };
 }
 
 /* Migración: las versiones antiguas guardaban "week|sessionKey|exId" (3 partes).
@@ -1486,11 +1528,18 @@ function entryScore(e){
   if(!e || !e.sets) return -1;
   return e.sets.reduce((n,s)=>n + (s.done?2:0) + ((s.w!==""||s.r!=="")?1:0), 0);
 }
-/* Fusiona dos LOG por clave: mantiene todo, y ante conflicto conserva la entrada con más datos */
+/* ¿La entrada `inc` es más nueva/mejor que `cur`? Prioriza la fecha de edición (up);
+   si no hay fechas (datos antiguos), gana la que tenga más datos. */
+function entryNewer(cur, inc){
+  const uc=+((cur&&cur.up)||0), ui=+((inc&&inc.up)||0);
+  if(uc!==ui) return ui>uc;
+  return entryScore(inc) > entryScore(cur);
+}
+/* Fusiona dos LOG por clave: mantiene todo, y ante conflicto conserva la versión más reciente */
 function mergeLogs(base, incoming){
   const out = { ...(base||{}) };
   Object.keys(incoming||{}).forEach(k=>{
-    if(!(k in out) || entryScore(incoming[k]) > entryScore(out[k])) out[k] = incoming[k];
+    if(!(k in out) || entryNewer(out[k], incoming[k])) out[k] = incoming[k];
   });
   return out;
 }
@@ -1532,11 +1581,26 @@ function mergePlan(a,b){
 function entryComplete(e){
   return !!(e && e.sets && e.sets.length && e.sets.every(s=>s.done));
 }
-/* Devuelve el entreno más reciente CON datos anterior a `week` (para autocompletar) → {e, w} o null */
+/* Devuelve el entreno más reciente CON datos de este ejercicio (para referencia y autocompletar).
+   Busca primero hacia atrás en el lugar actual, luego hacia ADELANTE (por si la semana se movió
+   sin querer con − / +) y por último en los otros lugares → {e, w, loc} o null.
+   Así un registro nunca "desaparece": siempre se muestra dónde quedó. */
 function lastFilledBefore(sessionKey, exId, week, loc){
-  for(let w=week-1; w>=1; w--){
-    const e=LOG[logKey(w,sessionKey,exId,loc)];
-    if(e && e.sets.some(s=>s.w!==""||s.r!=="")) return { e, w };
+  loc = loc || LOCATION;
+  const hasData = e => e && e.sets && e.sets.some(s=>s.w!==""||s.r!=="");
+  let maxW = week;
+  Object.keys(LOG).forEach(k=>{ const w=parseInt(k.split("|")[0],10); if(w>maxW) maxW=w; });
+  const scan = l => {
+    for(let w=week-1; w>=1; w--){ const e=LOG[logKey(w,sessionKey,exId,l)]; if(hasData(e)) return {e, w, loc:l}; }
+    for(let w=week+1; w<=maxW; w++){ const e=LOG[logKey(w,sessionKey,exId,l)]; if(hasData(e)) return {e, w, loc:l}; }
+    return null;
+  };
+  const own = scan(loc);
+  if(own) return own;
+  for(const l of Object.keys(LOCATIONS)){
+    if(l===loc) continue;
+    const r = scan(l);
+    if(r) return r;
   }
   return null;
 }
@@ -1544,7 +1608,7 @@ function lastFilledBefore(sessionKey, exId, week, loc){
 /* 1RM estimado (e1RM): Brzycki para reps bajas (≤10), Epley para moderadas-altas.
    Devuelve null si no es fiable (sin datos o reps muy altas). Redondea a 0,5 kg. */
 function e1rm(w, r){
-  const W=parseFloat(w), R=parseFloat(r);
+  const W=parseNum(w), R=parseNum(r);
   if(isNaN(W) || isNaN(R) || W<=0 || R<=0 || R>15) return null;
   if(R===1) return W;
   const v = R<=10 ? (W*36/(37-R)) : (W*(1+R/30));
@@ -1558,7 +1622,7 @@ function bestBefore(sessionKey, exId, week, loc){
     if(!e || !e.sets) continue;
     e.sets.forEach(s=>{
       if(s.warm) return;
-      const W=parseFloat(s.w); if(!isNaN(W) && W>weight) weight=W;
+      const W=parseNum(s.w); if(!isNaN(W) && W>weight) weight=W;
       const er=e1rm(s.w,s.r); if(er && er>best1rm) best1rm=er;
     });
   }
@@ -1633,16 +1697,22 @@ function repRange(scheme){
 function progressionHint(day, ex){
   const range = repRange(ex.scheme);
   if(!range) return null;
+  const bodyweight = LOCATION==="hotel"; // sin pesas: se progresa con reps, tempo o variante
   const prev = lastFilledBefore(day.key, ex.id, WEEK);
-  if(!prev) return {kind:"new", text:"Primer registro: elige un peso con el que llegues a "+range.min+" reps dejando 2-3 en reserva (RIR)."};
+  if(!prev) return {kind:"new", text: bodyweight
+    ? "Primer registro: apunta las reps que te salgan con buena técnica dejando 2-3 en reserva (RIR)."
+    : "Primer registro: elige un peso con el que llegues a "+range.min+" reps dejando 2-3 en reserva (RIR)."};
   const work = prev.e.sets.filter(s=>!s.warm && (s.r!==""||s.w!==""));
   if(!work.length) return null;
-  const allTop = work.every(s=>{ const r=parseFloat(s.r); return !isNaN(r) && r>=range.max; });
+  const allTop = work.every(s=>{ const r=parseNum(s.r); return !isNaN(r) && r>=range.max; });
   const isShoulder = /hombro|escápula|escapula|face\s*pull|facepull/i.test(ex.name) || ex.key;
   if(allTop){
+    if(bodyweight){
+      return {kind:"up", text:`🟢 Llegaste al tope de ${range.max} reps en todas las series. Sin pesas, progresa así: pasa a una variante más difícil (⇄), baja más lento (3 s) o añade 1-2 reps.`};
+    }
     return {kind:"up", text:`🟢 Sube al peso mínimo siguiente (la última vez llegaste al tope de ${range.max} reps en todas las series). Reinicia en ~${range.min} reps.`+(isShoulder?" Aquí, conservador: solo si fue sin molestia y con RIR 3-4.":"")};
   }
-  return {kind:"reps", text:`Mantén el peso y suma reps hacia ${range.max} en todas las series (la última vez no llegaste al tope). Deja 2-3 reps en reserva.`};
+  return {kind:"reps", text:`Mantén ${bodyweight?"la variante":"el peso"} y suma reps hacia ${range.max} en todas las series (la última vez no llegaste al tope). Deja 2-3 reps en reserva.`};
 }
 
 // Hitos del plan por horizonte temporal (metas de proceso y de resultado)
@@ -1729,6 +1799,8 @@ function launchConfetti(){
 
 function render(){
   document.body.classList.toggle("tab-progreso", activeTab!=="entreno"); // oculta selectores fuera de Entreno
+  const pp=document.getElementById("phasePill");
+  if(pp) pp.textContent = planBlock(WEEK).phase.split("·")[0].trim(); // fase real según la semana
   renderTabbar();
   if(activeTab==="progreso"){
     content.innerHTML = "";
@@ -2180,7 +2252,7 @@ function renderExercise(day,ex,num){
     const target = !allDone;
     entry.sets.slice(0,visN).forEach(s=>s.done=target); // marca solo las series visibles
     if(target) markTrainedToday(day.key);               // registra el día en el calendario
-    persist(); render();
+    touchEntry(entry); persist(); render();
   };
   head.onclick=()=>{ UI.openEx[ex.id]=!UI.openEx[ex.id]; saveJSON(LS_UI,UI); render(); };
   wrap.appendChild(head);
@@ -2189,15 +2261,16 @@ function renderExercise(day,ex,num){
   const detail=document.createElement("div");
   detail.className="ex-detail";
 
-  // Referencia del último entreno con datos (no solo la semana anterior)
-  const prevRef = WEEK>1 ? lastFilledBefore(day.key, ex.id, WEEK) : null;
-  if(WEEK>1){
+  // Referencia del último entreno con datos (busca en todas las semanas y lugares)
+  const prevRef = lastFilledBefore(day.key, ex.id, WEEK);
+  if(prevRef || WEEK>1){
     const ref=document.createElement("div");
     ref.className="last-time";
     if(prevRef){
       const str = prevRef.e.sets.filter(s=>s.w!==""||s.r!=="")
         .map(s=>`${esc(s.w)||"–"}kg × ${esc(s.r)||"–"}`).join(", ");
-      ref.innerHTML = `📌 <b>Última vez (sem ${prevRef.w}):</b> ${str}`;
+      const where = "sem "+prevRef.w + (prevRef.loc!==LOCATION ? " · "+LOCATIONS[prevRef.loc].label : "");
+      ref.innerHTML = `📌 <b>Última vez (${where}):</b> ${str}`;
     }else{
       ref.innerHTML = `📌 Sin registro anterior. ¡A estrenar!`;
     }
@@ -2253,37 +2326,53 @@ function renderExercise(day,ex,num){
     // ¿es récord? (supera la mejor marca previa, sin contar calentamiento)
     const setE = e1rm(s.w,s.r);
     const isPR = !s.warm && hasPrevBest && (
-      (parseFloat(s.w)>prevBest.weight && prevBest.weight>0) ||
+      (parseNum(s.w)>prevBest.weight && prevBest.weight>0) ||
       (setE && prevBest.e1rm>0 && setE>prevBest.e1rm)
     );
 
     const tdN=document.createElement("td"); tdN.className="serie-cell";
     tdN.innerHTML = (s.warm?"W":(si+1)) + (isPR?' <span class="pr-dot" aria-label="Récord">🥇</span>':'');
     tdN.title = "Toca para marcar/quitar serie de calentamiento";
-    tdN.onclick=()=>{ s.warm=!s.warm; persist(); render(); };
+    tdN.onclick=()=>{ s.warm=!s.warm; touchEntry(entry); persist(); render(); };
 
     const tdW=document.createElement("td");
     const inW=document.createElement("input");
-    inW.type="number"; inW.inputMode="decimal"; inW.value=s.w;
-    inW.placeholder = (prevSet && prevSet.w!=="") ? prevSet.w : "–"; // muestra lo del último entreno
+    // type="text" + inputmode: en iOS en español el teclado decimal usa COMA,
+    // que un input type="number" rechaza (el valor se quedaba vacío → "no guarda").
+    inW.type="text"; inW.inputMode="decimal"; inW.autocomplete="off"; inW.enterKeyHint="done";
+    inW.value=s.w;
+    inW.placeholder = (prevSet && prevSet.w!=="") ? prevSet.w : "–"; // referencia del último entreno (apagado)
     inW.setAttribute("aria-label", `Serie ${si+1} peso en kg`);
-    inW.oninput=()=>{ s.w=inW.value; persist(); };
+    inW.oninput=()=>{
+      const v=inW.value.replace(/[^\d.,]/g,"");
+      if(v!==inW.value) inW.value=v;
+      s.w=v; touchEntry(entry); persist();
+    };
     tdW.appendChild(inW);
 
     const tdR=document.createElement("td");
     const inR=document.createElement("input");
-    inR.type="number"; inR.inputMode="numeric"; inR.value=s.r;
+    inR.type="text"; inR.inputMode="numeric"; inR.autocomplete="off"; inR.enterKeyHint="done";
+    inR.value=s.r;
     inR.placeholder = (prevSet && prevSet.r!=="") ? prevSet.r : "–";
     inR.setAttribute("aria-label", `Serie ${si+1} repeticiones`);
-    inR.oninput=()=>{ s.r=inR.value; persist(); };
+    inR.oninput=()=>{
+      const v=inR.value.replace(/[^\d]/g,"");
+      if(v!==inR.value) inR.value=v;
+      s.r=v; touchEntry(entry); persist();
+    };
     tdR.appendChild(inR);
 
     const tdRpe=document.createElement("td");
     const inRpe=document.createElement("input");
-    inRpe.type="number"; inRpe.inputMode="numeric"; inRpe.value=s.rpe||""; inRpe.placeholder="–";
-    inRpe.min="1"; inRpe.max="10";
+    inRpe.type="text"; inRpe.inputMode="numeric"; inRpe.autocomplete="off"; inRpe.enterKeyHint="done";
+    inRpe.value=s.rpe||""; inRpe.placeholder="–";
     inRpe.setAttribute("aria-label", `Serie ${si+1} esfuerzo RPE de 1 a 10`);
-    inRpe.oninput=()=>{ s.rpe=inRpe.value; persist(); };
+    inRpe.oninput=()=>{
+      const v=inRpe.value.replace(/[^\d]/g,"").slice(0,2);
+      if(v!==inRpe.value) inRpe.value=v;
+      s.rpe=v; touchEntry(entry); persist();
+    };
     tdRpe.appendChild(inRpe);
 
     const tdD=document.createElement("td");
@@ -2295,7 +2384,7 @@ function renderExercise(day,ex,num){
       bd.classList.toggle("on", s.done);
       bd.setAttribute("aria-pressed", s.done ? "true" : "false");
       if(s.done){ if(navigator.vibrate) navigator.vibrate(30); markTrainedToday(day.key); } // háptica + calendario
-      persist();
+      touchEntry(entry); persist();
       wrap.classList.toggle("done", entryCompleteN(entry, visN)); // actualiza estado del ejercicio
       const r = updateDayProgress();                            // barra del día + detección de cierre
       if(s.done && !s.warm) startRest(ex.rest);                 // descanso autostart (no en calentamiento)
@@ -2331,7 +2420,7 @@ function renderExercise(day,ex,num){
         entry.sets.forEach((s,i)=>{
           if(prevRef.e.sets[i]){ s.w=prevRef.e.sets[i].w; s.r=prevRef.e.sets[i].r; }
         });
-        persist(); toast("Pesos copiados — ajústalos y a por más"); render();
+        touchEntry(entry); persist(); toast("Pesos copiados — ajústalos y a por más"); render();
       };
       detail.appendChild(pf);
     }
@@ -2341,7 +2430,7 @@ function renderExercise(day,ex,num){
   const ta=document.createElement("textarea");
   ta.className="ex-note"; ta.rows=2; ta.placeholder="Nota: sensación, técnica, molestia…";
   ta.value=entry.note;
-  ta.oninput=()=>{ entry.note=ta.value; persist(); };
+  ta.oninput=()=>{ entry.note=ta.value; touchEntry(entry); persist(); };
   detail.appendChild(ta);
 
   // Marca de molestia (para correlacionar con la carga en rehabilitación)
@@ -2351,7 +2440,7 @@ function renderExercise(day,ex,num){
   mol.textContent=molTxt(entry.molestia);
   mol.setAttribute("aria-pressed", entry.molestia?"true":"false");
   mol.onclick=()=>{
-    entry.molestia=!entry.molestia; persist();
+    entry.molestia=!entry.molestia; touchEntry(entry); persist();
     mol.className="molestia-btn"+(entry.molestia?" on":"");
     mol.textContent=molTxt(entry.molestia);
     mol.setAttribute("aria-pressed", entry.molestia?"true":"false");
@@ -2397,7 +2486,7 @@ function drawHistory(container,sessionKey,ex,metric){
     if(!e) continue;
     const vals = metric==="e1rm"
       ? e.sets.filter(s=>!s.warm).map(s=>e1rm(s.w,s.r)).filter(Boolean)
-      : e.sets.filter(s=>!s.warm).map(s=>parseFloat(s.w)).filter(v=>!isNaN(v));
+      : e.sets.filter(s=>!s.warm).map(s=>parseNum(s.w)).filter(v=>!isNaN(v));
     if(vals.length){ points.push({w, val:Math.max(...vals)}); }
   }
   const title = metric==="e1rm" ? "1RM estimado" : "Peso de trabajo";
@@ -2538,6 +2627,18 @@ const restOverlay=document.getElementById("restOverlay");
 const restTimeEl=document.getElementById("restTime");
 const restBar=document.getElementById("restBar");
 const restPauseBtn=document.getElementById("restPause");
+const restMini=document.getElementById("restMini");
+const restMiniT=document.getElementById("restMiniT");
+
+/* iOS solo permite iniciar audio dentro de un gesto del usuario: creamos/reanudamos
+   el contexto al ARRANCAR el descanso (que viene de un toque) para que el pitido
+   del final no salga mudo. */
+function ensureAudio(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended") audioCtx.resume();
+  }catch(e){}
+}
 
 function startRest(seconds){
   restTotal=seconds; restRemaining=seconds; restPaused=false; restDone=false;
@@ -2548,7 +2649,9 @@ function startRest(seconds){
   const rf=document.getElementById("restFrase");
   if(rf) rf.textContent="“"+fraseDe("esfuerzo")+"”";
   updateRestUI();
+  restMini.classList.remove("show");
   restOverlay.classList.add("show");
+  ensureAudio();
   acquireWakeLock();
   clearInterval(restTimer);
   restTimer=setInterval(tickRest,250); // refresco fino; el tiempo real lo marca restEndAt
@@ -2561,6 +2664,9 @@ function tickRest(){
   if(restRemaining<=0){
     restDone=true;
     clearInterval(restTimer);
+    // Si estaba minimizado, vuelve a mostrarse para avisar del final
+    restMini.classList.remove("show");
+    restOverlay.classList.add("show");
     restTimeEl.classList.add("flash");
     beep();
     if(navigator.vibrate) navigator.vibrate([180,90,180]);
@@ -2570,7 +2676,9 @@ function tickRest(){
 }
 function updateRestUI(){
   const m=Math.floor(Math.max(restRemaining,0)/60), s=Math.max(restRemaining,0)%60;
-  restTimeEl.textContent = m>0 ? `${m}:${String(s).padStart(2,"0")}` : String(s);
+  const txt = m>0 ? `${m}:${String(s).padStart(2,"0")}` : String(s);
+  restTimeEl.textContent = txt;
+  if(restMiniT) restMiniT.textContent = txt;
   const pct = restTotal>0 ? Math.max(restRemaining,0)/restTotal : 0;
   restBar.setAttribute("width", (120*pct).toFixed(1));
 }
@@ -2578,8 +2686,15 @@ function closeRest(){
   clearInterval(restTimer);
   clearTimeout(restCloseT);
   restOverlay.classList.remove("show");
+  restMini.classList.remove("show");
   restTimeEl.classList.remove("flash");
 }
+/* Minimizar: el descanso sigue contando en una pastilla flotante mientras apuntas */
+function minimizeRest(){
+  restOverlay.classList.remove("show");
+  if(!restDone && restRemaining>0) restMini.classList.add("show");
+}
+restMini.onclick=()=>{ restMini.classList.remove("show"); restOverlay.classList.add("show"); };
 restPauseBtn.onclick=()=>{
   restPaused=!restPaused;
   if(!restPaused) restEndAt=Date.now()+restRemaining*1000; // al reanudar, recoloca la hora de fin
@@ -2599,7 +2714,7 @@ document.getElementById("restAdd").onclick=()=>{
   updateRestUI();
 };
 document.getElementById("restSkip").onclick=closeRest;
-restOverlay.onclick=(e)=>{ if(e.target===restOverlay) closeRest(); };
+restOverlay.onclick=(e)=>{ if(e.target===restOverlay) minimizeRest(); };
 
 function beep(){
   try{
@@ -2623,7 +2738,7 @@ async function acquireWakeLock(){
   try{ if("wakeLock" in navigator){ wakeLock=await navigator.wakeLock.request("screen"); } }catch(e){}
 }
 document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState==="visible" && restOverlay.classList.contains("show")){
+  if(document.visibilityState==="visible" && (restOverlay.classList.contains("show") || restMini.classList.contains("show"))){
     if(wakeLock!==null) acquireWakeLock();
     tickRest(); // recalibra el descanso al volver (iOS congela el JS en segundo plano)
   }
@@ -2750,8 +2865,22 @@ function cloudStatusText(){
   const ls=localStorage.getItem(LS_GH_LASTSYNC);
   return ls ? "☁️ Copia automática activa · guardado "+fmtSince(ls) : "☁️ Conectado · aún sin sincronizar";
 }
+// Punto de estado en la cabecera: siempre a la vista, genera confianza en el guardado
+function updateSyncPill(state){
+  const el=document.getElementById("syncPill");
+  if(!el) return;
+  if(!cloudConfigured()){
+    el.className="pill sync"; el.title="Guardado en este dispositivo"; return;
+  }
+  const map={ syncing:["syncing","Sincronizando…"], ok:["","Guardado en la nube"],
+              idle:["","Copia en la nube activa"], error:["err","No se pudo sincronizar — se reintentará solo"] };
+  const s=map[state]||map.idle;
+  el.className="pill sync"+(s[0]?" "+s[0]:""); el.title=s[1];
+}
+
 // Refresca el texto de estado dentro del modal (sin re-render para no robar el foco al escribir)
 function setCloudState(state, msg){
+  updateSyncPill(state);
   const el=document.getElementById("cloudState");
   if(!el) return;
   const map={
@@ -2767,8 +2896,17 @@ let cloudT=null, cloudBusy=false;
 function scheduleCloudSync(){
   if(!cloudConfigured()) return;
   clearTimeout(cloudT);
-  cloudT=setTimeout(cloudPush, 2500); // espera a que dejes de escribir
+  cloudT=setTimeout(()=>{ cloudT=null; cloudPush(); }, 2500); // espera a que dejes de escribir
 }
+/* Si hay una subida pendiente y la app se va a segundo plano (o se cierra),
+   súbela YA con keepalive: antes esa subida se perdía hasta la próxima apertura. */
+function flushCloudSync(){
+  if(cloudT){ clearTimeout(cloudT); cloudT=null; cloudPush(true); }
+}
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") flushCloudSync(); });
+window.addEventListener("pagehide", flushCloudSync);
+// Al recuperar la conexión (típico saliendo del gimnasio), reintenta la sincronización
+window.addEventListener("online", ()=>{ if(cloudConfigured()) scheduleCloudSync(); });
 
 // Lee y parsea el contenido del Gist remoto; devuelve {log,week} o null
 async function cloudFetchRemote(token, id){
@@ -2785,22 +2923,34 @@ async function cloudFetchRemote(token, id){
   return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan) };
 }
 
-async function cloudPush(){
+async function cloudPush(flush){
   const token=localStorage.getItem(LS_GH_TOKEN);
   if(!token || cloudBusy) return;
   cloudBusy=true; setCloudState("syncing");
+  // keepalive: la petición sobrevive aunque iOS suspenda la app justo después
+  const extra = flush ? {keepalive:true} : {};
   try{
     let id=localStorage.getItem(LS_GH_GIST);
-    // 1) Fusión defensiva: trae claves remotas que falten en local (no pisar otro dispositivo).
-    //    Solo AÑADE claves nuevas; nunca reemplaza objetos locales (que puedes estar editando).
-    if(id){
+    // 1) Fusión defensiva con lo remoto (no pisar otro dispositivo). Añade claves que
+    //    falten y solo reemplaza una entrada local si la remota es MÁS RECIENTE (up)
+    //    y no pertenece a la sesión que está ahora en pantalla (edición en vivo).
+    //    En el flush de salida se omite: hay que subir antes de que iOS nos congele.
+    if(id && !flush){
       try{
         const remote=await cloudFetchRemote(token, id);
         if(remote==="gone"){ id=null; localStorage.removeItem(LS_GH_GIST); }
         else if(remote && remote.log){
-          let added=false;
-          Object.keys(remote.log).forEach(k=>{ if(!(k in LOG)){ LOG[k]=remote.log[k]; added=true; } });
-          if(added) persistLocal();
+          const dayNow=PROGRAM[selectedDay];
+          const livePrefix = (activeTab==="entreno" && dayNow && dayNow.type==="session")
+            ? WEEK+"|"+LOCATION+"|"+dayNow.key+"|" : null;
+          let changed=false;
+          Object.keys(remote.log).forEach(k=>{
+            if(!(k in LOG)){ LOG[k]=remote.log[k]; changed=true; }
+            else if(entryNewer(LOG[k], remote.log[k]) && !(livePrefix && k.startsWith(livePrefix))){
+              LOG[k]=remote.log[k]; changed=true;
+            }
+          });
+          if(changed) persistLocal();
           // Calendario e hitos: fusiona lo remoto con lo local (nunca se pierde un día)
           TRAINED = mergeDates(TRAINED, remote.dates); saveJSON(LS_DATES, TRAINED);
           PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);
@@ -2811,11 +2961,11 @@ async function cloudPush(){
     const files={}; files[CLOUD_FILE]={content:cloudPayload()};
     let res;
     if(id){
-      res=await fetch("https://api.github.com/gists/"+id,{method:"PATCH",headers:ghHeaders(token),body:JSON.stringify({files})});
+      res=await fetch("https://api.github.com/gists/"+id,{method:"PATCH",headers:ghHeaders(token),body:JSON.stringify({files}),...extra});
       if(res.status===404){ id=null; localStorage.removeItem(LS_GH_GIST); }
     }
     if(!id){
-      res=await fetch("https://api.github.com/gists",{method:"POST",headers:ghHeaders(token),body:JSON.stringify({description:CLOUD_DESC,public:false,files})});
+      res=await fetch("https://api.github.com/gists",{method:"POST",headers:ghHeaders(token),body:JSON.stringify({description:CLOUD_DESC,public:false,files}),...extra});
       if(res.ok){ const d=await res.json(); localStorage.setItem(LS_GH_GIST,d.id); }
     }
     if(!res.ok) throw new Error("HTTP "+res.status);
@@ -2833,10 +2983,12 @@ async function cloudPull(){
     const remote=await cloudFetchRemote(token, id);
     if(!remote || remote==="gone") throw new Error("la copia en la nube está vacía");
     snapshotBefore();              // guarda lo actual por si hay que deshacer
-    LOG=remote.log;
+    // FUSIÓN, no reemplazo: antes esto pisaba registros locales más nuevos que la nube
+    // (p. ej. si la última subida en el gimnasio falló por mala cobertura).
+    LOG = mergeLogs(LOG, remote.log);
     TRAINED = mergeDates(TRAINED, remote.dates); saveJSON(LS_DATES, TRAINED); // calendario: unión
     PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);             // hitos: unión
-    const w=parseInt(remote.week,10); if(Number.isFinite(w)) setWeek(w);
+    const w=parseInt(remote.week,10); if(Number.isFinite(w) && w>WEEK) setWeek(w);
     persistLocal();
     localStorage.setItem(LS_GH_LASTSYNC,String(Date.now()));
     setCloudState("ok");
@@ -2910,7 +3062,7 @@ cloudModal.onclick=(e)=>{ if(e.target===cloudModal) cloudModal.classList.remove(
 document.getElementById("cloudConnect").onclick=cloudConnect;
 document.getElementById("cloudSyncNow").onclick=()=>{ cloudPush().then(()=>toast("Sincronizado")); };
 document.getElementById("cloudPull").onclick=()=>{
-  if(confirm("¿Traer los datos de la nube? Reemplazará lo que haya en este dispositivo.")) cloudPull();
+  if(confirm("¿Traer los datos de la nube? Se combinarán con los de este dispositivo (de cada registro gana la versión más reciente; no se pierde nada).")) cloudPull();
 };
 document.getElementById("cloudDisconnect").onclick=cloudDisconnect;
 
@@ -2924,8 +3076,10 @@ function setWeek(w){
   document.getElementById("weekNum").textContent=WEEK;
   render();
 }
-document.getElementById("weekUp").onclick=(e)=>{e.stopPropagation();setWeek(WEEK+1);};
-document.getElementById("weekDown").onclick=(e)=>{e.stopPropagation();setWeek(WEEK-1);};
+// Aviso al cambiar de semana a mano: todo lo que registres irá a ESA semana
+// (evita el clásico "mis datos han desaparecido" por un toque accidental en − / +)
+document.getElementById("weekUp").onclick=(e)=>{e.stopPropagation();setWeek(WEEK+1);toast("Semana "+WEEK+" — los registros se guardan aquí");};
+document.getElementById("weekDown").onclick=(e)=>{e.stopPropagation();setWeek(WEEK-1);toast("Semana "+WEEK+" — los registros se guardan aquí");};
 
 /* ---- Toast ---- */
 let toastT=null;
@@ -2969,9 +3123,10 @@ function computeProgress(){
     const {week,loc,ex}=parseKey(k);
     const e=LOG[k]; if(!e || !e.sets) return;
     e.sets.forEach(s=>{
-      const wv=parseFloat(s.w), rv=parseFloat(s.r);
+      const wv=parseNum(s.w), rv=parseNum(s.r);
       if(s.done){ totalSets++; if(perWeek[week]) perWeek[week].sets++; }
-      if(s.warm) return; // el calentamiento no cuenta para volumen ni récords
+      if(s.warm) return;  // el calentamiento no cuenta para volumen ni récords
+      if(!s.done) return; // solo cuentan series realmente completadas (✓)
       if(!isNaN(wv) && !isNaN(rv)){
         const vol=wv*rv; totalVolume+=vol; if(perWeek[week]) perWeek[week].volume+=vol;
       }
@@ -3155,9 +3310,10 @@ let weekAutoAdvancedTo = 0;
 
 /* ---- Init ---- */
 pruneEmptyEntries();  // limpieza única al arrancar (seguro: aún no hay casillas en pantalla)
-const APP_VERSION = "2026.06.11-5 · BIELA";
+const APP_VERSION = "2026.07.03-1 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
+updateSyncPill(cloudConfigured() ? "idle" : "");
 render();
 if(weekAutoAdvancedTo){ setTimeout(()=>toast("Nueva semana "+weekAutoAdvancedTo+" — ¡a por ella! 💪"), 500); }
 </script>
