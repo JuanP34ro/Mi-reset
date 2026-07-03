@@ -610,6 +610,28 @@
   .cierre-stats>div{display:flex;flex-direction:column;align-items:center;gap:2px}
   .cierre-stats b{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
   .cierre-stats span{font-size:10.5px;opacity:.7;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  /* Hechos del día y diario de una línea (en el cierre de sesión) */
+  .cierre-facts{margin-top:13px;font-size:13px;line-height:1.6;opacity:.95}
+  .cierre-facts b{color:#7fd4f2}
+  .cierre-diary{width:100%;margin-top:13px;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.07);
+    color:#fff;border-radius:12px;padding:10px 12px;font-size:14px;font-family:inherit;resize:none;box-sizing:border-box}
+  .cierre-diary::placeholder{color:rgba(255,255,255,.5);font-style:italic}
+  .cierre-diary:focus{outline:none;border-color:rgba(255,255,255,.55)}
+  /* Muro de frutos (Progreso): hechos, no premios */
+  .fruit{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;line-height:1.5;align-items:flex-start}
+  .fruit:last-child{border-bottom:none}
+  .fruit .fi{flex:0 0 24px;text-align:center;font-size:16px}
+  .fruit b{color:var(--accent)}
+  .fruit-quote{font-size:12px;color:var(--muted);font-style:italic;margin:-6px 0 10px}
+  .diary-row{padding:9px 0 6px;border-top:1px dashed var(--line);font-size:13px;line-height:1.5;font-style:italic}
+  .diary-row small{display:block;color:var(--muted);font-style:normal;font-weight:700;font-size:10.5px;
+    margin-bottom:2px;text-transform:uppercase;letter-spacing:.3px}
+  /* Vuelta sin culpa tras días fuera */
+  .comeback{background:linear-gradient(135deg,#12333f,#0d2530);border:1px solid rgba(27,180,232,.35);color:#cfe9f5;
+    border-radius:var(--radius);padding:16px;margin-bottom:14px;font-size:13.5px;line-height:1.55;animation:rise .35s ease both}
+  .comeback b{color:#7fd4f2}
+  .comeback button{margin-top:11px;background:var(--accent);color:#04232f;border:none;border-radius:10px;
+    padding:10px 15px;font-weight:800;font-family:inherit;font-size:13px;cursor:pointer;touch-action:manipulation}
   /* Copiar toda la semana anterior con un toque */
   .bulk-copy{width:100%;border:1.5px dashed rgba(47,208,127,.4);background:rgba(47,208,127,.08);color:#7fe3b0;
     border-radius:14px;padding:12px 14px;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;
@@ -1454,6 +1476,7 @@ const LS_PLAN = "reset_gym_plan_v1";             // hitos del plan marcados por 
 const LS_DATES = "reset_gym_dates_v1";           // fechas reales en las que se entrenó (para el calendario)
 const LS_WEEK_ANCHOR = "reset_gym_week_anchor_v1"; // lunes (real) al que corresponde la semana actual (auto-avance)
 const LS_SESSMETA = "reset_gym_sessmeta_v1";       // por sesión: hora de la primera y última serie (duración)
+const LS_DIARY = "reset_gym_diary_v1";             // diario de una línea por día ("¿qué has demostrado hoy?")
 
 function loadJSON(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
 function saveJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -1559,7 +1582,7 @@ function persist(){ persistLocal(); scheduleCloudSync(); }
 
 /* Snapshot de seguridad antes de una operación destructiva (restaurar/traer de la nube).
    Permite "deshacer" desde la copia manual. */
-function snapshotBefore(){ saveJSON(LS_PREDO, { log:LOG, week:WEEK, dates:TRAINED, plan:PLAN, at:Date.now() }); }
+function snapshotBefore(){ saveJSON(LS_PREDO, { log:LOG, week:WEEK, dates:TRAINED, plan:PLAN, diary:DIARY, at:Date.now() }); }
 
 /* Puntúa una entrada por cantidad de datos (para fusionar sin perder lo más completo) */
 function entryScore(e){
@@ -1614,6 +1637,14 @@ function mergePlan(a,b){
   Object.keys(b||{}).forEach(k=>{ if(b[k]) out[k]=true; });
   return out;
 }
+function sanitizeDiary(o){
+  const out={};
+  if(o && typeof o==="object") Object.keys(o).forEach(k=>{
+    if(/^\d{4}-\d{2}-\d{2}$/.test(k) && typeof o[k]==="string" && o[k].trim()) out[k]=String(o[k]).slice(0,500);
+  });
+  return out;
+}
+function mergeDiary(a,b){ return {...(b||{}), ...(a||{})}; } // en el mismo día gana lo local
 
 /* ¿Una entrada está "completa"? (todas las series marcadas) */
 function entryComplete(e){
@@ -1676,6 +1707,7 @@ function sess(day){ return day.variants[LOCATION] || day.variants.gym; }
    =========================================================== */
 let PLAN = loadJSON(LS_PLAN, {});      // hitos marcados por el usuario
 let TRAINED = loadJSON(LS_DATES, {});  // { "YYYY-MM-DD": ["torso_a", ...] } fechas entrenadas
+let DIARY = sanitizeDiary(loadJSON(LS_DIARY, {})); // { "YYYY-MM-DD": "una línea" }
 let calRef = null;                     // {y, m} mes mostrado en el calendario
 const SESSION_LABEL = (()=>{ const o={}; Object.values(PROGRAM).forEach(d=>{ if(d.key) o[d.key]=d.label; }); return o; })();
 // Registra que HOY se entrenó esta sesión (para el calendario)
@@ -2090,6 +2122,38 @@ function renderEntreno(){
       if(exPR) cPR++;
     });
     const dur=sessDuration(skey);
+
+    // Hechos de hoy: evidencia, no confeti
+    const facts=[];
+    const nSess=Object.values(TRAINED).reduce((a,v)=>a+(v?v.length:0),0);
+    const firstDs=Object.keys(TRAINED).sort()[0];
+    if(nSess>0 && firstDs){
+      facts.push(`Entreno <b>Nº ${nSess}</b> desde el ${fmtDate(+parseLocalDate(firstDs))}.`);
+    }
+    // Volumen del mismo entreno la vez anterior (misma sesión y lugar)
+    for(let w=WEEK-1; w>=1; w--){
+      let pv=0, any=false;
+      sv.exercises.forEach(ex=>{
+        const e=LOG[logKey(w,day.key,ex.id)];
+        if(!e || !e.sets) return;
+        e.sets.forEach(s=>{
+          if(s.warm) return;
+          const wv=parseNum(s.w), rv=parseNum(s.r);
+          if(!isNaN(wv) && !isNaN(rv)){ pv+=wv*rv; any=true; }
+        });
+      });
+      if(any){
+        if(pv>0 && cVol>0){
+          const d=Math.round((cVol-pv)/pv*100);
+          facts.push(d>=0
+            ? `Has movido un <b>+${d}%</b> respecto a la última vez (${fmt(pv)} → ${fmt(cVol)} kg).`
+            : `Hoy ${fmt(cVol)} kg · la última vez ${fmt(pv)} kg. Aparecer también cuenta.`);
+        }
+        break;
+      }
+    }
+
+    const dToday=DIARY[todayStr()]||"";
     const cierre=document.createElement("div");
     cierre.className="cierre";
     cierre.innerHTML=`<div class="ico">🏛️</div>
@@ -2100,8 +2164,29 @@ function renderEntreno(){
         ${cVol>0?`<div><b>${fmt(cVol)}</b><span>kg movidos</span></div>`:""}
         ${cPR>0?`<div><b>🥇 ${cPR}</b><span>récord${cPR>1?"s":""}</span></div>`:""}
         ${dur?`<div><b>${dur}</b><span>duración</span></div>`:""}
-      </div>`;
+      </div>
+      ${facts.length?`<div class="cierre-facts">${facts.join("<br>")}</div>`:""}
+      <textarea class="cierre-diary" rows="2" placeholder="¿Qué has demostrado hoy? Una línea para tu historia…">${esc(dToday)}</textarea>`;
     content.appendChild(cierre);
+    cierre.querySelector(".cierre-diary").oninput=(e)=>{
+      const t=e.target.value;
+      if(t.trim()) DIARY[todayStr()]=t; else delete DIARY[todayStr()];
+      saveJSON(LS_DIARY, DIARY); scheduleCloudSync();
+    };
+  }
+
+  // Vuelta sin culpa: tras 5+ días fuera, puente fácil de regreso (sin castigo)
+  const lastDs=Object.keys(TRAINED).sort().pop();
+  if(lastDs && !sessionComplete){
+    const gap=Math.round((parseLocalDate(todayStr()) - parseLocalDate(lastDs))/86400000);
+    if(gap>=5){
+      const cb=document.createElement("div");
+      cb.className="comeback";
+      cb.innerHTML=`🌱 <b>${gap} días fuera — y has vuelto.</b> Eso es lo único que cuenta: la constancia no se gana no fallando nunca, se gana volviendo. Hay una versión de <b>10 minutos</b> de esta sesión esperándote; con eso, hoy ya está ganado.
+        <br><button id="cbMin">⚡ Hacer la versión de 10 min</button>`;
+      content.appendChild(cb);
+      cb.querySelector("#cbMin").onclick=()=>{ sessionMode="min"; render(); window.scrollTo(0,0); };
+    }
   }
 
   // Semana nueva sin fricción: si la sesión está vacía y hay datos anteriores,
@@ -2961,6 +3046,7 @@ document.getElementById("restoreBackup").onclick=()=>{
   LOG = migrateLog(data.log);
   TRAINED = mergeDates(TRAINED, sanitizeDates(data.dates)); saveJSON(LS_DATES, TRAINED); // calendario: unión
   PLAN = mergePlan(PLAN, sanitizePlan(data.plan)); saveJSON(LS_PLAN, PLAN);               // hitos: unión
+  DIARY = mergeDiary(DIARY, sanitizeDiary(data.diary)); saveJSON(LS_DIARY, DIARY);        // diario: unión
   const w=parseInt(data.week,10); if(Number.isFinite(w)) setWeek(w);
   persist();
   backupModal.classList.remove("show");
@@ -2972,10 +3058,11 @@ document.getElementById("undoRestore").onclick=()=>{
   if(!p || !p.log || !Object.keys(p.log).length){ toast("No hay nada que deshacer"); return; }
   const when = p.at ? new Date(p.at).toLocaleString("es-ES") : "antes";
   if(!confirm("¿Recuperar los datos que había antes del último cambio? ("+when+")")) return;
-  const current = { log:LOG, week:WEEK, dates:TRAINED, plan:PLAN, at:Date.now() }; // permite rehacer
+  const current = { log:LOG, week:WEEK, dates:TRAINED, plan:PLAN, diary:DIARY, at:Date.now() }; // permite rehacer
   LOG = migrateLog(p.log);
   if(p.dates){ TRAINED = sanitizeDates(p.dates); saveJSON(LS_DATES, TRAINED); }
   if(p.plan){ PLAN = sanitizePlan(p.plan); saveJSON(LS_PLAN, PLAN); }
+  if(p.diary){ DIARY = sanitizeDiary(p.diary); saveJSON(LS_DIARY, DIARY); }
   const w=parseInt(p.week,10); if(Number.isFinite(w)) setWeek(w);
   saveJSON(LS_PREDO, current);
   persist();
@@ -3001,7 +3088,7 @@ function cloudPayload(){
   // Sin entradas vacías (las que crea el render al navegar): copias y nube limpias
   const log={};
   Object.keys(LOG).forEach(k=>{ if(!isEmptyEntry(LOG[k])) log[k]=LOG[k]; });
-  return JSON.stringify({ v:2, week:WEEK, log, dates:TRAINED, plan:PLAN, savedAt:new Date().toISOString() }, null, 2);
+  return JSON.stringify({ v:2, week:WEEK, log, dates:TRAINED, plan:PLAN, diary:DIARY, savedAt:new Date().toISOString() }, null, 2);
 }
 function fmtSince(ts){
   if(!ts) return "";
@@ -3071,7 +3158,7 @@ async function cloudFetchRemote(token, id){
   if(f.truncated && f.raw_url){ content=await (await fetch(f.raw_url)).text(); }
   const data=JSON.parse(content);
   if(!data || typeof data.log!=="object") return null;
-  return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan) };
+  return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan), diary:sanitizeDiary(data.diary) };
 }
 
 async function cloudPush(flush){
@@ -3102,9 +3189,10 @@ async function cloudPush(flush){
             }
           });
           if(changed) persistLocal();
-          // Calendario e hitos: fusiona lo remoto con lo local (nunca se pierde un día)
+          // Calendario, hitos y diario: fusiona lo remoto con lo local (nunca se pierde un día)
           TRAINED = mergeDates(TRAINED, remote.dates); saveJSON(LS_DATES, TRAINED);
           PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);
+          DIARY = mergeDiary(DIARY, remote.diary); saveJSON(LS_DIARY, DIARY);
         }
       }catch(e){ /* si el GET falla seguimos y subimos lo local */ }
     }
@@ -3139,6 +3227,7 @@ async function cloudPull(){
     LOG = mergeLogs(LOG, remote.log);
     TRAINED = mergeDates(TRAINED, remote.dates); saveJSON(LS_DATES, TRAINED); // calendario: unión
     PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);             // hitos: unión
+    DIARY = mergeDiary(DIARY, remote.diary); saveJSON(LS_DIARY, DIARY);       // diario: unión
     const w=parseInt(remote.week,10); if(Number.isFinite(w) && w>WEEK) setWeek(w);
     persistLocal();
     localStorage.setItem(LS_GH_LASTSYNC,String(Date.now()));
@@ -3170,6 +3259,7 @@ async function cloudConnect(){
           LOG = mergeLogs(remote.log, LOG);
           TRAINED = mergeDates(TRAINED, remote.dates); saveJSON(LS_DATES, TRAINED);
           PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);
+          DIARY = mergeDiary(DIARY, remote.diary); saveJSON(LS_DIARY, DIARY);
           const w=parseInt(remote.week,10); if(Number.isFinite(w) && w>WEEK) setWeek(w);
           persistLocal();
         }
@@ -3354,6 +3444,62 @@ function renderProgress(){
     <div class="pcard"><div class="v">${ton>=1?ton.toFixed(1):fmt(p.totalVolume)}<span style="font-size:12px;color:var(--muted)">${ton>=1?" t":" kg"}</span></div><div class="l">Peso total<br>movido</div></div>`;
   content.appendChild(cards);
 
+  // ---- Tus frutos: hechos acumulados que no se pueden fingir ----
+  const fdates=Object.keys(TRAINED).sort();
+  if(fdates.length){
+    const totalSess=Object.values(TRAINED).reduce((a,v)=>a+(v?v.length:0),0);
+    let maxGap=0;
+    for(let i=1;i<fdates.length;i++){
+      const g=Math.round((parseLocalDate(fdates[i])-parseLocalDate(fdates[i-1]))/86400000);
+      if(g>maxGap) maxGap=g;
+    }
+    // Racha: semanas de calendario consecutivas con al menos un entreno,
+    // contando desde esta semana (o la pasada si esta aún no has empezado)
+    const weeksSet=new Set(fdates.map(d=>dateStr(mondayOf(parseLocalDate(d)))));
+    let streak=0, cur=mondayOf(new Date());
+    if(!weeksSet.has(dateStr(cur))) cur=new Date(cur.getTime()-7*86400000);
+    while(weeksSet.has(dateStr(cur))){ streak++; cur=new Date(cur.getTime()-7*86400000); }
+
+    const fs=document.createElement("div"); fs.className="psec";
+    const fr=(ico,txt)=>`<div class="fruit"><span class="fi">${ico}</span><span>${txt}</span></div>`;
+    let fh=`<h3>🌳 Tus frutos</h3><div class="fruit-quote">"Por sus frutos los conoceréis." Esto es lo que no se puede fingir:</div>`;
+    fh+=fr("📅",`Has aparecido <b>${fdates.length} días</b> (${totalSess} sesiones) desde el <b>${fmtDate(+parseLocalDate(fdates[0]))}</b>.`);
+    if(streak>1) fh+=fr("🔥",`<b>${streak} semanas seguidas</b> entrenando, sin desaparecer.`);
+    if(p.totalVolume>0) fh+=fr("🏗️",`Has movido <b>${p.totalVolume>=1000?(p.totalVolume/1000).toFixed(1)+" toneladas":fmt(p.totalVolume)+" kg"}</b> en total. Nadie te lo ha regalado.`);
+    if(fdates.length>2 && maxGap>0) fh+=fr("🛡️",`Nunca has estado más de <b>${maxGap} día${maxGap>1?"s":""}</b> sin volver.`);
+
+    // Mejora por ejercicio: primer registro con peso vs mejor marca (mismo lugar)
+    const firstBest={}, allBest={};
+    Object.keys(LOG).forEach(k=>{
+      const q=parseKey(k), e=LOG[k];
+      if(!e || !e.sets) return;
+      let best=0;
+      e.sets.forEach(s=>{ if(s.warm) return; const w=parseNum(s.w); if(!isNaN(w)&&w>best) best=w; });
+      if(best<=0) return;
+      const gk=q.loc+"|"+q.session+"|"+q.ex;
+      if(!firstBest[gk] || q.week<firstBest[gk].week) firstBest[gk]={week:q.week, w:best, ex:q.ex};
+      if(!allBest[gk]   || best>allBest[gk].w)        allBest[gk]={week:q.week, w:best};
+    });
+    Object.keys(firstBest)
+      .filter(g=>allBest[g].w>firstBest[g].w && allBest[g].week!==firstBest[g].week)
+      .map(g=>({from:firstBest[g].w, to:allBest[g].w, ex:firstBest[g].ex,
+                pct:Math.round((allBest[g].w-firstBest[g].w)/firstBest[g].w*100)}))
+      .sort((a,b)=>b.pct-a.pct).slice(0,3)
+      .forEach(x=>{
+        const nm=EX_INDEX[x.ex]?EX_INDEX[x.ex].name:x.ex;
+        fh+=fr("📈",`${esc(nm)}: <b>${x.from} → ${x.to} kg (+${x.pct}%)</b>.`);
+      });
+
+    // Tus palabras: el diario de una línea
+    const dk=Object.keys(DIARY).sort().reverse().slice(0,5);
+    if(dk.length){
+      fh+=`<h3 style="margin-top:18px">✍️ Tus palabras</h3>`;
+      dk.forEach(d=>{ fh+=`<div class="diary-row"><small>${fmtDate(+parseLocalDate(d))}</small>${esc(DIARY[d])}</div>`; });
+    }
+    fs.innerHTML=fh;
+    content.appendChild(fs);
+  }
+
   // Barras: series por semana
   const maxSets=Math.max(1, ...Object.keys(p.perWeek).map(w=>p.perWeek[w].sets));
   const bars=document.createElement("div");
@@ -3461,7 +3607,7 @@ let weekAutoAdvancedTo = 0;
 
 /* ---- Init ---- */
 pruneEmptyEntries();  // limpieza única al arrancar (seguro: aún no hay casillas en pantalla)
-const APP_VERSION = "2026.07.03-3 · BIELA";
+const APP_VERSION = "2026.07.03-4 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
