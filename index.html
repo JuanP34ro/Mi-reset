@@ -2850,7 +2850,10 @@ function ghHeaders(token){
   return { "Authorization":"Bearer "+token, "Accept":"application/vnd.github+json", "Content-Type":"application/json" };
 }
 function cloudPayload(){
-  return JSON.stringify({ v:2, week:WEEK, log:LOG, dates:TRAINED, plan:PLAN, savedAt:new Date().toISOString() }, null, 2);
+  // Sin entradas vacías (las que crea el render al navegar): copias y nube limpias
+  const log={};
+  Object.keys(LOG).forEach(k=>{ if(!isEmptyEntry(LOG[k])) log[k]=LOG[k]; });
+  return JSON.stringify({ v:2, week:WEEK, log, dates:TRAINED, plan:PLAN, savedAt:new Date().toISOString() }, null, 2);
 }
 function fmtSince(ts){
   if(!ts) return "";
@@ -3310,7 +3313,7 @@ let weekAutoAdvancedTo = 0;
 
 /* ---- Init ---- */
 pruneEmptyEntries();  // limpieza única al arrancar (seguro: aún no hay casillas en pantalla)
-const APP_VERSION = "2026.07.03-1 · BIELA";
+const APP_VERSION = "2026.07.03-2 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");

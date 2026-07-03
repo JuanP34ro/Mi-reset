@@ -4,7 +4,7 @@
    descarga la versión nueva en segundo plano; si hay una, el banner
    "Nueva versión disponible" de la app avisa para actualizar.
    Sube CACHE en cada despliegue para forzar actualización. */
-const CACHE = "mireset-v22";
+const CACHE = "mireset-v23";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e=>{
