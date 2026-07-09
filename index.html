@@ -484,6 +484,10 @@
     border-radius:11px;padding:9px 12px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;touch-action:manipulation}
   .molestia-btn.on{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.42);color:#f3a6a6}
   .ex.has-molestia{border-color:rgba(239,68,68,.42)}
+  /* Protocolo semáforo: solo aparece cuando hay molestia marcada */
+  .molestia-proto{display:none;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:#f3c1c1;
+    border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.5;margin-top:9px}
+  .ex.has-molestia .molestia-proto{display:block}
   .hist-toggle{display:flex;gap:6px;margin-bottom:10px}
   .hist-toggle .ht{border:1.5px solid var(--line);background:var(--card);color:var(--muted);
     border-radius:9px;padding:5px 13px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;touch-action:manipulation}
@@ -865,7 +869,7 @@ const PROGRAM = {
               {name:"Prensa de piernas (pies medios)", vid:ytSearch("prensa de piernas tecnica")},
               {name:"Sentadilla en multipower (Smith)", vid:ytSearch("sentadilla en multipower smith tecnica")}
             ]},
-          {id:"rdl", name:"Peso muerto rumano (RDL)", scheme:"3 × 8-12", rest:150, sets:3, note:"Bisagra de cadera: isquios en estiramiento + glúteo. Espalda recta, baja hasta media espinilla.", vid:ytSearch("peso muerto rumano barra tecnica sergio peinado"),
+          {id:"rdl", name:"Peso muerto rumano (RDL)", scheme:"3 × 8-12", rest:150, sets:3, note:"Bisagra de cadera: isquios en estiramiento + glúteo. Auditoría: más seguro que el peso muerto clásico y protector del isquio. 3 claves: baja solo hasta notar el estiramiento sin perder la espalda neutra (~media espinilla, no persigas profundidad), barra pegada a las piernas, y sube peso solo cuando la bisagra salga sola.", vid:ytSearch("peso muerto rumano barra tecnica sergio peinado"),
             alts:[
               {name:"RDL con mancuernas", vid:ytSearch("peso muerto rumano mancuernas tecnica")},
               {name:"Buenos días con barra (carga ligera)", vid:ytSearch("buenos dias con barra tecnica")},
@@ -919,7 +923,7 @@ const PROGRAM = {
               {name:"Sentadilla frontal con 2 mancuernas al hombro", vid:ytSearch("sentadilla frontal con mancuernas tecnica")},
               {name:"Sentadilla peso corporal a tempo lento", vid:ytSearch("sentadilla peso corporal tempo lento tecnica")}
             ]},
-          {id:"casa_rdl_a", name:"Peso muerto rumano con mancuernas o kettlebell", scheme:"3 × 8-12", rest:120, sets:3, note:"Bisagra de cadera: isquios en estiramiento + glúteo. Espalda recta.", vid:ytSearch("peso muerto rumano mancuernas tecnica"),
+          {id:"casa_rdl_a", name:"Peso muerto rumano con mancuernas o kettlebell", scheme:"3 × 8-12", rest:120, sets:3, note:"Bisagra de cadera: isquios en estiramiento + glúteo. Baja solo hasta notar el estiramiento sin perder la espalda neutra; mancuernas pegadas a las piernas.", vid:ytSearch("peso muerto rumano mancuernas tecnica"),
             alts:[
               {name:"RDL a una pierna con mancuerna", vid:ytSearch("peso muerto rumano a una pierna mancuerna tecnica")},
               {name:"Buenos días con banda o mancuerna", vid:ytSearch("buenos dias con mancuerna tecnica")},
@@ -1053,6 +1057,11 @@ const PROGRAM = {
             alts:[
               {name:"Pushdown con cuerda", vid:ytSearch("pushdown triceps con cuerda tecnica")},
               {name:"Fondos de tríceps en máquina asistida", vid:ytSearch("fondos en maquina triceps tecnica")}
+            ]},
+          {id:"torsoa_espalda_f2", name:"Remo en polea ligero (espalda · frecuencia 2)", scheme:"2 × 12-15", rest:60, sets:2, note:"Auditoría: repartir la espalda en 2 días/semana rinde más que concentrarla. MUY ligero, RIR 3-4.", vid:ytSearch("remo en polea sentado tecnica"),
+            alts:[
+              {name:"Remo en máquina ligero", vid:ytSearch("remo en maquina sentado tecnica")},
+              {name:"Band pull-apart", vid:ytSearch("band pull apart tecnica")}
             ]}
         ]
       },
@@ -1100,6 +1109,11 @@ const PROGRAM = {
             alts:[
               {name:"Patada de tríceps con mancuerna", vid:ytSearch("patada de triceps con mancuerna tecnica")},
               {name:"Fondos de tríceps en silla (rango corto)", vid:ytSearch("fondos de triceps en silla tecnica")}
+            ]},
+          {id:"casa_espalda_f2", name:"Remo con banda ligero (espalda · frecuencia 2)", scheme:"2 × 12-15", rest:60, sets:2, note:"Auditoría: repartir la espalda en 2 días/semana rinde más que concentrarla. MUY ligero, RIR 3-4.", vid:ytSearch("remo sentado con banda elastica tecnica"),
+            alts:[
+              {name:"Remo a una mano con mancuerna ligero", vid:ytSearch("remo a una mano con mancuerna tecnica")},
+              {name:"Band pull-apart", vid:ytSearch("band pull apart tecnica")}
             ]}
         ]
       },
@@ -1123,7 +1137,7 @@ const PROGRAM = {
               {name:"Flexiones declinadas amplias", vid:ytSearch("flexiones declinadas tecnica")},
               {name:"Flexiones normales (si las de pies elevados son mucho)", vid:ytSearch("flexiones tecnica correcta")}
             ]},
-          {id:"hotel_pike", name:"Pike push-up (hombro)", scheme:"3 × 8-10", rest:90, sets:3, note:"Conservador: si notas la escápula, reduce el rango o sáltalo.", vid:ytSearch("pike push up tecnica principiante"),
+          {id:"hotel_pike", name:"Pike push-up (hombro)", scheme:"3 × 8-10", rest:90, sets:3, note:"Conservador: si notas la escápula, reduce el rango o sáltalo. ⚠️ Auditoría: valídalo con tu fisio antes de progresarlo — es de los que más piden a la escápula. Si hay duda, usa la flexión en pared 'plus'.", vid:ytSearch("pike push up tecnica principiante"),
             alts:[
               {name:"Flexión contra la pared 'plus' (más suave para el hombro)", vid:ytSearch("flexion en pared push up plus tecnica")},
               {name:"Press de hombro con mochila cargada, sentado", vid:ytSearch("press de hombro con mochila en casa tecnica")}
@@ -1138,10 +1152,15 @@ const PROGRAM = {
               {name:"Extensión de tríceps sobre la cabeza con mochila", vid:ytSearch("extension triceps overhead mochila casa tecnica")},
               {name:"Flexiones diamante de rodillas (más fáciles)", vid:ytSearch("flexiones diamante rodillas tecnica")}
             ]},
-          {id:"hotel_tri_dips", name:"Fondos de tríceps en silla (rango corto)", scheme:"2 × 10-12", rest:60, sets:2, note:"Rango corto, sin forzar el hombro hacia atrás.", vid:ytSearch("fondos de triceps en silla tecnica"),
+          {id:"hotel_tri_dips", name:"Fondos de tríceps en silla (rango corto)", scheme:"2 × 10-12", rest:60, sets:2, note:"Rango corto, sin forzar el hombro hacia atrás. ⚠️ Auditoría: valídalo con tu fisio — es de los que más piden a la escápula. Si hay duda, usa la patada de tríceps.", vid:ytSearch("fondos de triceps en silla tecnica"),
             alts:[
               {name:"Patada de tríceps con mochila/botella", vid:ytSearch("patada de triceps con mancuerna tecnica")},
               {name:"Fondos entre dos sillas (avanzado)", vid:ytSearch("fondos entre dos sillas triceps tecnica")}
+            ]},
+          {id:"hotel_espalda_f2", name:"Remo invertido suave bajo mesa (espalda · frecuencia 2)", scheme:"2 × 8-12", rest:60, sets:2, note:"Auditoría: repartir la espalda en 2 días/semana. Ángulo fácil (más vertical), lejos del fallo.", vid:ytSearch("remo invertido bajo mesa tecnica casa"),
+            alts:[
+              {name:"Remo con toalla en pomo de puerta", vid:ytSearch("remo con toalla en puerta tecnica casa")},
+              {name:"Superman (espalda baja/alta)", vid:ytSearch("superman ejercicio espalda tecnica")}
             ]}
         ]
       }
@@ -1198,6 +1217,12 @@ const PROGRAM = {
               {name:"Gemelo en la prensa (rodilla algo flexionada = sóleo)", vid:ytSearch("gemelo en prensa soleo tecnica")},
               {name:"Gemelo sentado con disco en las rodillas", vid:ytSearch("gemelo sentado con disco casa tecnica")},
               {name:"Gemelo de pie a una pierna con mancuerna", vid:ytSearch("gemelo a una pierna con mancuerna tecnica")}
+            ]},
+          {id:"pallof_polea", name:"Press Pallof en polea (core anti-rotación)", scheme:"2 × 10 por lado", rest:45, sets:2, note:"Auditoría: core anti-rotación. Brazos al frente, resiste el giro del torso; respira normal, no aguantes el aire.", vid:ytSearch("press pallof polea tecnica"),
+            alts:[
+              {name:"Press Pallof con banda", vid:ytSearch("press pallof con banda tecnica")},
+              {name:"Plancha lateral", vid:ytSearch("plancha lateral tecnica")},
+              {name:"Bird dog (cuadrupedia alterna)", vid:ytSearch("bird dog ejercicio tecnica")}
             ]}
         ]
       },
@@ -1246,6 +1271,12 @@ const PROGRAM = {
               {name:"Gemelo sentado con disco/mancuerna en rodillas (sóleo)", vid:ytSearch("gemelo sentado con disco casa tecnica")},
               {name:"Gemelo a una pierna en escalón", vid:ytSearch("gemelo a una pierna en escalon con mancuerna tecnica")},
               {name:"Saltos suaves a la comba", vid:ytSearch("saltos a la comba gemelo tecnica")}
+            ]},
+          {id:"casa_pallof", name:"Press Pallof con banda (core anti-rotación)", scheme:"2 × 10 por lado", rest:45, sets:2, note:"Auditoría: core anti-rotación. Banda anclada a un punto firme a la altura del pecho; resiste el giro.", vid:ytSearch("press pallof con banda tecnica"),
+            alts:[
+              {name:"Plancha lateral", vid:ytSearch("plancha lateral tecnica")},
+              {name:"Bird dog (cuadrupedia alterna)", vid:ytSearch("bird dog ejercicio tecnica")},
+              {name:"Dead bug", vid:ytSearch("dead bug ejercicio tecnica")}
             ]}
         ]
       },
@@ -1293,6 +1324,12 @@ const PROGRAM = {
               {name:"Gemelo a dos piernas en escalón", vid:ytSearch("gemelo a dos piernas escalon tecnica")},
               {name:"Gemelo sentado con mochila en rodillas (sóleo)", vid:ytSearch("gemelo sentado con peso rodillas soleo tecnica")},
               {name:"Saltos suaves a la comba", vid:ytSearch("saltos a la comba gemelo tecnica")}
+            ]},
+          {id:"hotel_antirot", name:"Bird dog (core anti-rotación)", scheme:"2 × 10 por lado", rest:45, sets:2, note:"Auditoría: core anti-rotación sin material. Brazo y pierna contrarios, cadera estable, sin arquear la lumbar.", vid:ytSearch("bird dog ejercicio tecnica"),
+            alts:[
+              {name:"Plancha lateral", vid:ytSearch("plancha lateral tecnica")},
+              {name:"Dead bug", vid:ytSearch("dead bug ejercicio tecnica")},
+              {name:"Pallof isométrico con toalla (autorresistencia)", vid:ytSearch("press pallof isometrico tecnica")}
             ]}
         ]
       }
@@ -1338,6 +1375,11 @@ const PROGRAM = {
             alts:[
               {name:"Curl martillo en polea con cuerda", vid:ytSearch("curl martillo cuerda polea tecnica")},
               {name:"Curl inverso (agarre prono)", vid:ytSearch("curl inverso agarre prono tecnica")}
+            ]},
+          {id:"torsob_pecho_f2", name:"Press de pecho en máquina ligero (pecho · frecuencia 2)", scheme:"2 × 12-15", rest:60, sets:2, note:"Auditoría: repartir el pecho en 2 días/semana rinde más que concentrarlo. MUY ligero, RIR 3-4.", vid:ytSearch("press de pecho en maquina tecnica"),
+            alts:[
+              {name:"Flexiones", vid:ytSearch("flexiones tecnica correcta")},
+              {name:"Press con mancuernas ligero", vid:ytSearch("press de pecho con mancuernas banco plano tecnica")}
             ]}
         ]
       },
@@ -1378,6 +1420,11 @@ const PROGRAM = {
             alts:[
               {name:"Curl martillo con banda", vid:ytSearch("curl martillo con banda elastica tecnica")},
               {name:"Curl inverso con mancuernas", vid:ytSearch("curl inverso mancuernas tecnica")}
+            ]},
+          {id:"casa_pecho_f2", name:"Flexiones o press ligero con mancuernas (pecho · frecuencia 2)", scheme:"2 × 10-15", rest:60, sets:2, note:"Auditoría: repartir el pecho en 2 días/semana. MUY ligero, RIR 3-4.", vid:ytSearch("flexiones tecnica correcta"),
+            alts:[
+              {name:"Press de pecho con banda", vid:ytSearch("press de pecho con banda elastica tecnica")},
+              {name:"Floor press ligero con mancuernas", vid:ytSearch("floor press mancuernas tecnica")}
             ]}
         ]
       },
@@ -1413,6 +1460,11 @@ const PROGRAM = {
             alts:[
               {name:"Curl con banda elástica", vid:ytSearch("curl de biceps con banda tecnica")},
               {name:"Curl isométrico con toalla (autorresistencia)", vid:ytSearch("curl isometrico toalla autorresistencia tecnica")}
+            ]},
+          {id:"hotel_pecho_f2", name:"Flexiones suaves (pecho · frecuencia 2)", scheme:"2 × 10-15", rest:60, sets:2, note:"Auditoría: repartir el pecho en 2 días/semana. Lejos del fallo (RIR 3-4); de rodillas si hace falta.", vid:ytSearch("flexiones tecnica correcta"),
+            alts:[
+              {name:"Flexiones inclinadas (manos en cama/mesa)", vid:ytSearch("flexiones inclinadas tecnica")},
+              {name:"Flexiones de rodillas", vid:ytSearch("flexiones de rodillas tecnica")}
             ]}
         ]
       }
@@ -2000,6 +2052,16 @@ function renderPlan(){
       <li><b>Escápula primero:</b> trabajo escapular en cada calentamiento; press de hombro sin prisa.</li>
     </ul>`;
   content.appendChild(g);
+
+  const sem=document.createElement("div"); sem.className="plan-card";
+  sem.innerHTML=`<h3>🚦 Protocolo de molestia (auditoría)</h3>
+    <ul class="plan-ul">
+      <li><b>≤3/10 y no empeora durante la serie:</b> baja la carga un 20-30% o pasa a la variante prevista (⇄).</li>
+      <li><b>4-6/10 o que sube al repetir:</b> cambia de ejercicio ese día.</li>
+      <li><b>Persiste al día siguiente, o aparece en press vertical / pec deck:</b> sáltalo y consúltalo con el fisio antes de reintroducirlo.</li>
+    </ul>
+    <p class="plan-tip">💡 Al marcar "molestia" en un ejercicio, este protocolo aparece ahí mismo. Pendiente de validar con el fisio: pike push-up y fondos en silla (hotel).</p>`;
+  content.appendChild(sem);
 
   MILESTONES.forEach(group=>{
     const sec=document.createElement("div"); sec.className="plan-card";
@@ -2635,6 +2697,11 @@ function renderExercise(day,ex,num){
     wrap.classList.toggle("has-molestia", entry.molestia);
   };
   detail.appendChild(mol);
+  // Protocolo semáforo (auditoría): guía inmediata cuando se marca molestia
+  const proto=document.createElement("div");
+  proto.className="molestia-proto";
+  proto.innerHTML=`🚦 <b>Protocolo:</b> molestia <b>≤3/10</b> que no va a más → baja la carga un 20-30% o pasa a la variante (⇄). <b>4-6/10</b> o que sube al repetir → cambia de ejercicio hoy. Si <b>persiste mañana</b> o aparece en press vertical/pecho → sáltalo y coméntalo con el fisio antes de reintroducirlo.`;
+  detail.appendChild(proto);
   if(entry.molestia) wrap.classList.add("has-molestia");
 
   // buttons
@@ -3607,7 +3674,7 @@ let weekAutoAdvancedTo = 0;
 
 /* ---- Init ---- */
 pruneEmptyEntries();  // limpieza única al arrancar (seguro: aún no hay casillas en pantalla)
-const APP_VERSION = "2026.07.03-4 · BIELA";
+const APP_VERSION = "2026.07.09-1 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
