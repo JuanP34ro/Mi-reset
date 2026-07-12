@@ -1524,6 +1524,7 @@ const LS_GH_TOKEN = "reset_gym_gh_token_v1";     // token de GitHub (SOLO en est
 const LS_GH_GIST  = "reset_gym_gh_gist_v1";      // id del Gist privado de respaldo
 const LS_GH_LASTSYNC = "reset_gym_gh_lastsync_v1"; // fecha de la última sincronización en la nube
 const LS_PREDO = "reset_gym_predo_v1";           // snapshot anterior al último cambio destructivo (deshacer)
+const LS_CLOUD_REPLACE = "reset_gym_cloud_replace_v1"; // el próximo push reemplaza la nube (tras borrar/restaurar)
 const LS_PLAN = "reset_gym_plan_v1";             // hitos del plan marcados por el usuario
 const LS_DATES = "reset_gym_dates_v1";           // fechas reales en las que se entrenó (para el calendario)
 const LS_WEEK_ANCHOR = "reset_gym_week_anchor_v1"; // lunes (real) al que corresponde la semana actual (auto-avance)
@@ -1538,7 +1539,9 @@ const todayStr = () => dateStr(new Date());
 const parseLocalDate = s => { const p=String(s).split("-"); return new Date(+p[0], (+p[1])-1, +p[2]); };
 // Lunes (00:00) de la semana de una fecha
 function mondayOf(d){ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); return x; }
-function weeksBetween(a,b){ return Math.floor((b.getTime()-a.getTime())/(7*86400000)); }
+// round (no floor): entre lunes reales la diferencia es ~1.0 semanas, pero el cambio de hora
+// (DST) la deja en 0.994 o 1.006 — floor perdería una semana en primavera.
+function weeksBetween(a,b){ return Math.round((b.getTime()-a.getTime())/(7*86400000)); }
 // Escapa texto antes de meterlo en innerHTML (evita inyección desde copias externas)
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
@@ -1636,10 +1639,12 @@ function persist(){ persistLocal(); scheduleCloudSync(); }
    Permite "deshacer" desde la copia manual. */
 function snapshotBefore(){ saveJSON(LS_PREDO, { log:LOG, week:WEEK, dates:TRAINED, plan:PLAN, diary:DIARY, at:Date.now() }); }
 
-/* Puntúa una entrada por cantidad de datos (para fusionar sin perder lo más completo) */
+/* Puntúa una entrada por cantidad de datos (para fusionar sin perder lo más completo).
+   Nota, molestia y RPE también son datos (los de rehabilitación, además, valiosos). */
 function entryScore(e){
   if(!e || !e.sets) return -1;
-  return e.sets.reduce((n,s)=>n + (s.done?2:0) + ((s.w!==""||s.r!=="")?1:0), 0);
+  return e.sets.reduce((n,s)=>n + (s.done?2:0) + ((s.w!==""||s.r!=="")?1:0) + ((s.rpe&&s.rpe!=="")?1:0), 0)
+    + (e.note?1:0) + (e.molestia?1:0);
 }
 /* ¿La entrada `inc` es más nueva/mejor que `cur`? Prioriza la fecha de edición (up);
    si no hay fechas (datos antiguos), gana la que tenga más datos. */
@@ -1648,11 +1653,18 @@ function entryNewer(cur, inc){
   if(uc!==ui) return ui>uc;
   return entryScore(inc) > entryScore(cur);
 }
-/* Fusiona dos LOG por clave: mantiene todo, y ante conflicto conserva la versión más reciente */
+/* Fusiona dos LOG por clave: mantiene todo, y ante conflicto conserva la versión más reciente.
+   La nota y la marca de molestia nunca se pierden aunque su entrada pierda el conflicto. */
 function mergeLogs(base, incoming){
   const out = { ...(base||{}) };
   Object.keys(incoming||{}).forEach(k=>{
-    if(!(k in out) || entryNewer(out[k], incoming[k])) out[k] = incoming[k];
+    const inc=incoming[k], cur=out[k];
+    if(!cur){ out[k]=inc; return; }
+    const win = entryNewer(cur, inc) ? inc : cur;
+    const lose = win===inc ? cur : inc;
+    out[k] = { ...win,
+      note: win.note || (lose && lose.note) || "",
+      molestia: !!(win.molestia || (lose && lose.molestia)) };
   });
   return out;
 }
@@ -1701,6 +1713,15 @@ function mergeDiary(a,b){ return {...(b||{}), ...(a||{})}; } // en el mismo día
 /* ¿Una entrada está "completa"? (todas las series marcadas) */
 function entryComplete(e){
   return !!(e && e.sets && e.sets.length && e.sets.every(s=>s.done));
+}
+/* Completado "flexible" para histórico: las series hechas forman un bloque inicial y el resto
+   está intacto (así una sesión express de 2 series cuenta como completa a posteriori). */
+function entryDoneFlexible(e){
+  if(!e || !e.sets || !e.sets.length) return false;
+  let last=-1;
+  e.sets.forEach((s,i)=>{ if(s.done || s.w!=="" || s.r!=="" || (s.rpe&&s.rpe!=="")) last=i; });
+  if(last<0) return false;
+  return e.sets.slice(0,last+1).every(s=>s.done);
 }
 /* Devuelve el entreno más reciente CON datos de este ejercicio (para referencia y autocompletar).
    Busca primero hacia atrás en el lugar actual, luego hacia ADELANTE (por si la semana se movió
@@ -1752,6 +1773,13 @@ function bestBefore(sessionKey, exId, week, loc){
 
 /* Devuelve la variante (gym/casa/hotel) de una sesión según el lugar activo */
 function sess(day){ return day.variants[LOCATION] || day.variants.gym; }
+
+/* Nombre visible de un ejercicio teniendo en cuenta la variante elegida (⇄) */
+function exDisplayName(loc, sessionKey, ex){
+  const choice = (UI.altChoice && UI.altChoice[loc+"|"+sessionKey+"|"+ex.id]) || 0;
+  if(choice>0 && ex.alts && ex.alts[choice-1]) return ex.alts[choice-1].name;
+  return ex.name;
+}
 
 /* ===========================================================
    PLAN DE MEJORA (40 años) — doble progresión autorregulada por RIR
@@ -1954,7 +1982,7 @@ function renderTabbar(){
     const b=document.createElement("button");
     b.className="tab"+(activeTab===t.k?" active":"");
     b.innerHTML=`<span class="ti">${TAB_ICONS[t.k]}</span>${t.l}`;
-    b.onclick=()=>{ if(activeTab!==t.k){ activeTab=t.k; render(); } };
+    b.onclick=()=>{ if(activeTab!==t.k){ activeTab=t.k; if(t.k==="plan") calRef=null; render(); } }; // Plan abre en el mes actual
     bar.appendChild(b);
   });
 }
@@ -2159,7 +2187,8 @@ function renderEntreno(){
   }
 
   // Celebración: solo cuando la sesión pasa de incompleta a completa
-  const skey = WEEK+"|"+LOCATION+"|"+day.key;
+  // (la clave incluye el modo: alternar express/completa no relanza el confeti)
+  const skey = WEEK+"|"+LOCATION+"|"+day.key+"|"+sessionMode;
   const wasDone = SESSION_DONE[skey];
   SESSION_DONE[skey] = sessionComplete;
   if(sessionComplete && wasDone===false){ launchConfetti(); }
@@ -2465,7 +2494,7 @@ function updateDayProgress(){
     label.classList.toggle("full", complete);
     label.textContent = complete ? "✓ Sesión completada" : completed+"/"+nEx+" ejercicios completados";
   }
-  const skey=WEEK+"|"+LOCATION+"|"+day.key;
+  const skey=WEEK+"|"+LOCATION+"|"+day.key+"|"+sessionMode;
   const transition = complete !== (SESSION_DONE[skey]===true);
   return {complete, transition};
 }
@@ -2496,7 +2525,7 @@ function renderExercise(day,ex,num){
     e.stopPropagation();
     const target = !allDone;
     entry.sets.slice(0,visN).forEach(s=>s.done=target); // marca solo las series visibles
-    if(target){ markTrainedToday(day.key); sessMetaTouch(WEEK+"|"+LOCATION+"|"+day.key); } // calendario + duración
+    if(target && selectedDay===todayKey()){ markTrainedToday(day.key); sessMetaTouch(WEEK+"|"+LOCATION+"|"+day.key); } // calendario + duración: solo la sesión de HOY
     touchEntry(entry); persist(); render();
   };
   head.onclick=()=>{ UI.openEx[ex.id]=!UI.openEx[ex.id]; saveJSON(LS_UI,UI); render(); };
@@ -2632,13 +2661,15 @@ function renderExercise(day,ex,num){
       bd.setAttribute("aria-pressed", s.done ? "true" : "false");
       if(s.done){
         if(navigator.vibrate) navigator.vibrate(30);
-        markTrainedToday(day.key);                            // calendario
-        sessMetaTouch(WEEK+"|"+LOCATION+"|"+day.key);         // duración de la sesión
+        if(selectedDay===todayKey()){                         // solo la sesión de HOY
+          markTrainedToday(day.key);                          // calendario
+          sessMetaTouch(WEEK+"|"+LOCATION+"|"+day.key);       // duración de la sesión
+        }
       }
       touchEntry(entry); persist();
       wrap.classList.toggle("done", entryCompleteN(entry, visN)); // actualiza estado del ejercicio
       const r = updateDayProgress();                            // barra del día + detección de cierre
-      if(s.done && !s.warm) startRest(ex.rest);                 // descanso autostart (no en calentamiento)
+      if(s.done && !s.warm && selectedDay===todayKey()) startRest(ex.rest); // autostart solo entrenando HOY (no al registrar a posteriori)
       if(r.transition) render();                                // muestra/oculta cierre + confeti
     };
     tdD.appendChild(bd);
@@ -2655,7 +2686,7 @@ function renderExercise(day,ex,num){
     const best=Math.max(...workE);
     const e1=document.createElement("div");
     e1.className="e1rm-line";
-    const pr = hasPrevBest && best>prevBest.e1rm ? " · 🥇 nuevo récord" : "";
+    const pr = prevBest.e1rm>0 && best>prevBest.e1rm ? " · 🥇 nuevo récord" : "";
     e1.innerHTML = `💪 1RM estimado: <b>${best} kg</b>${pr}`;
     detail.appendChild(e1);
   }
@@ -2668,7 +2699,8 @@ function renderExercise(day,ex,num){
       pf.className="prefill-btn";
       pf.innerHTML="↻ Copiar pesos del último entreno";
       pf.onclick=()=>{
-        entry.sets.forEach((s,i)=>{
+        // Solo rellena las series visibles en el modo actual (sin datos fantasma en express)
+        entry.sets.slice(0,visN).forEach((s,i)=>{
           if(prevRef.e.sets[i]){ s.w=prevRef.e.sets[i].w; s.r=prevRef.e.sets[i].r; }
         });
         touchEntry(entry); persist(); toast("Pesos copiados — ajústalos y a por más"); render();
@@ -2836,7 +2868,7 @@ function renderSummary(){
         const completed = e.sets.filter(s=>s.done).length;
         totalSets += completed;
         if(completed>0) dayHasData=true;
-        if(e.sets.every(s=>s.done)) doneEx++;
+        if(entryDoneFlexible(e)) doneEx++;
       }
     });
     if(dayHasData) trainedDays++;
@@ -2873,6 +2905,7 @@ function renderSummary(){
     if(confirm(`¿Borrar los registros de ${LOCATIONS[LOCATION].label} de la semana ${WEEK}? Esto no se puede deshacer.`)){
       const prefix = WEEK+"|"+LOCATION+"|";
       Object.keys(LOG).forEach(k=>{ if(k.startsWith(prefix)) delete LOG[k]; });
+      markCloudReplace();  // que la nube no "resucite" lo borrado
       persist(); toast(LOCATIONS[LOCATION].label+" · semana "+WEEK+" borrada"); render();
     }
   };
@@ -3022,10 +3055,13 @@ function openExport(){
       let any=false;
       variant.exercises.forEach((ex,i)=>{
         const e=LOG[logKey(WEEK,s.key,ex.id,loc)];
-        if(e && e.sets.some(st=>st.w!==""||st.r!=="")){
+        // Incluye también series solo marcadas como hechas (peso corporal / planchas)
+        if(e && e.sets.some(st=>st.w!==""||st.r!==""||st.done)){
           any=true;
-          const sets=e.sets.filter(st=>st.w!==""||st.r!=="").map(st=>`${st.w||"–"}kg×${st.r||"–"}`).join("  ");
-          block += `${i+1}. ${ex.name}\n   ${sets}`;
+          const sets=e.sets.filter(st=>st.w!==""||st.r!==""||st.done)
+            .map(st=> (st.w!==""||st.r!=="") ? `${st.w||"–"}kg×${st.r||"–"}` : "✓").join("  ");
+          block += `${i+1}. ${exDisplayName(loc, s.key, ex)}\n   ${sets}`;
+          if(e.molestia) block += `\n   😬 molestia`;
           if(e.note) block += `\n   ✎ ${e.note}`;
           block += `\n`;
         }
@@ -3057,7 +3093,7 @@ async function exportCSV(){
   }).forEach(k=>{
     const p=parseKey(k), e=LOG[k];
     if(!e || !e.sets) return;
-    const name=EX_INDEX[p.ex] ? EX_INDEX[p.ex].name : p.ex;
+    const name=EX_INDEX[p.ex] ? exDisplayName(EX_INDEX[p.ex].loc, EX_INDEX[p.ex].session, EX_INDEX[p.ex].ex) : p.ex;
     const fecha=e.up ? new Date(e.up).toISOString().slice(0,10) : "";
     e.sets.forEach((s,i)=>{
       if(s.w===""&&s.r===""&&!s.done) return; // series sin nada no van al CSV
@@ -3115,7 +3151,9 @@ document.getElementById("restoreBackup").onclick=()=>{
   TRAINED = mergeDates(TRAINED, sanitizeDates(data.dates)); saveJSON(LS_DATES, TRAINED); // calendario: unión
   PLAN = mergePlan(PLAN, sanitizePlan(data.plan)); saveJSON(LS_PLAN, PLAN);               // hitos: unión
   DIARY = mergeDiary(DIARY, sanitizeDiary(data.diary)); saveJSON(LS_DIARY, DIARY);        // diario: unión
-  const w=parseInt(data.week,10); if(Number.isFinite(w)) setWeek(w);
+  // La semana de la copia se "envejece" según cuándo se guardó (no retrocede el tiempo real)
+  const w=parseInt(data.week,10); if(Number.isFinite(w)) setWeek(w + weeksSinceSaved(data.savedAt));
+  markCloudReplace();  // el siguiente push refleja esta restauración tal cual
   persist();
   backupModal.classList.remove("show");
   toast("Datos restaurados");
@@ -3133,6 +3171,7 @@ document.getElementById("undoRestore").onclick=()=>{
   if(p.diary){ DIARY = sanitizeDiary(p.diary); saveJSON(LS_DIARY, DIARY); }
   const w=parseInt(p.week,10); if(Number.isFinite(w)) setWeek(w);
   saveJSON(LS_PREDO, current);
+  markCloudReplace();  // el siguiente push refleja el estado recuperado
   persist();
   backupModal.classList.remove("show");
   toast("Datos previos recuperados");
@@ -3157,6 +3196,13 @@ function cloudPayload(){
   const log={};
   Object.keys(LOG).forEach(k=>{ if(!isEmptyEntry(LOG[k])) log[k]=LOG[k]; });
   return JSON.stringify({ v:2, week:WEEK, log, dates:TRAINED, plan:PLAN, diary:DIARY, savedAt:new Date().toISOString() }, null, 2);
+}
+/* Semanas transcurridas desde que se guardó una copia (para "envejecer" su nº de semana al restaurarla) */
+function weeksSinceSaved(savedAt){
+  if(!savedAt) return 0;
+  const d = new Date(savedAt);
+  if(isNaN(d.getTime())) return 0;
+  return Math.max(0, weeksBetween(mondayOf(d), mondayOf(new Date())));
 }
 function fmtSince(ts){
   if(!ts) return "";
@@ -3229,19 +3275,27 @@ async function cloudFetchRemote(token, id){
   return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan), diary:sanitizeDiary(data.diary) };
 }
 
+/* Tras "Borrar semana" o "Restaurar copia", el siguiente push debe REEMPLAZAR la nube
+   (sin fusión defensiva), o resucitaría lo que el usuario quiso quitar. */
+function markCloudReplace(){ try{ localStorage.setItem(LS_CLOUD_REPLACE,"1"); }catch(e){} }
+
 async function cloudPush(flush){
   const token=localStorage.getItem(LS_GH_TOKEN);
-  if(!token || cloudBusy) return;
+  if(!token) return false;
+  if(cloudBusy){ scheduleCloudSync(); return false; } // reintenta: no descartar cambios en silencio
   cloudBusy=true; setCloudState("syncing");
+  let okPush=false;
   // keepalive: la petición sobrevive aunque iOS suspenda la app justo después
   const extra = flush ? {keepalive:true} : {};
   try{
     let id=localStorage.getItem(LS_GH_GIST);
+    const replaceMode = localStorage.getItem(LS_CLOUD_REPLACE)==="1";
     // 1) Fusión defensiva con lo remoto (no pisar otro dispositivo). Añade claves que
-    //    falten y solo reemplaza una entrada local si la remota es MÁS RECIENTE (up)
-    //    y no pertenece a la sesión que está ahora en pantalla (edición en vivo).
-    //    En el flush de salida se omite: hay que subir antes de que iOS nos congele.
-    if(id && !flush){
+    //    falten, rellena EN SITIO entradas locales vacías (creadas por el render: el mismo
+    //    objeto, así las casillas en pantalla no quedan huérfanas) y solo reemplaza una
+    //    entrada local si la remota es MÁS RECIENTE (up) y no está en edición en vivo.
+    //    Se omite en el flush de salida y en modo reemplazo (borrar/restaurar).
+    if(id && !flush && !replaceMode){
       try{
         const remote=await cloudFetchRemote(token, id);
         if(remote==="gone"){ id=null; localStorage.removeItem(LS_GH_GIST); }
@@ -3252,6 +3306,14 @@ async function cloudPush(flush){
           let changed=false;
           Object.keys(remote.log).forEach(k=>{
             if(!(k in LOG)){ LOG[k]=remote.log[k]; changed=true; }
+            else if(isEmptyEntry(LOG[k]) && !isEmptyEntry(remote.log[k])){
+              const e=LOG[k], r=remote.log[k];
+              r.sets.forEach((s,i)=>{ if(e.sets[i]) Object.assign(e.sets[i], s); else e.sets.push(s); });
+              if(r.note) e.note=r.note;
+              if(r.molestia) e.molestia=true;
+              if(r.up) e.up=r.up;
+              changed=true;
+            }
             else if(entryNewer(LOG[k], remote.log[k]) && !(livePrefix && k.startsWith(livePrefix))){
               LOG[k]=remote.log[k]; changed=true;
             }
@@ -3276,10 +3338,13 @@ async function cloudPush(flush){
       if(res.ok){ const d=await res.json(); localStorage.setItem(LS_GH_GIST,d.id); }
     }
     if(!res.ok) throw new Error("HTTP "+res.status);
+    if(replaceMode) localStorage.removeItem(LS_CLOUD_REPLACE); // reemplazo consumado
     localStorage.setItem(LS_GH_LASTSYNC,String(Date.now()));
     setCloudState("ok");
+    okPush=true;
   }catch(e){ setCloudState("error", e.message); }
   finally{ cloudBusy=false; }
+  return okPush;
 }
 
 async function cloudPull(){
@@ -3296,7 +3361,10 @@ async function cloudPull(){
     TRAINED = mergeDates(TRAINED, remote.dates); saveJSON(LS_DATES, TRAINED); // calendario: unión
     PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);             // hitos: unión
     DIARY = mergeDiary(DIARY, remote.diary); saveJSON(LS_DIARY, DIARY);       // diario: unión
-    const w=parseInt(remote.week,10); if(Number.isFinite(w) && w>WEEK) setWeek(w);
+    // La semana de la copia se "envejece" según cuándo se guardó (no retrocede el tiempo real)
+    const w=parseInt(remote.week,10);
+    const aged = Number.isFinite(w) ? w + weeksSinceSaved(remote.savedAt) : NaN;
+    if(Number.isFinite(aged) && aged>WEEK) setWeek(aged);
     persistLocal();
     localStorage.setItem(LS_GH_LASTSYNC,String(Date.now()));
     setCloudState("ok");
@@ -3328,7 +3396,9 @@ async function cloudConnect(){
           TRAINED = mergeDates(TRAINED, remote.dates); saveJSON(LS_DATES, TRAINED);
           PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);
           DIARY = mergeDiary(DIARY, remote.diary); saveJSON(LS_DIARY, DIARY);
-          const w=parseInt(remote.week,10); if(Number.isFinite(w) && w>WEEK) setWeek(w);
+          const w=parseInt(remote.week,10);
+          const aged = Number.isFinite(w) ? w + weeksSinceSaved(remote.savedAt) : NaN;
+          if(Number.isFinite(aged) && aged>WEEK) setWeek(aged);
           persistLocal();
         }
       }catch(e){ /* si falla, conservamos lo local */ }
@@ -3369,7 +3439,9 @@ function openCloud(){
 document.getElementById("closeCloud").onclick=()=>cloudModal.classList.remove("show");
 cloudModal.onclick=(e)=>{ if(e.target===cloudModal) cloudModal.classList.remove("show"); };
 document.getElementById("cloudConnect").onclick=cloudConnect;
-document.getElementById("cloudSyncNow").onclick=()=>{ cloudPush().then(()=>toast("Sincronizado")); };
+document.getElementById("cloudSyncNow").onclick=()=>{
+  cloudPush().then(ok=>toast(ok ? "Sincronizado" : "No se pudo sincronizar — se reintentará"));
+};
 document.getElementById("cloudPull").onclick=()=>{
   if(confirm("¿Traer los datos de la nube? Se combinarán con los de este dispositivo (de cada registro gana la versión más reciente; no se pierde nada).")) cloudPull();
 };
@@ -3409,7 +3481,7 @@ const EX_INDEX = (()=>{
   Object.values(PROGRAM).forEach(day=>{
     if(!day.variants) return;
     Object.keys(day.variants).forEach(loc=>{
-      day.variants[loc].exercises.forEach(ex=>{ idx[ex.id]={name:ex.name, session:day.key, loc}; });
+      day.variants[loc].exercises.forEach(ex=>{ idx[ex.id]={name:ex.name, session:day.key, loc, ex}; });
     });
   });
   return idx;
@@ -3452,10 +3524,8 @@ function computeProgress(){
       DAY_ORDER.forEach(d=>{
         const day=PROGRAM[d]; if(day.type!=="session") return;
         const variant=day.variants[loc]; if(!variant) return;
-        const complete=variant.exercises.every(ex=>{
-          const e=LOG[logKey(w,day.key,ex.id,loc)];
-          return e && e.sets.length && e.sets.every(s=>s.done);
-        });
+        // "Flexible": una sesión express (menos series, resto intacto) también cuenta
+        const complete=variant.exercises.every(ex=> entryDoneFlexible(LOG[logKey(w,day.key,ex.id,loc)]));
         if(complete){ sessionsComplete++; if(byLoc[loc]!=null) byLoc[loc]++; }
       });
     });
@@ -3609,7 +3679,7 @@ function renderProgress(){
   // Mejores marcas (récords de peso + 1RM estimado)
   const prList=Object.keys(p.prs)
     .map(id=>({id, w:p.prs[id].w, r:p.prs[id].r, week:p.prs[id].week, loc:p.prs[id].loc, e1:p.prs[id].e1,
-               name:(EX_INDEX[id]?EX_INDEX[id].name:id)}))
+               name:(EX_INDEX[id] ? exDisplayName(EX_INDEX[id].loc, EX_INDEX[id].session, EX_INDEX[id].ex) : id)}))
     .sort((a,b)=>b.w-a.w).slice(0,8);
   if(prList.length){
     const rs=document.createElement("div"); rs.className="psec";
@@ -3643,15 +3713,19 @@ function showUpdate(){ const b=document.getElementById("updateBanner"); if(b) b.
       });
     });
   }).catch(()=>{});
+  // En la primera instalación clients.claim() dispara controllerchange: no recargar entonces
+  let hadController = !!navigator.serviceWorker.controller;
   let refreshing=false;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{
+    if(!hadController){ hadController=true; return; }
     if(refreshing) return; refreshing=true; location.reload();
   });
 })();
 
-/* ---- Auto-avance de semana: cada lunes pasa sola a la siguiente ---- */
-let weekAutoAdvancedTo = 0;
-(function autoAdvanceWeek(){
+/* ---- Auto-avance de semana: cada lunes pasa sola a la siguiente ----
+   Devuelve el nuevo nº de semana si avanzó, o 0. Se llama al cargar Y al volver
+   a la app (iOS reanuda la PWA sin recargar, a veces días después). */
+function maybeAdvanceWeek(){
   const todayMon = mondayOf(new Date());
   let anchorStr = localStorage.getItem(LS_WEEK_ANCHOR);
   if(!anchorStr){
@@ -3669,13 +3743,31 @@ let weekAutoAdvancedTo = 0;
     WEEK = WEEK + wks;
     localStorage.setItem(LS_WEEK, String(WEEK));
     localStorage.setItem(LS_WEEK_ANCHOR, dateStr(todayMon));
-    weekAutoAdvancedTo = WEEK;
+    const wn=document.getElementById("weekNum"); if(wn) wn.textContent=WEEK;
+    scheduleCloudSync();  // que la nube conozca la semana nueva
+    return WEEK;
   }
-})();
+  return 0;
+}
+let weekAutoAdvancedTo = maybeAdvanceWeek();
+
+/* Al volver a la app (PWA reanudada): refresca día y semana si cambió la fecha */
+let lastSeenDate = todayStr();
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState!=="visible") return;
+  const now = todayStr();
+  if(now !== lastSeenDate){
+    lastSeenDate = now;
+    const adv = maybeAdvanceWeek();
+    selectedDay = todayKey();          // el "hoy" real
+    render();
+    if(adv) toast("Nueva semana "+adv+" — ¡a por ella! 💪");
+  }
+});
 
 /* ---- Init ---- */
 pruneEmptyEntries();  // limpieza única al arrancar (seguro: aún no hay casillas en pantalla)
-const APP_VERSION = "2026.07.09-2 · BIELA";
+const APP_VERSION = "2026.07.12-1 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
