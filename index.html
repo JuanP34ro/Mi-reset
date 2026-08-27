@@ -636,6 +636,17 @@
   .comeback b{color:#7fd4f2}
   .comeback button{margin-top:11px;background:var(--accent);color:#04232f;border:none;border-radius:10px;
     padding:10px 15px;font-weight:800;font-family:inherit;font-size:13px;cursor:pointer;touch-action:manipulation}
+  /* Fase 2: transición guiada a peso libre (sem 19+) */
+  .fase2-card{background:linear-gradient(135deg,#123a2c,#0c2a20);border:1.5px solid rgba(47,208,127,.4);color:#d6f5e4;
+    border-radius:var(--radius);padding:16px;margin-bottom:14px;font-size:13.5px;line-height:1.55;animation:rise .35s ease both}
+  .fase2-card h3{margin:0 0 8px;font-size:15px;color:#7fe3b0;font-weight:800}
+  .fase2-card .ms-list{margin:11px 0 0}
+  .fase2-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .fase2-actions .go{flex:1;background:var(--ok);color:#04221a;border:none;border-radius:11px;padding:11px 13px;
+    font-weight:800;font-family:inherit;font-size:13.5px;cursor:pointer;touch-action:manipulation}
+  .fase2-actions .go:disabled{opacity:.4}
+  .fase2-actions .later{flex:1;background:var(--soft);color:var(--ink);border:1.5px solid var(--line);border-radius:11px;
+    padding:11px 13px;font-weight:700;font-family:inherit;font-size:13.5px;cursor:pointer;touch-action:manipulation}
   /* Copiar toda la semana anterior con un toque */
   .bulk-copy{width:100%;border:1.5px dashed rgba(47,208,127,.4);background:rgba(47,208,127,.08);color:#7fe3b0;
     border-radius:14px;padding:12px 14px;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;
@@ -867,7 +878,8 @@ const PROGRAM = {
             alts:[
               {name:"Sentadilla libre con barra", vid:ytSearch("sentadilla con barra tecnica")},
               {name:"Prensa de piernas (pies medios)", vid:ytSearch("prensa de piernas tecnica")},
-              {name:"Sentadilla en multipower (Smith)", vid:ytSearch("sentadilla en multipower smith tecnica")}
+              {name:"Sentadilla en multipower (Smith)", vid:ytSearch("sentadilla en multipower smith tecnica")},
+              {name:"Sentadilla goblet con mancuerna (Fase 2)", vid:ytSearch("sentadilla goblet mancuerna tecnica")}
             ]},
           {id:"rdl", name:"Peso muerto rumano con mancuernas (RDL)", scheme:"3 × 8-12", rest:150, sets:3, note:"Bisagra de cadera: isquios en estiramiento + glúteo. Con mancuernas es la versión más fácil de aprender solo (auditoría: protector del isquio). 3 claves: baja solo hasta notar el estiramiento sin perder la espalda neutra (no persigas profundidad), mancuernas pegadas a las piernas, y sube peso solo cuando la bisagra salga sola.", vid:ytSearch("peso muerto rumano mancuernas tecnica"),
             alts:[
@@ -1852,10 +1864,37 @@ function repRange(scheme){
   return null;
 }
 
+/* Rango de reps objetivo del bloque actual ("12-15") como números */
+function blockRange(week){
+  const m=planBlock(week==null?WEEK:week).reps.match(/(\d+)\s*-\s*(\d+)/);
+  return m ? {min:+m[1], max:+m[2]} : null;
+}
+/* Esquema MOSTRADO según el bloque: acerca el rango de reps del ejercicio a la zona
+   del bloque sin salirse del rango propio del ejercicio (gemelos, face pull, etc.
+   conservan su intención; tiempos y "cada letra" no se tocan; si no hay solape,
+   manda el ejercicio). Así la evolución A1→A2→A3 baja hasta la tabla de series. */
+function schemeForBlock(ex, week){
+  const s=ex.scheme;
+  if(!s || /seg|cada letra/i.test(s)) return s;
+  const br=blockRange(week);
+  if(!br) return s;
+  const m=s.match(/^(\d+)\s*×\s*(\d+)\s*-\s*(\d+)(.*)$/);
+  if(!m) return s; // valor único u otro formato: se respeta
+  const eMin=+m[2], eMax=+m[3];
+  let lo=Math.max(eMin,br.min), hi=Math.min(eMax,br.max);
+  if(lo>hi) return s;
+  if(hi-lo<2){ // intersección estrecha: ensancha dentro del rango del ejercicio
+    if(br.min>eMin) lo=Math.max(eMin,hi-2); else hi=Math.min(eMax,lo+2);
+  }
+  if(lo===eMin && hi===eMax) return s;
+  return `${m[1]} × ${lo}-${hi}${m[4]||""}`;
+}
+
 /* Sugerencia de progresión para un ejercicio, según el último entreno con datos.
    Implementa la "luz verde": tope de reps en TODAS las series de trabajo → subir peso. */
 function progressionHint(day, ex){
-  const range = repRange(ex.scheme);
+  // Usa el esquema ajustado al bloque: la "luz verde" coincide con lo que ve la tabla
+  const range = repRange(schemeForBlock(ex));
   if(!range) return null;
   const bodyweight = LOCATION==="hotel"; // sin pesas: se progresa con reps, tempo o variante
   const prev = lastFilledBefore(day.key, ex.id, WEEK);
@@ -1905,6 +1944,68 @@ const MILESTONES = [
     {id:"m12_result", tipo:"resultado", t:"Fuerza y composición claramente mejores, articulaciones sanas"}
   ]}
 ];
+
+/* ===========================================================
+   FASE 2 (semana 19+): transición guiada a peso libre en el gym.
+   Requisitos (auditoría) como checklist; al cumplirlos, un toque
+   cambia los titulares a las variantes libres. Reversible.
+   =========================================================== */
+const FASE2_CHECKS=[
+  {id:"f2_bisagra", t:"La bisagra del RDL me sale sola (sin pensar en la espalda) y sin molestia lumbar"},
+  {id:"f2_goblet", t:"La sentadilla goblet me sale profunda y estable"},
+  {id:"f2_hombro", t:"Llevo 2 semanas sin molestia de escápula/hombro"},
+  {id:"f2_tecnica", t:"He comparado mi técnica con los vídeos (o con el fisio)"}
+];
+// Cambios de titular al activar (índice dentro del selector ⇄; el press de hombro
+// se queda en máquina a propósito: la auditoría lo quiere conservador)
+const FASE2_SWAPS=[
+  {day:"pierna_a", id:"hack_squat", alt:4},        // → sentadilla goblet
+  {day:"torso_a", id:"press_pecho_maq", alt:1},    // → press con mancuernas plano
+  {day:"torso_a", id:"press_inclinado", alt:1}     // → press con mancuernas 30°
+];
+function fase2Apply(){
+  FASE2_SWAPS.forEach(s=>{ UI.altChoice["gym|"+s.day+"|"+s.id]=s.alt; });
+  PLAN.f2_done=true;
+  saveJSON(LS_UI,UI); saveJSON(LS_PLAN,PLAN); scheduleCloudSync();
+  toast("Fase 2 activada — básicos con peso libre 💪");
+  render();
+}
+function fase2Revert(){
+  FASE2_SWAPS.forEach(s=>{ delete UI.altChoice["gym|"+s.day+"|"+s.id]; });
+  PLAN.f2_done=false;
+  saveJSON(LS_UI,UI); saveJSON(LS_PLAN,PLAN); scheduleCloudSync();
+  toast("De vuelta a máquinas — sin ninguna prisa");
+  render();
+}
+function renderFase2Card(){
+  const card=document.createElement("div");
+  card.className="fase2-card";
+  const nOk=FASE2_CHECKS.filter(c=>PLAN[c.id]).length;
+  card.innerHTML=`<h3>🚀 Semana ${WEEK}: toca Fase 2 — peso libre básico</h3>
+    El plan pasa los básicos a peso libre: sentadilla goblet y presses con mancuernas
+    (tu RDL y el remo con pecho apoyado ya lo son). Confirma antes los requisitos —
+    y si aún no, sigue en máquinas otras semanas sin ningún problema:
+    <div class="ms-list"></div>
+    <div class="fase2-actions">
+      <button class="go" ${nOk<FASE2_CHECKS.length?"disabled":""}>Activar Fase 2 (3 cambios)</button>
+      <button class="later">Aún no · recuérdamelo en 2 semanas</button>
+    </div>`;
+  const list=card.querySelector(".ms-list");
+  FASE2_CHECKS.forEach(it=>{
+    const row=document.createElement("button");
+    row.className="ms-item"+(PLAN[it.id]?" on":"");
+    row.innerHTML=`<span class="ms-check">✓</span><span class="ms-txt">${it.t}</span>`;
+    row.onclick=()=>{
+      PLAN[it.id]=!PLAN[it.id]; saveJSON(LS_PLAN,PLAN); scheduleCloudSync();
+      row.classList.toggle("on", PLAN[it.id]);
+      card.querySelector(".go").disabled = FASE2_CHECKS.filter(c=>PLAN[c.id]).length < FASE2_CHECKS.length;
+    };
+    list.appendChild(row);
+  });
+  card.querySelector(".go").onclick=fase2Apply;
+  card.querySelector(".later").onclick=()=>{ UI.f2SnoozeW=WEEK+2; saveJSON(LS_UI,UI); render(); };
+  content.appendChild(card);
+}
 
 /* ---- Render principal ---- */
 const content = document.getElementById("content");
@@ -2077,8 +2178,21 @@ function renderPlan(){
   const rule=document.createElement("div"); rule.className="plan-card";
   rule.innerHTML=`<h3>📈 Cómo progresar (doble progresión)</h3>
     <p>Sube <b>reps</b> hacia el tope del rango cada semana manteniendo tu RIR. Cuando llegues al tope en <b>todas las series</b> con técnica limpia y sin dolor, <b>sube al peso mínimo siguiente</b> y reinicia en la parte baja del rango.</p>
-    <p class="plan-tip">💡 En <b>Entreno</b>, cada ejercicio te dirá si toca <b>subir peso</b> o <b>sumar reps</b> según tu último registro.</p>`;
+    <p class="plan-tip">💡 En <b>Entreno</b>, cada ejercicio te dirá si toca <b>subir peso</b> o <b>sumar reps</b> según tu último registro. Y los <b>rangos de reps de cada tarjeta se ajustan solos al bloque actual</b> (dentro del rango propio de cada ejercicio).</p>`;
   content.appendChild(rule);
+
+  // Estado de la Fase 2 (peso libre) cuando toca o ya está activa
+  if(WEEK>=19 || PLAN.f2_done){
+    const f2=document.createElement("div"); f2.className="plan-card";
+    f2.innerHTML = PLAN.f2_done
+      ? `<h3>🚀 Fase 2 activa</h3>
+         <p>Titulares del gym en peso libre: sentadilla goblet y presses con mancuernas (el RDL y el remo con pecho apoyado ya lo eran; el press de hombro sigue en máquina a propósito). Si una temporada prefieres máquinas, vuelve cuando quieras:</p>
+         <button class="var-toggle" id="f2back">⇄ Volver a máquinas</button>`
+      : `<h3>🚀 Fase 2 pendiente</h3>
+         <p>Desde la semana 19 el plan propone pasar los básicos a peso libre. La checklist de requisitos te espera en <b>Entreno</b> (con el lugar Gym seleccionado).</p>`;
+    content.appendChild(f2);
+    const fb=f2.querySelector("#f2back"); if(fb) fb.onclick=fase2Revert;
+  }
 
   const g=document.createElement("div"); g.className="plan-card";
   g.innerHTML=`<h3>🧭 Claves a los 40</h3>
@@ -2145,6 +2259,11 @@ function renderEntreno(){
     n.className="phase12";
     n.innerHTML = `🌙 <b>Semana ${WEEK}: descarga.</b> Haz la <b>mitad de las series</b> y deja más reps en reserva (RIR 4-5). Mantén la técnica, sin récords — recuperas tendones y articulaciones. Ver <b>📅 Plan</b>.`;
     content.appendChild(n);
+  }
+
+  // Fase 2 (sem 19+): transición guiada a peso libre (solo en el gym, hasta decidir)
+  if(WEEK>=19 && LOCATION==="gym" && !PLAN.f2_done && !(UI.f2SnoozeW && WEEK<UI.f2SnoozeW)){
+    renderFase2Card();
   }
 
   // Recordatorio suave de copia a libreta (domingo o 7+ días sin exportar)
@@ -2536,7 +2655,7 @@ function renderExercise(day,ex,num){
   const head=document.createElement("div");
   head.className="ex-head";
   head.innerHTML=`<div class="ex-num">${num}</div>
-    <div class="ex-title"><div class="name">${esc(active.name)}${ci>0?' <span class="alt-tag">variante</span>':''}</div><div class="scheme">${ex.scheme} · descanso ${ex.rest}s</div></div>
+    <div class="ex-title"><div class="name">${esc(active.name)}${ci>0?' <span class="alt-tag">variante</span>':''}</div><div class="scheme">${schemeForBlock(ex)} · descanso ${ex.rest}s</div></div>
     <div class="ex-check">✓</div>
     <span class="ex-chev">▾</span>`;
   head.querySelector(".ex-check").onclick=(e)=>{
@@ -3792,7 +3911,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 /* ---- Init ---- */
 pruneEmptyEntries();  // limpieza única al arrancar (seguro: aún no hay casillas en pantalla)
-const APP_VERSION = "2026.08.27-1 · BIELA";
+const APP_VERSION = "2026.08.27-2 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
