@@ -1530,6 +1530,7 @@ const LS_DATES = "reset_gym_dates_v1";           // fechas reales en las que se 
 const LS_WEEK_ANCHOR = "reset_gym_week_anchor_v1"; // lunes (real) al que corresponde la semana actual (auto-avance)
 const LS_SESSMETA = "reset_gym_sessmeta_v1";       // por sesión: hora de la primera y última serie (duración)
 const LS_DIARY = "reset_gym_diary_v1";             // diario de una línea por día ("¿qué has demostrado hoy?")
+const LS_REST = "reset_gym_rest_v1";               // descanso en curso {endAt,total} — sobrevive a recargas/cierres
 
 function loadJSON(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
 function saveJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -1554,6 +1555,15 @@ const fmtDate = ts => new Date(+ts).toLocaleDateString("es-ES",{day:"numeric",mo
 
 /* Duración de la sesión: primera y última serie marcada de cada sesión (semana|lugar|clave) */
 let SESSMETA = loadJSON(LS_SESSMETA, {});
+// Limpieza: conserva solo las ~60 sesiones más recientes (evita crecer sin límite)
+(function pruneSessMeta(){
+  const ks=Object.keys(SESSMETA);
+  if(ks.length>60){
+    ks.sort((a,b)=>((SESSMETA[a]&&SESSMETA[a].end)||0)-((SESSMETA[b]&&SESSMETA[b].end)||0))
+      .slice(0, ks.length-60).forEach(k=>delete SESSMETA[k]);
+    saveJSON(LS_SESSMETA, SESSMETA);
+  }
+})();
 function sessMetaTouch(k){
   const m = SESSMETA[k] || (SESSMETA[k]={start:Date.now()});
   m.end = Date.now();
@@ -2237,9 +2247,14 @@ function renderEntreno(){
       if(any){
         if(pv>0 && cVol>0){
           const d=Math.round((cVol-pv)/pv*100);
-          facts.push(d>=0
-            ? `Has movido un <b>+${d}%</b> respecto a la última vez (${fmt(pv)} → ${fmt(cVol)} kg).`
-            : `Hoy ${fmt(cVol)} kg · la última vez ${fmt(pv)} kg. Aparecer también cuenta.`);
+          if(d>150){
+            // El registro anterior estaba a medias (huecos de datos): comparar sería engañoso
+            facts.push(`Hoy: <b>${fmt(cVol)} kg</b> movidos — tu registro más completo de este entreno hasta ahora.`);
+          }else if(d>=0){
+            facts.push(`Has movido un <b>+${d}%</b> respecto a la última vez (${fmt(pv)} → ${fmt(cVol)} kg).`);
+          }else{
+            facts.push(`Hoy ${fmt(cVol)} kg · la última vez ${fmt(pv)} kg. Aparecer también cuenta.`);
+          }
         }
         break;
       }
@@ -2360,6 +2375,9 @@ function renderBackupReminder(){
   // No molestar si el usuario lo descartó hoy
   const dismissedToday = UI.bnDismissed === new Date().toDateString();
   if(dismissedToday) return;
+  // Con la nube activa y sincronizada hace poco, los datos ya están a salvo: no insistir con la libreta
+  const lastSync = localStorage.getItem(LS_GH_LASTSYNC);
+  if(cloudConfigured() && lastSync && (Date.now()-parseInt(lastSync,10)) < 48*3600000) return;
 
   const isSunday = new Date().getDay()===0;
   const since = daysSinceExport();
@@ -2932,9 +2950,13 @@ function ensureAudio(){
   }catch(e){}
 }
 
+function saveRestState(){ saveJSON(LS_REST, {endAt:restEndAt, total:restTotal}); }
+function clearRestState(){ try{ localStorage.removeItem(LS_REST); }catch(e){} }
+
 function startRest(seconds){
   restTotal=seconds; restRemaining=seconds; restPaused=false; restDone=false;
   restEndAt=Date.now()+seconds*1000;
+  saveRestState(); // sobrevive a que iOS mate la app: al reabrir se reanuda solo
   restPauseBtn.textContent="Pausar";
   restTimeEl.classList.remove("flash");
   clearTimeout(restCloseT);
@@ -2955,6 +2977,7 @@ function tickRest(){
   updateRestUI();
   if(restRemaining<=0){
     restDone=true;
+    clearRestState();
     clearInterval(restTimer);
     // Si estaba minimizado, vuelve a mostrarse para avisar del final
     restMini.classList.remove("show");
@@ -2975,6 +2998,7 @@ function updateRestUI(){
   restBar.setAttribute("width", (120*pct).toFixed(1));
 }
 function closeRest(){
+  clearRestState();
   clearInterval(restTimer);
   clearTimeout(restCloseT);
   restOverlay.classList.remove("show");
@@ -2989,7 +3013,7 @@ function minimizeRest(){
 restMini.onclick=()=>{ restMini.classList.remove("show"); restOverlay.classList.add("show"); };
 restPauseBtn.onclick=()=>{
   restPaused=!restPaused;
-  if(!restPaused) restEndAt=Date.now()+restRemaining*1000; // al reanudar, recoloca la hora de fin
+  if(!restPaused){ restEndAt=Date.now()+restRemaining*1000; saveRestState(); } // al reanudar, recoloca la hora de fin
   restPauseBtn.textContent=restPaused?"Seguir":"Pausar";
 };
 document.getElementById("restAdd").onclick=()=>{
@@ -3003,6 +3027,7 @@ document.getElementById("restAdd").onclick=()=>{
   }
   if(!restPaused) restEndAt=Date.now()+restRemaining*1000;
   restTotal=Math.max(restTotal,restRemaining);
+  saveRestState();
   updateRestUI();
 };
 document.getElementById("restSkip").onclick=closeRest;
@@ -3767,11 +3792,27 @@ document.addEventListener("visibilitychange", ()=>{
 
 /* ---- Init ---- */
 pruneEmptyEntries();  // limpieza única al arrancar (seguro: aún no hay casillas en pantalla)
-const APP_VERSION = "2026.07.12-1 · BIELA";
+const APP_VERSION = "2026.07.12-2 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
 render();
+// Reanudar un descanso en curso si iOS mató la app entre series (discreto: pastilla)
+(function resumeRest(){
+  const r=loadJSON(LS_REST, null);
+  if(!r || !r.endAt) return;
+  const remaining=Math.ceil((r.endAt-Date.now())/1000);
+  if(remaining>0){
+    restTotal=r.total||remaining; restRemaining=remaining; restEndAt=r.endAt;
+    restPaused=false; restDone=false;
+    updateRestUI();
+    restMini.classList.add("show");
+    clearInterval(restTimer);
+    restTimer=setInterval(tickRest,250);
+  }else{
+    clearRestState();
+  }
+})();
 if(weekAutoAdvancedTo){ setTimeout(()=>toast("Nueva semana "+weekAutoAdvancedTo+" — ¡a por ella! 💪"), 500); }
 </script>
 </body>
