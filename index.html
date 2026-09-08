@@ -636,6 +636,18 @@
   .comeback b{color:#7fd4f2}
   .comeback button{margin-top:11px;background:var(--accent);color:#04232f;border:none;border-radius:10px;
     padding:10px 15px;font-weight:800;font-family:inherit;font-size:13px;cursor:pointer;touch-action:manipulation}
+  /* Aviso de sesión de otro día: ¿entrenando ahora o solo apuntando? */
+  .livenow{display:flex;align-items:center;gap:10px;border-radius:14px;padding:11px 13px;margin-bottom:14px;
+    font-size:12.5px;line-height:1.45;animation:rise .35s ease both;
+    background:var(--soft);border:1.5px solid var(--line);color:var(--muted)}
+  .livenow.on{background:rgba(27,180,232,.1);border-color:rgba(27,180,232,.4);color:#bfe6f7}
+  .livenow .ln-txt{flex:1}
+  .livenow .ln-txt b{color:#eaf7fd}
+  .livenow .ln-btn{flex:0 0 auto;border:none;border-radius:9px;padding:8px 11px;font-size:12px;font-weight:800;
+    font-family:inherit;cursor:pointer;touch-action:manipulation;background:var(--card);color:var(--accent);
+    border:1.5px solid var(--line)}
+  .livenow.on .ln-btn{background:var(--accent);color:#04232f;border-color:var(--accent)}
+
   /* Fase 2: transición guiada a peso libre (sem 19+) */
   .fase2-card{background:linear-gradient(135deg,#123a2c,#0c2a20);border:1.5px solid rgba(47,208,127,.4);color:#d6f5e4;
     border-radius:var(--radius);padding:16px;margin-bottom:14px;font-size:13.5px;line-height:1.55;animation:rise .35s ease both}
@@ -2007,6 +2019,20 @@ function renderFase2Card(){
   content.appendChild(card);
 }
 
+/* ¿Se está ENTRENANDO ahora esta sesión? (aunque sea la de otro día del plan)
+   - La sesión de hoy siempre cuenta como "en vivo".
+   - Otro día (p. ej. haces hoy lo del lunes): manda lo que elijas en el aviso;
+     sin elección, se asume EN VIVO (descansos + calendario del día real) salvo
+     que hoy ya tengas otra sesión registrada — entonces parece un apunte
+     a posteriori y no se activan descansos ni calendario. */
+function isLiveTraining(day){
+  if(selectedDay===todayKey()) return true;
+  const choice = UI.liveNow && UI.liveNow[todayStr()+"|"+day.key];
+  if(choice) return choice==="live";
+  const t = TRAINED[todayStr()] || [];
+  return !t.some(s=>s!==day.key);
+}
+
 /* ---- Render principal ---- */
 const content = document.getElementById("content");
 const daySelector = document.getElementById("daySelector");
@@ -2278,6 +2304,36 @@ function renderEntreno(){
   const completedEx = exList.filter(isExDone).length;
   const dayPct = nEx ? Math.round(completedEx/nEx*100) : 0;
   const sessionComplete = completedEx===nEx && nEx>0;
+
+  // Sesión de otro día: aviso de modo (¿la entrenas AHORA o solo apuntas datos?)
+  if(selectedDay!==todayKey()){
+    const live=isLiveTraining(day);
+    const ln=document.createElement("div");
+    ln.className="livenow"+(live?" on":"");
+    ln.innerHTML=`<span class="ln-txt">${live
+      ? `🏋️ Entrenando <b>ahora</b> la sesión de ${DAY_SHORT[selectedDay]}: descansos automáticos y el calendario apunta HOY.`
+      : `✍️ Solo apuntando datos de la sesión de ${DAY_SHORT[selectedDay]}: sin descansos ni calendario.`}</span>
+      <button class="ln-btn">${live?"Solo apuntar":"▶ Entrenar ahora"}</button>`;
+    ln.querySelector(".ln-btn").onclick=()=>{
+      const k=todayStr()+"|"+day.key;
+      if(!UI.liveNow) UI.liveNow={};
+      const newLive=!live;
+      UI.liveNow[k]=newLive?"live":"log";
+      if(!newLive){
+        // Deshacer las marcas de HOY de esta sesión (calendario y duración)
+        const t=TRAINED[todayStr()];
+        if(t){
+          const i=t.indexOf(day.key);
+          if(i>=0){ t.splice(i,1); if(!t.length) delete TRAINED[todayStr()]; saveJSON(LS_DATES,TRAINED); scheduleCloudSync(); }
+        }
+        delete SESSMETA[WEEK+"|"+LOCATION+"|"+day.key]; saveJSON(LS_SESSMETA,SESSMETA);
+      }
+      saveJSON(LS_UI,UI);
+      toast(newLive ? "Modo entreno: descansos y calendario activados" : "Solo registro: sin descansos ni calendario");
+      render();
+    };
+    content.appendChild(ln);
+  }
 
   // Session banner con barra de progreso del día
   const banner=document.createElement("div");
@@ -2662,7 +2718,7 @@ function renderExercise(day,ex,num){
     e.stopPropagation();
     const target = !allDone;
     entry.sets.slice(0,visN).forEach(s=>s.done=target); // marca solo las series visibles
-    if(target && selectedDay===todayKey()){ markTrainedToday(day.key); sessMetaTouch(WEEK+"|"+LOCATION+"|"+day.key); } // calendario + duración: solo la sesión de HOY
+    if(target && isLiveTraining(day)){ markTrainedToday(day.key); sessMetaTouch(WEEK+"|"+LOCATION+"|"+day.key); } // calendario + duración si entrenas AHORA
     touchEntry(entry); persist(); render();
   };
   head.onclick=()=>{ UI.openEx[ex.id]=!UI.openEx[ex.id]; saveJSON(LS_UI,UI); render(); };
@@ -2798,15 +2854,15 @@ function renderExercise(day,ex,num){
       bd.setAttribute("aria-pressed", s.done ? "true" : "false");
       if(s.done){
         if(navigator.vibrate) navigator.vibrate(30);
-        if(selectedDay===todayKey()){                         // solo la sesión de HOY
-          markTrainedToday(day.key);                          // calendario
+        if(isLiveTraining(day)){                              // entrenando AHORA (hoy o sesión de otro día en vivo)
+          markTrainedToday(day.key);                          // calendario (fecha real de hoy)
           sessMetaTouch(WEEK+"|"+LOCATION+"|"+day.key);       // duración de la sesión
         }
       }
       touchEntry(entry); persist();
       wrap.classList.toggle("done", entryCompleteN(entry, visN)); // actualiza estado del ejercicio
       const r = updateDayProgress();                            // barra del día + detección de cierre
-      if(s.done && !s.warm && selectedDay===todayKey()) startRest(ex.rest); // autostart solo entrenando HOY (no al registrar a posteriori)
+      if(s.done && !s.warm && isLiveTraining(day)) startRest(ex.rest); // autostart si entrenas AHORA (no al apuntar a posteriori)
       if(r.transition) render();                                // muestra/oculta cierre + confeti
     };
     tdD.appendChild(bd);
@@ -3911,7 +3967,14 @@ document.addEventListener("visibilitychange", ()=>{
 
 /* ---- Init ---- */
 pruneEmptyEntries();  // limpieza única al arrancar (seguro: aún no hay casillas en pantalla)
-const APP_VERSION = "2026.08.27-2 · BIELA";
+// El modo "entrenar ahora / solo apuntar" caduca cada día
+if(UI.liveNow){
+  const t=todayStr();
+  let changed=false;
+  Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
+  if(changed) saveJSON(LS_UI, UI);
+}
+const APP_VERSION = "2026.09.08-1 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
