@@ -637,6 +637,14 @@
   .comeback button{margin-top:11px;background:var(--accent);color:#04232f;border:none;border-radius:10px;
     padding:10px 15px;font-weight:800;font-family:inherit;font-size:13px;cursor:pointer;touch-action:manipulation}
   /* Selector de plan (primera apertura) y tarjeta de plan activo */
+  .welcome{background:linear-gradient(135deg,#065f46,#0d9488);color:#fff;border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:18px;margin-bottom:12px;animation:rise .35s ease both;transition:opacity .25s}
+  .welcome .w-hi{font-size:19px;font-weight:800;margin-bottom:6px}
+  .welcome .w-msg{font-size:14.5px;line-height:1.5;margin-bottom:12px}
+  .welcome .w-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .welcome .w-sign{font-size:12.5px;opacity:.9;font-style:italic}
+  .welcome .w-btn{border:0;border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px;
+    background:rgba(255,255,255,.92);color:#065f46;cursor:pointer}
   .profile-pick{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:34px 22px;text-align:center;animation:rise .35s ease both}
   .profile-pick .pp-big{font-size:46px;margin-bottom:6px}
@@ -835,6 +843,7 @@ const ytSearch = q => "https://www.youtube.com/results?search_query=" + encodeUR
    Rotan por sesión: una distinta según el día del año, en cada zona. */
 const FRASES = {
   inicio:[ // calentamiento — enfoque / neuroplasticidad
+    "Por lo que sea: aquí estoy otra vez, y eso ya es fuerza.",
     "La verdadera dopamina se gana con esfuerzo, no se espera de afuera.",
     "Cada entrenamiento reescribe mi cerebro. Hoy elijo la libertad y la disciplina.",
     "El vacío no se huye, se habita y se fortalece con cada movimiento.",
@@ -855,6 +864,7 @@ const FRASES = {
     "Las palabras son baratas. El fruto no se finge — ni el mío ni el de nadie."
   ],
   final:[ // cierre / estiramiento — regreso a casa
+    "Por lo que sea, siempre. Hoy también lo he cumplido.",
     "Soy mi propio refugio y mi base segura.",
     "El objetivo es volver a casa, y la casa siempre fui yo.",
     "Soy suficiente aquí y ahora. Mi valor es absoluto.",
@@ -875,6 +885,40 @@ function fraseDe(grupo){
 const VID = {
   facepull: "https://www.youtube.com/watch?v=X-xCQ1gh-kA", // Powerexplosive (verificado)
 };
+
+/* ---- Bienvenida diaria: un empujón sencillo al abrir la app (1 vez al día) ---- */
+const LS_WELCOME = "reset_welcome_day_v1";
+const WELCOME_FRASES = [
+  "Moverte un rato despeja la cabeza: menos estrés y mejor humor. Hoy también cuenta.",
+  "El ejercicio calma la mente. Empieza suave, que lo demás llega solo.",
+  "¿Día cargado? Entrenar lo baja: sales con el cuerpo cansado y la cabeza tranquila.",
+  "No esperes las ganas: empieza 5 minutos y las ganas aparecen. Por lo que sea, empieza.",
+  "Esta sesión es un rato para ti: respira, muévete y suelta lo del día.",
+  "Entrenar hoy es dormir mejor esta noche y pensar más claro mañana.",
+  "Los días flojos también suman. Venir ya es ganar, por lo que sea.",
+  "Moverse ordena las ideas mejor que darles vueltas en el sofá.",
+  "El cuerpo se pone fuerte y la mente se calma: dos por uno.",
+  "Hoy no hay que batir récords, solo aparecer. Por lo que sea, ya estás aquí."
+];
+function renderWelcome(){
+  const hoy=new Date().toDateString();
+  let vista=null; try{ vista=localStorage.getItem(LS_WELCOME); }catch(e){}
+  if(vista===hoy) return;
+  const h=new Date().getHours();
+  const saludo = h<7 ? "¡Buenas!" : h<13 ? "¡Buenos días!" : h<21 ? "¡Buenas tardes!" : "¡Buenas noches!";
+  const frase = WELCOME_FRASES[dayOfYear()%WELCOME_FRASES.length];
+  const c=document.createElement("div");
+  c.className="welcome";
+  c.innerHTML=`<div class="w-hi">${saludo} 👋</div>
+    <div class="w-msg">${frase}</div>
+    <div class="w-row"><span class="w-sign">— Por lo que sea 🤝</span>
+      <button class="w-btn">¡Vamos! 💪</button></div>`;
+  c.querySelector(".w-btn").onclick=()=>{
+    try{ localStorage.setItem(LS_WELCOME,hoy); }catch(e){}
+    c.style.opacity="0"; setTimeout(()=>c.remove(),250);
+  };
+  content.appendChild(c);
+}
 
 /* ---- Lugares de entrenamiento ----
    Cada sesión tiene 3 variantes: gym (máquinas), casa (bandas + mancuernas
@@ -2537,6 +2581,7 @@ function renderEntreno(){
   renderDaySelector();
   const day = PROGRAM[selectedDay];
   content.innerHTML = "";
+  renderWelcome();
 
   if(day.type==="rest"){
     renderRestDay();
@@ -2800,7 +2845,8 @@ function renderRestDay(){
   c.innerHTML = `<div class="big">🌿</div>
     <h2>Día de descanso</h2>
     <p>Recuperación = progreso.<br>El músculo crece cuando descansas, no en el entreno.<br><br>
-    Si te apetece moverte: paseo suave, trabajo en el huerto o algo de movilidad ligera.</p>`;
+    Si te apetece moverte: paseo suave, trabajo en el huerto o algo de movilidad ligera.<br><br>
+    <i>Descansar también es entrenar. Por lo que sea 😉</i></p>`;
   content.appendChild(c);
   // En descanso también recordamos lo de la libreta si toca
   renderBackupReminder();
@@ -4242,7 +4288,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.09.13-3 · BIELA";
+const APP_VERSION = "2026.09.13-4 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
