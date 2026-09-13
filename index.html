@@ -636,6 +636,23 @@
   .comeback b{color:#7fd4f2}
   .comeback button{margin-top:11px;background:var(--accent);color:#04232f;border:none;border-radius:10px;
     padding:10px 15px;font-weight:800;font-family:inherit;font-size:13px;cursor:pointer;touch-action:manipulation}
+  /* Selector de plan (primera apertura) y tarjeta de plan activo */
+  .profile-pick{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:34px 22px;text-align:center;animation:rise .35s ease both}
+  .profile-pick .pp-big{font-size:46px;margin-bottom:6px}
+  .profile-pick h2{margin:0 0 6px;font-size:20px;color:var(--accent)}
+  .profile-pick p{color:var(--muted);font-size:13.5px;line-height:1.5;margin:0 0 18px}
+  .pp-opt{display:flex;align-items:center;gap:13px;width:100%;text-align:left;cursor:pointer;font-family:inherit;
+    background:var(--soft);border:1.5px solid var(--line);border-radius:14px;padding:15px 15px;color:var(--ink);
+    margin-bottom:10px;touch-action:manipulation;transition:.15s}
+  .pp-opt:active{transform:scale(.98)}
+  .pp-opt .pp-ic{font-size:26px;flex:0 0 34px;text-align:center}
+  .pp-opt .pp-tx{flex:1}
+  .pp-opt .pp-tx b{display:block;font-size:15px}
+  .pp-opt .pp-tx small{display:block;color:var(--muted);font-size:12px;margin-top:2px;line-height:1.35}
+  .profile-now{display:flex;align-items:center;gap:10px;font-size:13px}
+  .profile-now .pn-ic{font-size:20px}
+
   /* Aviso de sesión de otro día: ¿entrenando ahora o solo apuntando? */
   .livenow{display:flex;align-items:center;gap:10px;border-radius:14px;padding:11px 13px;margin-bottom:14px;
     font-size:12.5px;line-height:1.45;animation:rise .35s ease both;
@@ -870,7 +887,7 @@ const LOCATIONS = {
 };
 
 /* ---- Programa: Torso/Pierna 4 días ---- */
-const PROGRAM = {
+const PROGRAM_FUERZA = {
   lunes: {
     type:"session", key:"pierna_a", label:"Pierna A",
     variants:{
@@ -1498,9 +1515,161 @@ const PROGRAM = {
   domingo:{ type:"rest" }
 };
 
+/* ===========================================================
+   PLAN "PERDER PESO Y TONIFICAR" (perfil 🔥)
+   Mismo pool de ejercicios (con sus vídeos, notas y variantes),
+   recompuesto con criterio de pérdida de grasa: énfasis glúteo/pierna,
+   2 días de cuerpo completo, reps más altas, descansos más cortos y
+   remate de cardio suave. La fuerza se mantiene: conserva el músculo
+   mientras se pierde grasa.
+   =========================================================== */
+function exFrom(dia, loc, id, over){
+  const base = PROGRAM_FUERZA[dia].variants[loc].exercises.find(e=>e.id===id);
+  return Object.assign({}, base, over||{});
+}
+const CARDIO_FIN = {
+  gym:  {id:"tono_cardio", name:"Remate: cardio suave (cinta, bici o elíptica)", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo al que puedas hablar. Es el extra que acelera la pérdida de grasa sin machacarte. Marca la casilla al terminar.", vid:ytSearch("cardio suave LISS cinta principiante")},
+  casa: {id:"tono_cardio", name:"Remate: caminata rápida o comba suave", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo al que puedas hablar. Marca la casilla al terminar.", vid:ytSearch("caminata rapida en casa cardio suave")},
+  hotel:{id:"tono_cardio", name:"Remate: marcha rápida o escaleras", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo al que puedas hablar. Marca la casilla al terminar.", vid:ytSearch("cardio suave habitacion hotel principiante")}
+};
+const PROGRAM_TONO = {
+  lunes:{ type:"session", key:"tono_gluteo_a", label:"Glúteo A",
+    variants:{
+      gym:{ title:"Glúteo y pierna A", warmup:PROGRAM_FUERZA.lunes.variants.gym.warmup,
+        exercises:[
+          exFrom("jueves","gym","hip_thrust",{scheme:"4 × 12-15", rest:90}),
+          exFrom("lunes","gym","prensa",{scheme:"3 × 12-15", rest:75, sets:3}),
+          exFrom("lunes","gym","rdl",{scheme:"3 × 12-15", rest:90}),
+          exFrom("jueves","gym","kickback",{scheme:"3 × 15-20", rest:45}),
+          exFrom("jueves","gym","curl_fem_sent",{scheme:"3 × 12-15", rest:60}),
+          exFrom("lunes","gym","gemelo_pie",{scheme:"3 × 15-20", rest:45, sets:3}),
+          CARDIO_FIN.gym
+        ]},
+      casa:{ title:"Glúteo y pierna A (casa)", warmup:PROGRAM_FUERZA.lunes.variants.casa.warmup,
+        exercises:[
+          exFrom("jueves","casa","casa_hip_thrust",{scheme:"4 × 12-15", rest:75}),
+          exFrom("lunes","casa","casa_goblet",{scheme:"3 × 12-15", rest:75, sets:3}),
+          exFrom("lunes","casa","casa_rdl_a",{scheme:"3 × 12-15", rest:75}),
+          exFrom("jueves","casa","casa_kickback",{scheme:"3 × 15 por pierna", rest:45}),
+          exFrom("lunes","casa","casa_curl_banda",{scheme:"3 × 12-15", rest:45}),
+          exFrom("lunes","casa","casa_gemelo",{scheme:"3 × 15-20", rest:45, sets:3}),
+          CARDIO_FIN.casa
+        ]},
+      hotel:{ title:"Glúteo y pierna A (habitación)", warmup:PROGRAM_FUERZA.lunes.variants.hotel.warmup,
+        exercises:[
+          exFrom("jueves","hotel","hotel_hip_thrust",{scheme:"4 × 12-15", rest:60}),
+          exFrom("lunes","hotel","hotel_sentadilla",{scheme:"3 × 15-20", rest:60, sets:3}),
+          exFrom("lunes","hotel","hotel_rdl",{scheme:"3 × 12-15 por pierna", rest:60}),
+          exFrom("jueves","hotel","hotel_kickback",{scheme:"3 × 15 por pierna", rest:45}),
+          exFrom("lunes","hotel","hotel_gemelo",{scheme:"3 × 15-20", rest:45, sets:3}),
+          CARDIO_FIN.hotel
+        ]}
+    }},
+  martes:{ type:"session", key:"tono_full_a", label:"Full body A",
+    variants:{
+      gym:{ title:"Cuerpo completo A", warmTitle:PROGRAM_FUERZA.martes.variants.gym.warmTitle, warmup:PROGRAM_FUERZA.martes.variants.gym.warmup,
+        exercises:[
+          exFrom("martes","gym","press_pecho_maq",{scheme:"3 × 12-15", rest:75}),
+          exFrom("viernes","gym","remo_maq",{scheme:"3 × 12-15", rest:75}),
+          exFrom("martes","gym","press_hombro_maq",{scheme:"2 × 12-15", rest:60, sets:2}),
+          exFrom("martes","gym","elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
+          exFrom("viernes","gym","facepull",{scheme:"3 × 15", rest:45}),
+          exFrom("lunes","gym","crunch_maq",{scheme:"3 × 12-15", rest:45}),
+          CARDIO_FIN.gym
+        ]},
+      casa:{ title:"Cuerpo completo A (casa)", warmTitle:PROGRAM_FUERZA.martes.variants.casa.warmTitle, warmup:PROGRAM_FUERZA.martes.variants.casa.warmup,
+        exercises:[
+          exFrom("martes","casa","casa_floor_press",{scheme:"3 × 12-15", rest:60}),
+          exFrom("viernes","casa","casa_remo_banda",{scheme:"3 × 12-15", rest:60}),
+          exFrom("martes","casa","casa_press_hombro",{scheme:"2 × 12-15", rest:60, sets:2}),
+          exFrom("martes","casa","casa_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
+          exFrom("viernes","casa","casa_facepull",{scheme:"3 × 15", rest:45}),
+          exFrom("lunes","casa","casa_plancha",{scheme:"3 × 30-45 seg", rest:45}),
+          CARDIO_FIN.casa
+        ]},
+      hotel:{ title:"Cuerpo completo A (habitación)", warmTitle:PROGRAM_FUERZA.martes.variants.hotel.warmTitle, warmup:PROGRAM_FUERZA.martes.variants.hotel.warmup,
+        exercises:[
+          exFrom("martes","hotel","hotel_flexion",{scheme:"3 × 8-15", rest:60}),
+          exFrom("viernes","hotel","hotel_remo_mesa",{scheme:"3 × 8-12", rest:60}),
+          exFrom("martes","hotel","hotel_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
+          exFrom("viernes","hotel","hotel_ytw",{scheme:"3 × 8 cada letra", rest:45}),
+          exFrom("lunes","hotel","hotel_plancha",{scheme:"3 × 30-45 seg", rest:45}),
+          CARDIO_FIN.hotel
+        ]}
+    }},
+  miercoles:{ type:"rest" },
+  jueves:{ type:"session", key:"tono_gluteo_b", label:"Glúteo B",
+    variants:{
+      gym:{ title:"Glúteo y pierna B", warmup:PROGRAM_FUERZA.jueves.variants.gym.warmup,
+        exercises:[
+          exFrom("jueves","gym","prensa_alta",{scheme:"3 × 12-15", rest:75}),
+          exFrom("lunes","gym","hack_squat",{scheme:"3 × 10-15", rest:90, sets:3}),
+          exFrom("jueves","gym","curl_fem_sent",{scheme:"3 × 12-15", rest:60}),
+          exFrom("jueves","gym","aductores",{scheme:"2 × 15-20", rest:45}),
+          exFrom("jueves","gym","gemelo_sent",{scheme:"3 × 15-20", rest:45, sets:3}),
+          exFrom("jueves","gym","pallof_polea"),
+          CARDIO_FIN.gym
+        ]},
+      casa:{ title:"Glúteo y pierna B (casa)", warmup:PROGRAM_FUERZA.jueves.variants.casa.warmup,
+        exercises:[
+          exFrom("lunes","casa","casa_bulgara",{scheme:"3 × 12-15 por pierna", rest:60}),
+          exFrom("jueves","casa","casa_rdl",{scheme:"3 × 12-15", rest:75}),
+          exFrom("jueves","casa","casa_abduccion",{scheme:"3 × 15-20", rest:45}),
+          exFrom("jueves","casa","casa_curl_post",{scheme:"3 × 12-15", rest:45}),
+          exFrom("jueves","casa","casa_gemelo_b",{scheme:"3 × 15-20", rest:45, sets:3}),
+          exFrom("jueves","casa","casa_pallof"),
+          CARDIO_FIN.casa
+        ]},
+      hotel:{ title:"Glúteo y pierna B (habitación)", warmup:PROGRAM_FUERZA.jueves.variants.hotel.warmup,
+        exercises:[
+          exFrom("jueves","hotel","hotel_puente",{scheme:"3 × 15-20", rest:45}),
+          exFrom("lunes","hotel","hotel_bulgara",{scheme:"3 × 12-15 por pierna", rest:60}),
+          exFrom("jueves","hotel","hotel_buenosdias",{scheme:"3 × 12-15", rest:45}),
+          exFrom("jueves","hotel","hotel_curl_post",{scheme:"3 × 12-15", rest:45}),
+          exFrom("jueves","hotel","hotel_gemelo_b",{scheme:"3 × 15-20", rest:45, sets:3}),
+          exFrom("jueves","hotel","hotel_antirot"),
+          CARDIO_FIN.hotel
+        ]}
+    }},
+  viernes:{ type:"session", key:"tono_full_b", label:"Full body B",
+    variants:{
+      gym:{ title:"Cuerpo completo B", warmup:PROGRAM_FUERZA.viernes.variants.gym.warmup,
+        exercises:[
+          exFrom("viernes","gym","jalon",{scheme:"3 × 12-15", rest:75}),
+          exFrom("viernes","gym","remo_mancuernas",{scheme:"3 × 12-15", rest:75}),
+          exFrom("martes","gym","press_inclinado",{scheme:"2 × 12-15", rest:75, sets:2}),
+          exFrom("viernes","gym","curl_mancuernas",{scheme:"2 × 12-15", rest:45, sets:2}),
+          exFrom("martes","gym","tri_pushdown",{scheme:"2 × 12-15", rest:45}),
+          exFrom("lunes","gym","crunch_maq",{scheme:"2 × 12-15", rest:45, sets:2}),
+          CARDIO_FIN.gym
+        ]},
+      casa:{ title:"Cuerpo completo B (casa)", warmup:PROGRAM_FUERZA.viernes.variants.casa.warmup,
+        exercises:[
+          exFrom("viernes","casa","casa_remo_man",{scheme:"3 × 12 por brazo", rest:60}),
+          exFrom("martes","casa","casa_incline",{scheme:"2 × 12-15", rest:60, sets:2}),
+          exFrom("viernes","casa","casa_curl",{scheme:"2 × 12-15", rest:45, sets:2}),
+          exFrom("martes","casa","casa_tri_pushdown",{scheme:"2 × 12-15", rest:45}),
+          exFrom("lunes","casa","casa_plancha",{scheme:"2 × 30-45 seg", rest:45, sets:2}),
+          CARDIO_FIN.casa
+        ]},
+      hotel:{ title:"Cuerpo completo B (habitación)", warmup:PROGRAM_FUERZA.viernes.variants.hotel.warmup,
+        exercises:[
+          exFrom("viernes","hotel","hotel_remo_toalla",{scheme:"3 × 12", rest:60}),
+          exFrom("martes","hotel","hotel_flexion_incl",{scheme:"2 × 8-12", rest:60, sets:2}),
+          exFrom("viernes","hotel","hotel_curl",{scheme:"2 × 12-15", rest:45, sets:2}),
+          exFrom("martes","hotel","hotel_triceps",{scheme:"2 × 10-12", rest:45, sets:2}),
+          exFrom("viernes","hotel","hotel_superman",{scheme:"2 × 12", rest:45, sets:2}),
+          CARDIO_FIN.hotel
+        ]}
+    }},
+  sabado:{ type:"rest" },
+  domingo:{ type:"rest" }
+};
+
 const DAY_ORDER = ["lunes","martes","miercoles","jueves","viernes","sabado","domingo"];
 const DAY_SHORT = {lunes:"Lun",martes:"Mar",miercoles:"Mié",jueves:"Jue",viernes:"Vie",sabado:"Sáb",domingo:"Dom"};
-const DAY_TAG = {lunes:"Pierna A",martes:"Torso A",miercoles:"Descanso",jueves:"Pierna B",viernes:"Torso B",sabado:"Descanso",domingo:"Descanso"};
+// Etiqueta del día según el plan activo (se resuelve en el render)
+function dayTag(d){ const day=PROGRAM[d]; return (day && day.type==="session") ? day.label : "Descanso"; }
 
 /* ---- Estiramientos finales (cool-down) ----
    Compartidos por sesión (no dependen del material). Cada uno: texto (t),
@@ -1531,6 +1700,11 @@ const STRETCH = {
     {t:"Bíceps y antebrazo en la pared", q:"estiramiento de biceps en pared tecnica", tip:"Palma en la pared, gira el cuerpo despacio."}
   ]
 };
+// Las sesiones del plan tonificar reutilizan los estiramientos equivalentes
+STRETCH.tono_gluteo_a = STRETCH.pierna_a;
+STRETCH.tono_gluteo_b = STRETCH.pierna_b;
+STRETCH.tono_full_a = STRETCH.torso_a;
+STRETCH.tono_full_b = STRETCH.torso_b;
 // Deriva una búsqueda de YouTube a partir del texto de un ítem de calentamiento
 function warmQuery(text){
   const base=String(text).split(":")[0].split("(")[0].trim();
@@ -1555,6 +1729,7 @@ const LS_WEEK_ANCHOR = "reset_gym_week_anchor_v1"; // lunes (real) al que corres
 const LS_SESSMETA = "reset_gym_sessmeta_v1";       // por sesión: hora de la primera y última serie (duración)
 const LS_DIARY = "reset_gym_diary_v1";             // diario de una línea por día ("¿qué has demostrado hoy?")
 const LS_REST = "reset_gym_rest_v1";               // descanso en curso {endAt,total} — sobrevive a recargas/cierres
+const LS_PROFILE = "reset_gym_profile_v1";         // plan elegido: fuerza (💪) | tono (🔥 perder peso y tonificar)
 
 function loadJSON(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
 function saveJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -1640,6 +1815,25 @@ let UI = loadJSON(LS_UI, { openEx:{}, collapsed:{} });
 if(!UI.altChoice) UI.altChoice = {};   // variante elegida por ejercicio (índice)
 let LOCATION = localStorage.getItem(LS_LOC) || "gym";
 if(!LOCATIONS[LOCATION]) LOCATION = "gym";
+
+/* ---- Perfil / plan activo ----
+   fuerza = plan original (fuerza e hipertrofia). tono = perder peso y tonificar.
+   Quien ya tiene registros de antes se queda en "fuerza" sin que se le pregunte;
+   una instalación nueva elige al abrir (y siempre se puede cambiar en 📅 Plan). */
+let PROFILE = localStorage.getItem(LS_PROFILE);
+if(PROFILE!=="fuerza" && PROFILE!=="tono") PROFILE = null;
+if(!PROFILE && Object.keys(LOG).length){ PROFILE="fuerza"; try{ localStorage.setItem(LS_PROFILE,"fuerza"); }catch(e){} }
+let PROGRAM = (PROFILE==="tono") ? PROGRAM_TONO : PROGRAM_FUERZA;
+const PROFILE_INFO = {
+  fuerza:{ icon:"💪", label:"Fuerza y músculo", desc:"Torso/pierna 4 días, cargas progresivas" },
+  tono:{ icon:"🔥", label:"Perder peso y tonificar", desc:"Glúteo/pierna + cuerpo completo, reps altas y cardio suave" }
+};
+function setProfile(p){
+  PROFILE = p;
+  try{ localStorage.setItem(LS_PROFILE, p); }catch(e){}
+  PROGRAM = (p==="tono") ? PROGRAM_TONO : PROGRAM_FUERZA;
+  render();
+}
 
 function todayKey(){ return DAY_ORDER[(new Date().getDay()+6)%7]; } // getDay: 0=Dom
 let selectedDay = todayKey();
@@ -1823,7 +2017,7 @@ let PLAN = loadJSON(LS_PLAN, {});      // hitos marcados por el usuario
 let TRAINED = loadJSON(LS_DATES, {});  // { "YYYY-MM-DD": ["torso_a", ...] } fechas entrenadas
 let DIARY = sanitizeDiary(loadJSON(LS_DIARY, {})); // { "YYYY-MM-DD": "una línea" }
 let calRef = null;                     // {y, m} mes mostrado en el calendario
-const SESSION_LABEL = (()=>{ const o={}; Object.values(PROGRAM).forEach(d=>{ if(d.key) o[d.key]=d.label; }); return o; })();
+const SESSION_LABEL = (()=>{ const o={}; [PROGRAM_FUERZA, PROGRAM_TONO].forEach(P=>Object.values(P).forEach(d=>{ if(d.key) o[d.key]=d.label; })); return o; })();
 // Registra que HOY se entrenó esta sesión (para el calendario)
 function markTrainedToday(sessionKey){
   const ds=todayStr();
@@ -1857,6 +2051,8 @@ function planBlock(week){
     objetivo="Sube carga poco a poco en los básicos. Reevalúa cada ~3 meses si añadir frecuencia o variar ejercicios.";
     reps="8-12"; rir="2-3 · press vertical 3-4";
   }
+  // Plan tonificar: zona de reps más alta (el resto de la periodización sirve igual)
+  if(PROFILE==="tono"){ reps = week<=12 ? "12-18" : "10-15"; }
   return { phase, block, objetivo, reps, rir, weekInBlock, isDeload, blockNum:Math.ceil(week/6) };
 }
 
@@ -1887,7 +2083,7 @@ function blockRange(week){
    manda el ejercicio). Así la evolución A1→A2→A3 baja hasta la tabla de series. */
 function schemeForBlock(ex, week){
   const s=ex.scheme;
-  if(!s || /seg|cada letra/i.test(s)) return s;
+  if(!s || /seg|min|cada letra/i.test(s)) return s;
   const br=blockRange(week);
   if(!br) return s;
   const m=s.match(/^(\d+)\s*×\s*(\d+)\s*-\s*(\d+)(.*)$/);
@@ -1905,6 +2101,7 @@ function schemeForBlock(ex, week){
 /* Sugerencia de progresión para un ejercicio, según el último entreno con datos.
    Implementa la "luz verde": tope de reps en TODAS las series de trabajo → subir peso. */
 function progressionHint(day, ex){
+  if(ex.id==="tono_cardio" || /min/i.test(ex.scheme||"")) return null; // el cardio no progresa por reps/peso
   // Usa el esquema ajustado al bloque: la "luz verde" coincide con lo que ve la tabla
   const range = repRange(schemeForBlock(ex));
   if(!range) return null;
@@ -2043,7 +2240,7 @@ function renderDaySelector(){
   DAY_ORDER.forEach(d=>{
     const b = document.createElement("button");
     b.className = "day-btn" + (d===selectedDay?" active":"") + (d===today?" today":"");
-    b.innerHTML = `${DAY_SHORT[d]}<small>${DAY_TAG[d]}</small>`;
+    b.innerHTML = `${DAY_SHORT[d]}<small>${dayTag(d)}</small>`;
     b.onclick = ()=>{ selectedDay=d; render(); };
     daySelector.appendChild(b);
   });
@@ -2182,6 +2379,23 @@ function renderPlan(){
     <div class="ph-meta">Semana ${WEEK} · semana ${b.weekInBlock}/6 del bloque ${b.blockNum}</div>`;
   content.appendChild(head);
 
+  // Plan activo (objetivo) con cambio en un toque
+  if(PROFILE){
+    const other = PROFILE==="tono" ? "fuerza" : "tono";
+    const pc=document.createElement("div"); pc.className="plan-card";
+    pc.innerHTML=`<h3>🎽 Tu plan</h3>
+      <div class="profile-now"><span class="pn-ic">${PROFILE_INFO[PROFILE].icon}</span>
+        <span><b>${PROFILE_INFO[PROFILE].label}</b> · ${PROFILE_INFO[PROFILE].desc}</span></div>
+      <button class="var-toggle" id="swapProfile" style="margin-top:11px">⇄ Cambiar a "${PROFILE_INFO[other].label}"</button>`;
+    content.appendChild(pc);
+    pc.querySelector("#swapProfile").onclick=()=>{
+      if(confirm(`¿Cambiar al plan "${PROFILE_INFO[other].label}"? Tus registros se conservan; cada plan guarda su propio historial.`)){
+        setProfile(other);
+        toast("Plan cambiado a "+PROFILE_INFO[other].icon+" "+PROFILE_INFO[other].label);
+      }
+    };
+  }
+
   if(b.isDeload){
     const d=document.createElement("div"); d.className="plan-deload";
     d.innerHTML=`🌙 <b>Semana de DESCARGA.</b> Haz la mitad de las series, sube el RIR a 4-5 (lejos del fallo) y mantén la técnica. Sin récords: deja que tendones y articulaciones se pongan al día.`;
@@ -2208,7 +2422,7 @@ function renderPlan(){
   content.appendChild(rule);
 
   // Estado de la Fase 2 (peso libre) cuando toca o ya está activa
-  if(WEEK>=19 || PLAN.f2_done){
+  if(PROFILE!=="tono" && (WEEK>=19 || PLAN.f2_done)){
     const f2=document.createElement("div"); f2.className="plan-card";
     f2.innerHTML = PLAN.f2_done
       ? `<h3>🚀 Fase 2 activa</h3>
@@ -2221,7 +2435,18 @@ function renderPlan(){
   }
 
   const g=document.createElement("div"); g.className="plan-card";
-  g.innerHTML=`<h3>🧭 Claves a los 40</h3>
+  g.innerHTML = PROFILE==="tono"
+    ? `<h3>🧭 Claves para perder peso y tonificar</h3>
+    <ul class="plan-ul">
+      <li><b>El peso se pierde en la cocina:</b> déficit suave (comer un poco menos de lo que gastas) y paciencia — ~0,5% del peso a la semana es el ritmo que se mantiene.</li>
+      <li><b>Proteína alta (1,6-2 g/kg):</b> es lo que protege tu músculo mientras pierdes grasa — y lo que hace que el resultado sea "tonificar" y no solo "pesar menos".</li>
+      <li><b>Las pesas no son opcionales:</b> el cardio quema, pero la fuerza es la que moldea. No al fallo: deja 2-3 reps en reserva.</li>
+      <li><b>Pasos diarios:</b> 8.000-10.000 al día mueven más grasa que cualquier sesión suelta. El remate de cardio de cada sesión suma.</li>
+      <li><b>Sueño 7-9 h:</b> dormir poco dispara el hambre y frena la pérdida.</li>
+      <li><b>La báscula engaña:</b> mírala como media semanal y acompáñala de la cinta métrica y el espejo — el músculo pesa.</li>
+      <li><b>Autodidacta:</b> los titulares son las versiones más fáciles de hacer bien sin monitor; las variantes técnicas están en ⇄ para cuando las domines.</li>
+    </ul>`
+    : `<h3>🧭 Claves a los 40</h3>
     <ul class="plan-ul">
       <li><b>No al fallo:</b> deja 2-3 reps en reserva (3-4 en hombro/escápula). Ganas casi el mismo músculo con mucha menos fatiga y riesgo.</li>
       <li><b>Proteína:</b> 1,6-2,0 g/kg al día.</li>
@@ -2267,6 +2492,27 @@ function renderPlan(){
 }
 
 function renderEntreno(){
+  // Primera apertura sin plan elegido: selector de objetivo antes de nada
+  if(!PROFILE){
+    const ls=document.getElementById("locSelector"), ds=document.getElementById("daySelector");
+    if(ls) ls.innerHTML=""; if(ds) ds.innerHTML="";
+    content.innerHTML="";
+    const c=document.createElement("div");
+    c.className="profile-pick";
+    c.innerHTML=`<div class="pp-big">👋</div>
+      <h2>¡Bienvenida/o!</h2>
+      <p>Elige tu objetivo y te preparo el plan. Podrás cambiarlo cuando quieras en <b>📅 Plan</b>.</p>
+      <button class="pp-opt" data-p="fuerza"><span class="pp-ic">${PROFILE_INFO.fuerza.icon}</span>
+        <span class="pp-tx"><b>${PROFILE_INFO.fuerza.label}</b><small>${PROFILE_INFO.fuerza.desc}</small></span></button>
+      <button class="pp-opt" data-p="tono"><span class="pp-ic">${PROFILE_INFO.tono.icon}</span>
+        <span class="pp-tx"><b>${PROFILE_INFO.tono.label}</b><small>${PROFILE_INFO.tono.desc}</small></span></button>`;
+    c.querySelectorAll(".pp-opt").forEach(b=>{
+      b.onclick=()=>{ setProfile(b.getAttribute("data-p")); toast("Plan listo — ¡a por ello! "+PROFILE_INFO[PROFILE].icon); };
+    });
+    content.appendChild(c);
+    return;
+  }
+
   renderLocationSelector();
   renderDaySelector();
   const day = PROGRAM[selectedDay];
@@ -2288,7 +2534,7 @@ function renderEntreno(){
   }
 
   // Fase 2 (sem 19+): transición guiada a peso libre (solo en el gym, hasta decidir)
-  if(WEEK>=19 && LOCATION==="gym" && !PLAN.f2_done && !(UI.f2SnoozeW && WEEK<UI.f2SnoozeW)){
+  if(PROFILE!=="tono" && WEEK>=19 && LOCATION==="gym" && !PLAN.f2_done && !(UI.f2SnoozeW && WEEK<UI.f2SnoozeW)){
     renderFase2Card();
   }
 
@@ -2862,7 +3108,7 @@ function renderExercise(day,ex,num){
       touchEntry(entry); persist();
       wrap.classList.toggle("done", entryCompleteN(entry, visN)); // actualiza estado del ejercicio
       const r = updateDayProgress();                            // barra del día + detección de cierre
-      if(s.done && !s.warm && isLiveTraining(day)) startRest(ex.rest); // autostart si entrenas AHORA (no al apuntar a posteriori)
+      if(s.done && !s.warm && ex.rest>0 && isLiveTraining(day)) startRest(ex.rest); // autostart si entrenas AHORA (no al apuntar a posteriori; el cardio no tiene descanso)
       if(r.transition) render();                                // muestra/oculta cierre + confeti
     };
     tdD.appendChild(bd);
@@ -2936,6 +3182,7 @@ function renderExercise(day,ex,num){
   const bRest=document.createElement("button");
   bRest.className="btn btn-rest"; bRest.innerHTML=`⏱ Descanso ${ex.rest}s`;
   bRest.onclick=()=>startRest(ex.rest);
+  if(!ex.rest) bRest.style.display="none"; // el remate de cardio no lleva descanso
   const aVid=document.createElement("a");
   aVid.className="btn btn-video"; aVid.href=active.vid; aVid.target="_blank"; aVid.rel="noopener";
   aVid.innerHTML="▶ Técnica";
@@ -3678,12 +3925,12 @@ const fmt = n => Math.round(n).toLocaleString("es-ES");
 // Índice id de ejercicio -> nombre (para mostrar nombres en los récords)
 const EX_INDEX = (()=>{
   const idx={};
-  Object.values(PROGRAM).forEach(day=>{
+  [PROGRAM_FUERZA, PROGRAM_TONO].forEach(P=>Object.values(P).forEach(day=>{
     if(!day.variants) return;
     Object.keys(day.variants).forEach(loc=>{
-      day.variants[loc].exercises.forEach(ex=>{ idx[ex.id]={name:ex.name, session:day.key, loc, ex}; });
+      day.variants[loc].exercises.forEach(ex=>{ if(!idx[ex.id]) idx[ex.id]={name:ex.name, session:day.key, loc, ex}; });
     });
-  });
+  }));
   return idx;
 })();
 
@@ -3974,7 +4221,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.09.08-1 · BIELA";
+const APP_VERSION = "2026.09.13-1 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
