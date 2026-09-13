@@ -1535,17 +1535,28 @@ const CARDIO_FIN = {
 const PROGRAM_TONO = {
   lunes:{ type:"session", key:"tono_gluteo_a", label:"Glúteo A",
     variants:{
-      gym:{ title:"Glúteo y pierna A", warmup:PROGRAM_FUERZA.lunes.variants.gym.warmup,
+      gym:{ title:"Glúteo y pierna A", warmup:[
+          "Cardio ligero (bici o cinta): 3-5 min, ritmo cómodo.",
+          "Círculos de cadera: 10 en cada dirección.",
+          "Sentadilla peso corporal lenta: 10 reps.",
+          "Glute bridge en suelo: 15 reps lentas, aprieta arriba 1 seg.",
+          "Primer ejercicio con poco peso: 10 reps de aproximación."
+        ],
         exercises:[
           exFrom("jueves","gym","hip_thrust",{scheme:"4 × 12-15", rest:90}),
           exFrom("lunes","gym","prensa",{scheme:"3 × 12-15", rest:75, sets:3}),
-          exFrom("lunes","gym","rdl",{scheme:"3 × 12-15", rest:90}),
+          exFrom("lunes","gym","rdl",{scheme:"3 × 12-15", rest:90, note:"Bisagra de cadera: isquios y glúteo. Baja solo hasta notar el estiramiento sin perder la espalda neutra, mancuernas pegadas a las piernas, y sube peso solo cuando el gesto salga solo."}),
           exFrom("jueves","gym","kickback",{scheme:"3 × 15-20", rest:45}),
           exFrom("jueves","gym","curl_fem_sent",{scheme:"3 × 12-15", rest:60}),
           exFrom("lunes","gym","gemelo_pie",{scheme:"3 × 15-20", rest:45, sets:3}),
           CARDIO_FIN.gym
         ]},
-      casa:{ title:"Glúteo y pierna A (casa)", warmup:PROGRAM_FUERZA.lunes.variants.casa.warmup,
+      casa:{ title:"Glúteo y pierna A (casa)", warmup:[
+          "Marcha en el sitio o comba suave: 2-3 min.",
+          "Círculos de cadera: 10 en cada dirección.",
+          "Sentadilla peso corporal lenta: 10 reps.",
+          "Glute bridge en suelo: 15 reps lentas."
+        ],
         exercises:[
           exFrom("jueves","casa","casa_hip_thrust",{scheme:"4 × 12-15", rest:75}),
           exFrom("lunes","casa","casa_goblet",{scheme:"3 × 12-15", rest:75, sets:3}),
@@ -1555,7 +1566,12 @@ const PROGRAM_TONO = {
           exFrom("lunes","casa","casa_gemelo",{scheme:"3 × 15-20", rest:45, sets:3}),
           CARDIO_FIN.casa
         ]},
-      hotel:{ title:"Glúteo y pierna A (habitación)", warmup:PROGRAM_FUERZA.lunes.variants.hotel.warmup,
+      hotel:{ title:"Glúteo y pierna A (habitación)", warmup:[
+          "Marcha en el sitio: 2-3 min.",
+          "Círculos de cadera: 10 en cada dirección.",
+          "Sentadilla peso corporal lenta: 10 reps.",
+          "Glute bridge en suelo: 15 reps lentas."
+        ],
         exercises:[
           exFrom("jueves","hotel","hotel_hip_thrust",{scheme:"4 × 12-15", rest:60}),
           exFrom("lunes","hotel","hotel_sentadilla",{scheme:"3 × 15-20", rest:60, sets:3}),
@@ -1565,100 +1581,99 @@ const PROGRAM_TONO = {
           CARDIO_FIN.hotel
         ]}
     }},
-  martes:{ type:"session", key:"tono_full_a", label:"Full body A",
+  martes:{ type:"rest" },
+  miercoles:{ type:"session", key:"tono_full_a", label:"Full body",
     variants:{
-      gym:{ title:"Cuerpo completo A", warmTitle:PROGRAM_FUERZA.martes.variants.gym.warmTitle, warmup:PROGRAM_FUERZA.martes.variants.gym.warmup,
+      gym:{ title:"Cuerpo completo", warmup:[
+          "Cardio ligero: 3-5 min.",
+          "Movilidad de hombros: 10 círculos de brazos en cada dirección.",
+          "Abrir y cerrar los brazos suave (aperturas sin peso): 15.",
+          "Sentadilla peso corporal: 10 reps.",
+          "Primer ejercicio con poco peso: 10 reps de aproximación."
+        ],
         exercises:[
-          exFrom("martes","gym","press_pecho_maq",{scheme:"3 × 12-15", rest:75}),
-          exFrom("viernes","gym","remo_maq",{scheme:"3 × 12-15", rest:75}),
-          exFrom("martes","gym","press_hombro_maq",{scheme:"2 × 12-15", rest:60, sets:2}),
-          exFrom("martes","gym","elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
-          exFrom("viernes","gym","facepull",{scheme:"3 × 15", rest:45}),
+          exFrom("martes","gym","press_pecho_maq",{scheme:"3 × 12-15", rest:75, note:"Compuesto principal de empuje. Espalda bien apoyada, baja controlado."}),
+          exFrom("viernes","gym","remo_maq",{scheme:"3 × 12-15", rest:75, note:"Grosor de espalda. Tira con los codos hacia atrás, pecho firme, sin encoger los hombros."}),
+          exFrom("martes","gym","press_hombro_maq",{scheme:"2 × 12-15", rest:60, sets:2, note:"Ligero y controlado; si el hombro molesta, sáltalo y haz una serie más de laterales."}),
+          exFrom("viernes","gym","curl_mancuernas",{scheme:"2 × 12-15", rest:45, sets:2}),
+          exFrom("martes","gym","tri_pushdown",{scheme:"2 × 12-15", rest:45}),
           exFrom("lunes","gym","crunch_maq",{scheme:"3 × 12-15", rest:45}),
           CARDIO_FIN.gym
         ]},
-      casa:{ title:"Cuerpo completo A (casa)", warmTitle:PROGRAM_FUERZA.martes.variants.casa.warmTitle, warmup:PROGRAM_FUERZA.martes.variants.casa.warmup,
+      casa:{ title:"Cuerpo completo (casa)", warmup:[
+          "Marcha en el sitio o comba suave: 2-3 min.",
+          "Movilidad de hombros: 10 círculos de brazos en cada dirección.",
+          "Band pull-apart con banda (o aperturas sin peso): 15.",
+          "Sentadilla peso corporal: 10 reps."
+        ],
         exercises:[
           exFrom("martes","casa","casa_floor_press",{scheme:"3 × 12-15", rest:60}),
           exFrom("viernes","casa","casa_remo_banda",{scheme:"3 × 12-15", rest:60}),
-          exFrom("martes","casa","casa_press_hombro",{scheme:"2 × 12-15", rest:60, sets:2}),
-          exFrom("martes","casa","casa_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
-          exFrom("viernes","casa","casa_facepull",{scheme:"3 × 15", rest:45}),
+          exFrom("martes","casa","casa_press_hombro",{scheme:"2 × 12-15", rest:60, sets:2, note:"Ligero y controlado; agarre neutro."}),
+          exFrom("viernes","casa","casa_curl",{scheme:"2 × 12-15", rest:45, sets:2}),
+          exFrom("martes","casa","casa_tri_pushdown",{scheme:"2 × 12-15", rest:45}),
           exFrom("lunes","casa","casa_plancha",{scheme:"3 × 30-45 seg", rest:45}),
           CARDIO_FIN.casa
         ]},
-      hotel:{ title:"Cuerpo completo A (habitación)", warmTitle:PROGRAM_FUERZA.martes.variants.hotel.warmTitle, warmup:PROGRAM_FUERZA.martes.variants.hotel.warmup,
+      hotel:{ title:"Cuerpo completo (habitación)", warmup:[
+          "Marcha en el sitio: 2-3 min.",
+          "Movilidad de hombros: 10 círculos de brazos en cada dirección.",
+          "Sentadilla peso corporal: 10 reps."
+        ],
         exercises:[
-          exFrom("martes","hotel","hotel_flexion",{scheme:"3 × 8-15", rest:60}),
+          exFrom("martes","hotel","hotel_flexion",{scheme:"3 × 8-15", rest:60, note:"De rodillas si hace falta; tronco firme, sin dejar caer la cadera."}),
           exFrom("viernes","hotel","hotel_remo_mesa",{scheme:"3 × 8-12", rest:60}),
           exFrom("martes","hotel","hotel_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
-          exFrom("viernes","hotel","hotel_ytw",{scheme:"3 × 8 cada letra", rest:45}),
+          exFrom("viernes","hotel","hotel_curl",{scheme:"2 × 12-15", rest:45, sets:2}),
+          exFrom("martes","hotel","hotel_triceps",{scheme:"2 × 10-12", rest:45, sets:2}),
           exFrom("lunes","hotel","hotel_plancha",{scheme:"3 × 30-45 seg", rest:45}),
           CARDIO_FIN.hotel
         ]}
     }},
-  miercoles:{ type:"rest" },
-  jueves:{ type:"session", key:"tono_gluteo_b", label:"Glúteo B",
+  jueves:{ type:"rest" },
+  viernes:{ type:"session", key:"tono_gluteo_b", label:"Glúteo B",
     variants:{
-      gym:{ title:"Glúteo y pierna B", warmup:PROGRAM_FUERZA.jueves.variants.gym.warmup,
+      gym:{ title:"Glúteo y cuerpo B", warmup:[
+          "Cardio ligero (bici o cinta): 3-5 min.",
+          "Círculos de cadera: 10 en cada dirección.",
+          "Glute bridge en suelo: 15 reps lentas.",
+          "Primer ejercicio con poco peso: 10 reps de aproximación."
+        ],
         exercises:[
           exFrom("jueves","gym","prensa_alta",{scheme:"3 × 12-15", rest:75}),
-          exFrom("lunes","gym","hack_squat",{scheme:"3 × 10-15", rest:90, sets:3}),
-          exFrom("jueves","gym","curl_fem_sent",{scheme:"3 × 12-15", rest:60}),
-          exFrom("jueves","gym","aductores",{scheme:"2 × 15-20", rest:45}),
+          exFrom("viernes","gym","jalon",{scheme:"3 × 12-15", rest:75}),
+          exFrom("lunes","gym","curl_fem_tumb",{scheme:"3 × 12-15", rest:60}),
+          exFrom("martes","gym","elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
           exFrom("jueves","gym","gemelo_sent",{scheme:"3 × 15-20", rest:45, sets:3}),
-          exFrom("jueves","gym","pallof_polea"),
+          exFrom("jueves","gym","pallof_polea",{note:"Core anti-rotación. Brazos al frente, resiste el giro del torso; respira normal, no aguantes el aire."}),
           CARDIO_FIN.gym
         ]},
-      casa:{ title:"Glúteo y pierna B (casa)", warmup:PROGRAM_FUERZA.jueves.variants.casa.warmup,
+      casa:{ title:"Glúteo y cuerpo B (casa)", warmup:[
+          "Marcha en el sitio o comba suave: 2-3 min.",
+          "Círculos de cadera: 10 en cada dirección.",
+          "Glute bridge en suelo: 15 reps lentas."
+        ],
         exercises:[
           exFrom("lunes","casa","casa_bulgara",{scheme:"3 × 12-15 por pierna", rest:60}),
-          exFrom("jueves","casa","casa_rdl",{scheme:"3 × 12-15", rest:75}),
-          exFrom("jueves","casa","casa_abduccion",{scheme:"3 × 15-20", rest:45}),
-          exFrom("jueves","casa","casa_curl_post",{scheme:"3 × 12-15", rest:45}),
-          exFrom("jueves","casa","casa_gemelo_b",{scheme:"3 × 15-20", rest:45, sets:3}),
-          exFrom("jueves","casa","casa_pallof"),
-          CARDIO_FIN.casa
-        ]},
-      hotel:{ title:"Glúteo y pierna B (habitación)", warmup:PROGRAM_FUERZA.jueves.variants.hotel.warmup,
-        exercises:[
-          exFrom("jueves","hotel","hotel_puente",{scheme:"3 × 15-20", rest:45}),
-          exFrom("lunes","hotel","hotel_bulgara",{scheme:"3 × 12-15 por pierna", rest:60}),
-          exFrom("jueves","hotel","hotel_buenosdias",{scheme:"3 × 12-15", rest:45}),
-          exFrom("jueves","hotel","hotel_curl_post",{scheme:"3 × 12-15", rest:45}),
-          exFrom("jueves","hotel","hotel_gemelo_b",{scheme:"3 × 15-20", rest:45, sets:3}),
-          exFrom("jueves","hotel","hotel_antirot"),
-          CARDIO_FIN.hotel
-        ]}
-    }},
-  viernes:{ type:"session", key:"tono_full_b", label:"Full body B",
-    variants:{
-      gym:{ title:"Cuerpo completo B", warmup:PROGRAM_FUERZA.viernes.variants.gym.warmup,
-        exercises:[
-          exFrom("viernes","gym","jalon",{scheme:"3 × 12-15", rest:75}),
-          exFrom("viernes","gym","remo_mancuernas",{scheme:"3 × 12-15", rest:75}),
-          exFrom("martes","gym","press_inclinado",{scheme:"2 × 12-15", rest:75, sets:2}),
-          exFrom("viernes","gym","curl_mancuernas",{scheme:"2 × 12-15", rest:45, sets:2}),
-          exFrom("martes","gym","tri_pushdown",{scheme:"2 × 12-15", rest:45}),
-          exFrom("lunes","gym","crunch_maq",{scheme:"2 × 12-15", rest:45, sets:2}),
-          CARDIO_FIN.gym
-        ]},
-      casa:{ title:"Cuerpo completo B (casa)", warmup:PROGRAM_FUERZA.viernes.variants.casa.warmup,
-        exercises:[
           exFrom("viernes","casa","casa_remo_man",{scheme:"3 × 12 por brazo", rest:60}),
-          exFrom("martes","casa","casa_incline",{scheme:"2 × 12-15", rest:60, sets:2}),
-          exFrom("viernes","casa","casa_curl",{scheme:"2 × 12-15", rest:45, sets:2}),
-          exFrom("martes","casa","casa_tri_pushdown",{scheme:"2 × 12-15", rest:45}),
-          exFrom("lunes","casa","casa_plancha",{scheme:"2 × 30-45 seg", rest:45, sets:2}),
+          exFrom("jueves","casa","casa_curl_post",{scheme:"3 × 12-15", rest:45}),
+          exFrom("martes","casa","casa_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
+          exFrom("jueves","casa","casa_gemelo_b",{scheme:"3 × 15-20", rest:45, sets:3}),
+          exFrom("jueves","casa","casa_pallof",{note:"Core anti-rotación. Banda anclada a un punto firme a la altura del pecho; resiste el giro."}),
           CARDIO_FIN.casa
         ]},
-      hotel:{ title:"Cuerpo completo B (habitación)", warmup:PROGRAM_FUERZA.viernes.variants.hotel.warmup,
+      hotel:{ title:"Glúteo y cuerpo B (habitación)", warmup:[
+          "Marcha en el sitio: 2-3 min.",
+          "Círculos de cadera: 10 en cada dirección.",
+          "Glute bridge en suelo: 15 reps lentas."
+        ],
         exercises:[
+          exFrom("lunes","hotel","hotel_bulgara",{scheme:"3 × 12-15 por pierna", rest:60}),
           exFrom("viernes","hotel","hotel_remo_toalla",{scheme:"3 × 12", rest:60}),
-          exFrom("martes","hotel","hotel_flexion_incl",{scheme:"2 × 8-12", rest:60, sets:2}),
-          exFrom("viernes","hotel","hotel_curl",{scheme:"2 × 12-15", rest:45, sets:2}),
-          exFrom("martes","hotel","hotel_triceps",{scheme:"2 × 10-12", rest:45, sets:2}),
-          exFrom("viernes","hotel","hotel_superman",{scheme:"2 × 12", rest:45, sets:2}),
+          exFrom("jueves","hotel","hotel_curl_post",{scheme:"3 × 12-15", rest:45}),
+          exFrom("martes","hotel","hotel_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
+          exFrom("jueves","hotel","hotel_gemelo_b",{scheme:"3 × 15-20", rest:45, sets:3}),
+          exFrom("jueves","hotel","hotel_antirot",{note:"Core anti-rotación sin material. Brazo y pierna contrarios, cadera estable, sin arquear la lumbar."}),
           CARDIO_FIN.hotel
         ]}
     }},
@@ -1670,6 +1685,8 @@ const DAY_ORDER = ["lunes","martes","miercoles","jueves","viernes","sabado","dom
 const DAY_SHORT = {lunes:"Lun",martes:"Mar",miercoles:"Mié",jueves:"Jue",viernes:"Vie",sabado:"Sáb",domingo:"Dom"};
 // Etiqueta del día según el plan activo (se resuelve en el render)
 function dayTag(d){ const day=PROGRAM[d]; return (day && day.type==="session") ? day.label : "Descanso"; }
+// Sesiones semanales del plan activo (fuerza: 4 · tonificar: 3)
+function sessionsPerWeek(){ return DAY_ORDER.filter(d=>PROGRAM[d] && PROGRAM[d].type==="session").length; }
 
 /* ---- Estiramientos finales (cool-down) ----
    Compartidos por sesión (no dependen del material). Cada uno: texto (t),
@@ -1704,7 +1721,6 @@ const STRETCH = {
 STRETCH.tono_gluteo_a = STRETCH.pierna_a;
 STRETCH.tono_gluteo_b = STRETCH.pierna_b;
 STRETCH.tono_full_a = STRETCH.torso_a;
-STRETCH.tono_full_b = STRETCH.torso_b;
 // Deriva una búsqueda de YouTube a partir del texto de un ítem de calentamiento
 function warmQuery(text){
   const base=String(text).split(":")[0].split("(")[0].trim();
@@ -1826,7 +1842,7 @@ if(!PROFILE && Object.keys(LOG).length){ PROFILE="fuerza"; try{ localStorage.set
 let PROGRAM = (PROFILE==="tono") ? PROGRAM_TONO : PROGRAM_FUERZA;
 const PROFILE_INFO = {
   fuerza:{ icon:"💪", label:"Fuerza y músculo", desc:"Torso/pierna 4 días, cargas progresivas" },
-  tono:{ icon:"🔥", label:"Perder peso y tonificar", desc:"Glúteo/pierna + cuerpo completo, reps altas y cardio suave" }
+  tono:{ icon:"🔥", label:"Perder peso y tonificar", desc:"3 días (L·X·V): glúteo/pierna + cuerpo completo, reps altas y cardio suave" }
 };
 function setProfile(p){
   PROFILE = p;
@@ -2842,7 +2858,7 @@ function renderWarmup(day,sv){
     <div class="card-head">
       <span class="icon">🔥</span>
       <h2>Calentamiento</h2>
-      <span class="sub">${sv.warmTitle?"escápula":(day.key.startsWith("pierna")?(LOCATION==="gym"?"10-12 min":"5-8 min"):"5 min")}</span>
+      <span class="sub">${sv.warmTitle?"escápula":((day.key.startsWith("pierna")||day.key.startsWith("tono_gluteo"))?(LOCATION==="gym"?"10-12 min":"5-8 min"):"5 min")}</span>
       <span class="chev">▾</span>
     </div>
     <div class="card-body"></div>`;
@@ -3315,7 +3331,7 @@ function renderSummary(){
   });
 
   body.innerHTML=`<div class="summary">
-      <div class="stat"><div class="v">${trainedDays}<span style="font-size:13px;color:var(--muted)">/4</span></div><div class="l">Días entrenados</div></div>
+      <div class="stat"><div class="v">${trainedDays}<span style="font-size:13px;color:var(--muted)">/${sessionsPerWeek()}</span></div><div class="l">Días entrenados</div></div>
       <div class="stat"><div class="v">${totalSets}</div><div class="l">Series hechas</div></div>
       <div class="stat"><div class="v">${doneEx}<span style="font-size:13px;color:var(--muted)">/${totalEx}</span></div><div class="l">Ejercicios</div></div>
     </div>
@@ -3994,9 +4010,10 @@ function renderProgress(){
     return;
   }
 
-  // Hero con anillo de constancia (sesiones por semana, objetivo 4)
+  // Hero con anillo de constancia (objetivo: las sesiones del plan activo)
   const avg = p.weeksActive ? (p.sessionsComplete/p.weeksActive) : 0;
-  const pct = Math.max(0, Math.min(1, avg/4));
+  const goalSes = sessionsPerWeek();
+  const pct = Math.max(0, Math.min(1, avg/goalSes));
   const R=34, C=2*Math.PI*R, off=C*(1-pct);
   const hero=document.createElement("div");
   hero.className="hero";
@@ -4012,7 +4029,7 @@ function renderProgress(){
     <div class="big">
       <div class="n">${fmt(p.totalSets)}</div>
       <div class="l">series completadas en total</div>
-      <div class="sub">Constancia: objetivo 4 sesiones por semana 🎯</div>
+      <div class="sub">Constancia: objetivo ${goalSes} sesiones por semana 🎯</div>
     </div>`;
   content.appendChild(hero);
   // anima el anillo tras pintar
@@ -4221,7 +4238,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.09.13-1 · BIELA";
+const APP_VERSION = "2026.09.13-2 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
