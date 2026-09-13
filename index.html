@@ -656,6 +656,43 @@
   .welcome .w-sign{font-size:12.5px;opacity:.9;font-style:italic}
   .welcome .w-btn{border:0;border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px;
     background:rgba(255,255,255,.92);color:#065f46;cursor:pointer}
+  /* ---- Mini tutorial ---- */
+  .tuto{position:fixed;inset:0;z-index:130;display:flex;flex-direction:column;color:#fff;
+    transition:background .45s ease;animation:tutoIn .3s ease both}
+  @keyframes tutoIn{from{opacity:0}to{opacity:1}}
+  .tuto .t-skip{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;z-index:2;
+    background:rgba(255,255,255,.16);border:0;color:#fff;border-radius:999px;padding:7px 15px;font-size:13px;cursor:pointer}
+  .tuto .t-slide{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:30px 26px 10px;gap:4px;animation:tRise .45s ease both}
+  @keyframes tRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .tuto .t-big{font-size:64px;line-height:1;animation:tBounce 1.8s ease-in-out infinite}
+  @keyframes tBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .tuto h2{font-size:22px;margin:14px 0 6px;font-weight:800}
+  .tuto p{font-size:15px;line-height:1.55;color:rgba(255,255,255,.88);max-width:340px;margin:0}
+  .tuto .t-demo{margin-top:22px;width:min(310px,82vw);animation:tRise .5s .15s ease both}
+  .tuto .demo-row{background:rgba(255,255,255,.13);border-radius:14px;padding:13px 15px;display:flex;
+    align-items:center;gap:11px;font-size:14.5px;font-weight:600}
+  .tuto .demo-check{width:27px;height:27px;flex:none;border-radius:9px;border:2px solid rgba(255,255,255,.55);
+    display:flex;align-items:center;justify-content:center;font-size:15px;animation:tCheck 2.6s ease infinite}
+  @keyframes tCheck{0%,20%{background:transparent;color:transparent}35%,85%{background:#2ecc71;border-color:#2ecc71;color:#fff}100%{background:transparent;color:transparent}}
+  .tuto .demo-rest{margin-left:auto;background:rgba(255,255,255,.18);border-radius:999px;padding:5px 11px;
+    font-size:13px;animation:tPop 2.6s ease infinite}
+  @keyframes tPop{0%,38%{opacity:0;transform:scale(.6)}52%,88%{opacity:1;transform:scale(1)}100%{opacity:0}}
+  .tuto .demo-days,.tuto .demo-locs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .tuto .demo-days span{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.13);font-size:14px;font-weight:700}
+  .tuto .demo-days span.on{background:rgba(255,255,255,.92);color:#0d9488;animation:tGlow 1.8s ease-in-out infinite}
+  .tuto .demo-days span.on:nth-child(3){animation-delay:.3s}
+  .tuto .demo-days span.on:nth-child(5){animation-delay:.6s}
+  @keyframes tGlow{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+  .tuto .demo-locs span{background:rgba(255,255,255,.13);border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:600}
+  .tuto .demo-locs span.on{background:rgba(255,255,255,.92);color:#5b21b6;animation:tGlow 1.8s ease-in-out infinite}
+  .tuto .t-foot{padding:6px 22px calc(26px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:16px;align-items:center}
+  .tuto .t-dots{display:flex;gap:7px}
+  .tuto .t-dots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35);transition:all .25s}
+  .tuto .t-dots span.on{background:#fff;width:22px;border-radius:999px}
+  .tuto .t-next{border:0;border-radius:999px;padding:13px 34px;font-weight:800;font-size:15.5px;
+    background:rgba(255,255,255,.94);color:#1b2440;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.25)}
   .profile-pick{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:34px 22px;text-align:center;animation:rise .35s ease both}
   .profile-pick .pp-big{font-size:46px;margin-bottom:6px}
@@ -911,6 +948,54 @@ const WELCOME_FRASES = [
   "El cuerpo se pone fuerte y la mente se calma: dos por uno.",
   "Hoy no hay que batir récords, solo aparecer. Por lo que sea, ya estás aquí."
 ];
+/* ---- Mini tutorial de primeros pasos (se abre solo la 1ª vez; siempre en 📅 Plan) ---- */
+const LS_TUTO = "reset_tuto_v1";
+const TUTO_SLIDES = [
+  { ic:"📅", bg:"linear-gradient(165deg,#065f46,#0d9488)", t:"Tus días de entreno",
+    p:"En 🏋️ Entreno te espera la sesión que toca hoy. Los días marcados son de entreno; el resto, descanso — que también cuenta.",
+    demo:`<div class="demo-days"><span class="on">L</span><span>M</span><span class="on">X</span><span>J</span><span class="on">V</span><span>S</span><span>D</span></div>` },
+  { ic:"✍️", bg:"linear-gradient(165deg,#1e3a8a,#2563eb)", t:"Apunta cada serie",
+    p:"Toca un ejercicio, escribe peso y repeticiones y marca la casilla al acabar cada serie. El descanso arranca solo y te avisa.",
+    demo:`<div class="demo-row"><span class="demo-check">✓</span><span>12,5 kg × 12</span><span class="demo-rest">⏱ 90 s</span></div>` },
+  { ic:"🎬", bg:"linear-gradient(165deg,#7c2d12,#ea580c)", t:"¿Dudas con un ejercicio?",
+    p:"Cada ejercicio tiene su vídeo con el botón ▶ y alternativas con ⇄, por si una máquina está ocupada o algo no te va bien.",
+    demo:`<div class="demo-row"><span>Puente de glúteo</span><span style="margin-left:auto">▶</span><span>⇄</span></div>` },
+  { ic:"🧳", bg:"linear-gradient(165deg,#4c1d95,#7c3aed)", t:"Gym, casa o donde sea",
+    p:"Arriba eliges dónde entrenas hoy. La sesión se adapta sola con ejercicios equivalentes: nada de excusas de viaje 😉",
+    demo:`<div class="demo-locs"><span class="on">🏋️ Gym</span><span>🏠 Casa</span><span>🧳 Hotel</span></div>` },
+  { ic:"💚", bg:"linear-gradient(165deg,#065f46,#059669)", t:"Y al terminar…",
+    p:"La app celebra tu sesión, te pregunta cómo te has quedado y en 📈 Progreso ves crecer tu constancia. Por lo que sea 🤝",
+    demo:"" }
+];
+function showTutorial(){
+  if(document.querySelector(".tuto")) return;
+  let i=0, x0=null;
+  const ov=document.createElement("div"); ov.className="tuto";
+  const done=()=>{ try{ localStorage.setItem(LS_TUTO,"1"); }catch(e){} ov.remove(); };
+  const paint=()=>{
+    const s=TUTO_SLIDES[i];
+    ov.style.background=s.bg;
+    ov.innerHTML=`<button class="t-skip">Saltar</button>
+      <div class="t-slide"><div class="t-big">${s.ic}</div><h2>${s.t}</h2><p>${s.p}</p>
+        ${s.demo?`<div class="t-demo">${s.demo}</div>`:""}</div>
+      <div class="t-foot">
+        <div class="t-dots">${TUTO_SLIDES.map((_,j)=>`<span class="${j===i?"on":""}"></span>`).join("")}</div>
+        <button class="t-next">${i<TUTO_SLIDES.length-1?"Siguiente →":"¡A entrenar! 💪"}</button>
+      </div>`;
+    ov.querySelector(".t-skip").onclick=done;
+    ov.querySelector(".t-next").onclick=()=>{ if(i<TUTO_SLIDES.length-1){ i++; paint(); } else done(); };
+  };
+  ov.addEventListener("touchstart",e=>{ x0=e.touches[0].clientX; },{passive:true});
+  ov.addEventListener("touchend",e=>{
+    if(x0===null) return;
+    const dx=e.changedTouches[0].clientX-x0; x0=null;
+    if(dx<-40 && i<TUTO_SLIDES.length-1){ i++; paint(); }
+    else if(dx>40 && i>0){ i--; paint(); }
+  },{passive:true});
+  paint();
+  document.body.appendChild(ov);
+}
+
 function renderWelcome(){
   const hoy=new Date().toDateString();
   let vista=null; try{ vista=localStorage.getItem(LS_WELCOME); }catch(e){}
@@ -2477,8 +2562,10 @@ function renderPlan(){
     pc.innerHTML=`<h3>🎽 Tu plan</h3>
       <div class="profile-now"><span class="pn-ic">${PROFILE_INFO[PROFILE].icon}</span>
         <span><b>${PROFILE_INFO[PROFILE].label}</b> · ${PROFILE_INFO[PROFILE].desc}</span></div>
-      <button class="var-toggle" id="swapProfile" style="margin-top:11px">⇄ Cambiar a "${PROFILE_INFO[other].label}"</button>`;
+      <button class="var-toggle" id="swapProfile" style="margin-top:11px">⇄ Cambiar a "${PROFILE_INFO[other].label}"</button>
+      <button class="var-toggle" id="openTuto" style="margin-top:8px">🎓 Ver el mini tutorial</button>`;
     content.appendChild(pc);
+    pc.querySelector("#openTuto").onclick=()=>showTutorial();
     pc.querySelector("#swapProfile").onclick=()=>{
       if(confirm(`¿Cambiar al plan "${PROFILE_INFO[other].label}"? Tus registros se conservan; cada plan guarda su propio historial.`)){
         setProfile(other);
@@ -2598,7 +2685,12 @@ function renderEntreno(){
       <button class="pp-opt" data-p="tono"><span class="pp-ic">${PROFILE_INFO.tono.icon}</span>
         <span class="pp-tx"><b>${PROFILE_INFO.tono.label}</b><small>${PROFILE_INFO.tono.desc}</small></span></button>`;
     c.querySelectorAll(".pp-opt").forEach(b=>{
-      b.onclick=()=>{ setProfile(b.getAttribute("data-p")); toast("Plan listo — ¡a por ello! "+PROFILE_INFO[PROFILE].icon); };
+      b.onclick=()=>{
+        setProfile(b.getAttribute("data-p"));
+        toast("Plan listo — ¡a por ello! "+PROFILE_INFO[PROFILE].icon);
+        let visto=null; try{ visto=localStorage.getItem(LS_TUTO); }catch(e){}
+        if(!visto) showTutorial();
+      };
     });
     content.appendChild(c);
     return;
@@ -4358,7 +4450,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.09.13-7 · BIELA";
+const APP_VERSION = "2026.09.13-8 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
