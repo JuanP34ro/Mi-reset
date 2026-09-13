@@ -1264,14 +1264,14 @@ const PROGRAM_FUERZA = {
           "Estiramiento de isquiotibial tumbado: 20 seg cada pierna.",
           "Glute bridge en suelo: 15 reps lentas.",
           "Patada de glúteo en cuadrupedia: 10 por pierna.",
-          "Aproximación en hip thrust o prensa: peso vacío/ligero 10 reps."
+          "Aproximación en puente de glúteo o prensa: peso ligero 10 reps."
         ],
         exercises:[
-          {id:"hip_thrust", name:"Hip thrust en máquina", scheme:"4 × 8-12", rest:150, sets:4, note:"Lo más específico de glúteo, y la máquina te guía el gesto (fácil de hacer solo). Aprieta arriba 1 seg, barbilla metida.", vid:ytSearch("hip thrust en maquina tecnica"),
+          {id:"hip_thrust", name:"Puente de glúteo con mancuerna (en el suelo)", scheme:"4 × 10-15", rest:90, sets:4, note:"Lo más específico de glúteo sin máquina ni discos: tumbado en el suelo, mancuerna o kettlebell sobre la cadera (pon una toalla debajo). Aprieta el glúteo 1 seg arriba, barbilla metida, baja controlado.", vid:ytSearch("puente de gluteo con mancuerna tecnica"),
             alts:[
-              {name:"Puente de glúteo en multipower", vid:ytSearch("puente de gluteo en multipower tecnica")},
-              {name:"Hip thrust con barra en banco (más montaje; cuando controles el gesto)", vid:ytSearch("hip thrust con barra tecnica")},
-              {name:"Hip thrust a una pierna", vid:ytSearch("hip thrust a una pierna tecnica")}
+              {name:"Puente de glúteo con la espalda en un banco (mancuerna en la cadera)", vid:ytSearch("hip thrust con mancuerna banco tecnica")},
+              {name:"Puente de glúteo a una pierna (cuando la mancuerna se quede corta)", vid:ytSearch("puente de gluteo a una pierna tecnica")},
+              {name:"Puente de glúteo con pausa de 3 seg arriba (más difícil sin más peso)", vid:ytSearch("puente de gluteo pausa tecnica")}
             ]},
           {id:"prensa_alta", name:"Prensa de piernas, pies altos en la plataforma", scheme:"3 × 12-15", rest:120, sets:3, note:"Pies altos = más glúteo e isquios.", vid:ytSearch("prensa de piernas pies altos gluteo tecnica"),
             alts:[
@@ -2108,7 +2108,7 @@ function planBlock(week){
     reps="8-15"; rir="2-3 · hombro/escápula 3-4";
   }else if(week<=24){
     phase="Fase 2 · Peso libre básico"; block="B1 — Patrones libres ligeros";
-    objetivo="Los básicos (goblet, press mancuerna, remo, peso muerto rumano, hip thrust) pasan al centro; máquinas como accesorio.";
+    objetivo="Los básicos (goblet, press mancuerna, remo, peso muerto rumano, puente de glúteo) pasan al centro; máquinas como accesorio.";
     reps="8-12"; rir="2-3 · press vertical 3-4";
   }else{
     phase="Fase 2 · Peso libre básico"; block="B2+ — Progresión gradual";
@@ -4288,7 +4288,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.09.13-4 · BIELA";
+const APP_VERSION = "2026.09.13-5 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
