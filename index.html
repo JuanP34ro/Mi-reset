@@ -1528,15 +1528,19 @@ function exFrom(dia, loc, id, over){
   return Object.assign({}, base, over||{});
 }
 const CARDIO_FIN = {
-  gym:  {id:"tono_cardio", name:"Remate: cardio suave (cinta, bici o elíptica)", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo al que puedas hablar. Es el extra que acelera la pérdida de grasa sin machacarte. Marca la casilla al terminar.", vid:ytSearch("cardio suave LISS cinta principiante")},
-  casa: {id:"tono_cardio", name:"Remate: caminata rápida o comba suave", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo al que puedas hablar. Marca la casilla al terminar.", vid:ytSearch("caminata rapida en casa cardio suave")},
-  hotel:{id:"tono_cardio", name:"Remate: marcha rápida o escaleras", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo al que puedas hablar. Marca la casilla al terminar.", vid:ytSearch("cardio suave habitacion hotel principiante")}
+  gym:  {id:"tono_cardio", name:"Remate quema-grasa: máquina de escaleras", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo constante al que puedas hablar, cuerpo erguido y sin agarrarte fuerte al manillar. Este remate es el que acelera la pérdida de grasa sin machacarte. Marca la casilla al terminar.", vid:ytSearch("maquina de escaleras gimnasio tecnica principiante"),
+        alts:[
+          {name:"Cinta con inclinación (caminar)", vid:ytSearch("caminar cinta inclinada quemar grasa")},
+          {name:"Bici o elíptica suave", vid:ytSearch("cardio suave LISS eliptica principiante")}
+        ]},
+  casa: {id:"tono_cardio", name:"Remate quema-grasa: caminata rápida o escaleras del portal", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo al que puedas hablar. Si tienes escaleras en casa o en el portal, subir tramos a ritmo suave vale perfecto. Marca la casilla al terminar.", vid:ytSearch("subir escaleras cardio quemar grasa")},
+  hotel:{id:"tono_cardio", name:"Remate quema-grasa: marcha rápida o escaleras", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo al que puedas hablar. Marca la casilla al terminar.", vid:ytSearch("cardio suave habitacion hotel principiante")}
 };
 const PROGRAM_TONO = {
   lunes:{ type:"session", key:"tono_gluteo_a", label:"Glúteo A",
     variants:{
       gym:{ title:"Glúteo y pierna A", warmup:[
-          "Cardio ligero (bici o cinta): 3-5 min, ritmo cómodo.",
+          "Cardio ligero (escaleras suaves, bici o cinta): 3-5 min, ritmo cómodo.",
           "Círculos de cadera: 10 en cada dirección.",
           "Sentadilla peso corporal lenta: 10 reps.",
           "Glute bridge en suelo: 15 reps lentas, aprieta arriba 1 seg.",
@@ -1585,7 +1589,7 @@ const PROGRAM_TONO = {
   miercoles:{ type:"session", key:"tono_full_a", label:"Full body",
     variants:{
       gym:{ title:"Cuerpo completo", warmup:[
-          "Cardio ligero: 3-5 min.",
+          "Cardio ligero (escaleras suaves, bici o cinta): 3-5 min.",
           "Movilidad de hombros: 10 círculos de brazos en cada dirección.",
           "Abrir y cerrar los brazos suave (aperturas sin peso): 15.",
           "Sentadilla peso corporal: 10 reps.",
@@ -1634,7 +1638,7 @@ const PROGRAM_TONO = {
   viernes:{ type:"session", key:"tono_gluteo_b", label:"Glúteo B",
     variants:{
       gym:{ title:"Glúteo y cuerpo B", warmup:[
-          "Cardio ligero (bici o cinta): 3-5 min.",
+          "Cardio ligero (escaleras suaves, bici o cinta): 3-5 min.",
           "Círculos de cadera: 10 en cada dirección.",
           "Glute bridge en suelo: 15 reps lentas.",
           "Primer ejercicio con poco peso: 10 reps de aproximación."
@@ -1842,7 +1846,7 @@ if(!PROFILE && Object.keys(LOG).length){ PROFILE="fuerza"; try{ localStorage.set
 let PROGRAM = (PROFILE==="tono") ? PROGRAM_TONO : PROGRAM_FUERZA;
 const PROFILE_INFO = {
   fuerza:{ icon:"💪", label:"Fuerza y músculo", desc:"Torso/pierna 4 días, cargas progresivas" },
-  tono:{ icon:"🔥", label:"Perder peso y tonificar", desc:"3 días (L·X·V): glúteo/pierna + cuerpo completo, reps altas y cardio suave" }
+  tono:{ icon:"🔥", label:"Perder peso y tonificar", desc:"3 días (L·X·V): glúteo/pierna + cuerpo completo, reps altas y remate cardio quema-grasa" }
 };
 function setProfile(p){
   PROFILE = p;
@@ -4238,7 +4242,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.09.13-2 · BIELA";
+const APP_VERSION = "2026.09.13-3 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
