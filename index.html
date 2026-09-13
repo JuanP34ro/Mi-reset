@@ -1036,7 +1036,7 @@ const PROGRAM_FUERZA = {
             alts:[
               {name:"Gemelo a una pierna en escalón con mancuerna", vid:ytSearch("gemelo a una pierna en escalon con mancuerna tecnica")},
               {name:"Gemelo sentado con disco/mancuerna en las rodillas (sóleo)", vid:ytSearch("gemelo sentado con disco casa tecnica")},
-              {name:"Saltos suaves a la comba / talones", vid:ytSearch("gemelo saltos suaves tecnica")}
+              {name:"Saltos suaves a la comba / talones", vid:ytSearch("saltos a la comba gemelo tecnica")}
             ]},
           {id:"casa_plancha", name:"Plancha o crunch", scheme:"3 × 45 seg / 12 reps", rest:45, sets:3, vid:ytSearch("plancha abdominal tecnica"),
             alts:[
@@ -1079,7 +1079,7 @@ const PROGRAM_FUERZA = {
               {name:"Sentadilla isométrica en pared (wall sit)", vid:ytSearch("wall sit sentadilla pared tecnica")},
               {name:"Sentadilla cosaca (movilidad + aductor)", vid:ytSearch("sentadilla cosaca tecnica")}
             ]},
-          {id:"hotel_gemelo", name:"Gemelo de pie a una pierna (en borde/escalón)", scheme:"4 × 15-20", rest:45, sets:4, note:"Pausa arriba, rango completo.", vid:ytSearch("gemelo a una pierna peso corporal"),
+          {id:"hotel_gemelo", name:"Gemelo de pie a una pierna (en borde/escalón)", scheme:"4 × 15-20", rest:45, sets:4, note:"Pausa arriba, rango completo.", vid:ytSearch("gemelo a una pierna peso corporal tecnica"),
             alts:[
               {name:"Gemelo a dos piernas en escalón", vid:ytSearch("gemelo a dos piernas escalon tecnica")},
               {name:"Gemelo sentado con mochila en las rodillas (sóleo)", vid:ytSearch("gemelo sentado con peso rodillas soleo tecnica")},
@@ -1341,7 +1341,7 @@ const PROGRAM_FUERZA = {
             ]},
           {id:"casa_kickback", name:"Patada de glúteo con banda", scheme:"3 × 12 por pierna", rest:45, sets:3, vid:ytSearch("patada de gluteo con banda elastica tecnica"),
             alts:[
-              {name:"Patada de glúteo en cuadrupedia (peso corporal)", vid:ytSearch("patada de gluteo cuadrupedia peso corporal")},
+              {name:"Patada de glúteo en cuadrupedia (peso corporal)", vid:ytSearch("patada de gluteo cuadrupedia peso corporal tecnica")},
               {name:"Extensión de cadera con mancuerna en la corva", vid:ytSearch("patada de gluteo con mancuerna cuadrupedia tecnica")},
               {name:"Hip thrust a una pierna", vid:ytSearch("hip thrust a una pierna peso corporal tecnica")}
             ]},
@@ -1398,13 +1398,13 @@ const PROGRAM_FUERZA = {
               {name:"Curl femoral con banda (si llevas banda)", vid:ytSearch("curl femoral con banda tumbado tecnica")},
               {name:"Curl nórdico (avanzado)", vid:ytSearch("curl nordico tecnica principiante")}
             ]},
-          {id:"hotel_kickback", name:"Patada de glúteo en cuadrupedia", scheme:"3 × 15 por pierna", rest:45, sets:3, vid:ytSearch("patada de gluteo cuadrupedia peso corporal"),
+          {id:"hotel_kickback", name:"Patada de glúteo en cuadrupedia", scheme:"3 × 15 por pierna", rest:45, sets:3, vid:ytSearch("patada de gluteo cuadrupedia peso corporal tecnica"),
             alts:[
               {name:"Patada de glúteo con banda", vid:ytSearch("patada de gluteo con banda elastica tecnica")},
               {name:"Abducción de cadera tumbado (glúteo medio)", vid:ytSearch("abduccion de cadera tumbado lateral tecnica")},
               {name:"Fire hydrant (cuadrupedia lateral)", vid:ytSearch("fire hydrant gluteo tecnica")}
             ]},
-          {id:"hotel_gemelo_b", name:"Gemelo de pie a una pierna", scheme:"4 × 15-20", rest:45, sets:4, note:"Pausa arriba, rango completo.", vid:ytSearch("gemelo a una pierna peso corporal"),
+          {id:"hotel_gemelo_b", name:"Gemelo de pie a una pierna", scheme:"4 × 15-20", rest:45, sets:4, note:"Pausa arriba, rango completo.", vid:ytSearch("gemelo a una pierna peso corporal tecnica"),
             alts:[
               {name:"Gemelo a dos piernas en escalón", vid:ytSearch("gemelo a dos piernas escalon tecnica")},
               {name:"Gemelo sentado con mochila en rodillas (sóleo)", vid:ytSearch("gemelo sentado con peso rodillas soleo tecnica")},
@@ -1572,13 +1572,13 @@ function exFrom(dia, loc, id, over){
   return Object.assign({}, base, over||{});
 }
 const CARDIO_FIN = {
-  gym:  {id:"tono_cardio", name:"Remate quema-grasa: máquina de escaleras", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo constante al que puedas hablar, cuerpo erguido y sin agarrarte fuerte al manillar. Este remate es el que acelera la pérdida de grasa sin machacarte. Marca la casilla al terminar.", vid:ytSearch("maquina de escaleras gimnasio tecnica principiante"),
+  gym:  {id:"tono_cardio", name:"Remate quema-grasa: máquina de escaleras", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo constante al que puedas hablar, cuerpo erguido y sin agarrarte fuerte al manillar. Este remate es el que acelera la pérdida de grasa sin machacarte. Marca la casilla al terminar.", vid:ytSearch("como usar maquina de escaleras gimnasio principiante"),
         alts:[
           {name:"Cinta con inclinación (caminar)", vid:ytSearch("caminar cinta inclinada quemar grasa")},
           {name:"Bici o elíptica suave", vid:ytSearch("cardio suave LISS eliptica principiante")}
         ]},
   casa: {id:"tono_cardio", name:"Remate quema-grasa: caminata rápida o escaleras del portal", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo al que puedas hablar. Si tienes escaleras en casa o en el portal, subir tramos a ritmo suave vale perfecto. Marca la casilla al terminar.", vid:ytSearch("subir escaleras cardio quemar grasa")},
-  hotel:{id:"tono_cardio", name:"Remate quema-grasa: marcha rápida o escaleras", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo al que puedas hablar. Marca la casilla al terminar.", vid:ytSearch("cardio suave habitacion hotel principiante")}
+  hotel:{id:"tono_cardio", name:"Remate quema-grasa: marcha rápida o escaleras", scheme:"1 × 10-15 min", rest:0, sets:1, note:"Ritmo al que puedas hablar. Marca la casilla al terminar.", vid:ytSearch("cardio suave en casa sin saltos principiante")}
 };
 const PROGRAM_TONO = {
   lunes:{ type:"session", key:"tono_gluteo_a", label:"Glúteo A",
@@ -1772,6 +1772,8 @@ STRETCH.tono_full_a = STRETCH.torso_a;
 // Deriva una búsqueda de YouTube a partir del texto de un ítem de calentamiento
 function warmQuery(text){
   const base=String(text).split(":")[0].split("(")[0].trim();
+  // Series de aproximación y cardio genérico: no hay vídeo que buscar (el ejercicio ya tiene el suyo)
+  if(/aproximaci|primer ejercicio|peso vacío|cardio ligero|marcha en el sitio/i.test(base)) return null;
   return ytSearch(base+" ejercicio tecnica");
 }
 
@@ -2922,8 +2924,9 @@ function renderWarmup(day,sv){
   sv.warmup.forEach((w,i)=>{
     const it=document.createElement("div");
     it.className="warm-item";
+    const wq=warmQuery(w);
     it.innerHTML=`<span class="n">${i+1}</span><span class="wi-txt">${w}</span>`+
-      `<a class="item-vid" href="${warmQuery(w)}" target="_blank" rel="noopener" aria-label="Ver vídeo">▶</a>`;
+      (wq?`<a class="item-vid" href="${wq}" target="_blank" rel="noopener" aria-label="Ver vídeo">▶</a>`:"");
     body.appendChild(it);
   });
   const fw=document.createElement("div");
@@ -4288,7 +4291,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.09.13-5 · BIELA";
+const APP_VERSION = "2026.09.13-6 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
