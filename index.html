@@ -962,7 +962,7 @@ const TUTO_SLIDES = [
     demo:`<div class="demo-row"><span>Puente de glúteo</span><span style="margin-left:auto">▶</span><span>⇄</span></div>` },
   { ic:"🧳", bg:"linear-gradient(165deg,#4c1d95,#7c3aed)", t:"Gym, casa o donde sea",
     p:"Arriba eliges dónde entrenas hoy. La sesión se adapta sola con ejercicios equivalentes: nada de excusas de viaje 😉",
-    demo:`<div class="demo-locs"><span class="on">🏋️ Gym</span><span>🏠 Casa</span><span>🧳 Hotel</span></div>` },
+    demo:`<div class="demo-locs"><span class="on">🏋️ Gym</span><span>🏠 Casa</span><span>🧳 Viaje</span></div>` },
   { ic:"💚", bg:"linear-gradient(165deg,#065f46,#059669)", t:"Y al terminar…",
     p:"La app celebra tu sesión, te pregunta cómo te has quedado y en 📈 Progreso ves crecer tu constancia. Por lo que sea 🤝",
     demo:"" }
@@ -1023,7 +1023,7 @@ function renderWelcome(){
 const LOCATIONS = {
   gym:   { label:"Gym",   icon:"🏋️", tag:"En el gimnasio" },
   casa:  { label:"Casa",  icon:"🏠", tag:"En casa" },
-  hotel: { label:"Hotel", icon:"🧳", tag:"En el hotel" }
+  hotel: { label:"Viaje", icon:"🧳", tag:"De viaje (hotel o campo)" }
 };
 
 /* ---- Programa: Torso/Pierna 4 días ---- */
@@ -1143,41 +1143,42 @@ const PROGRAM_FUERZA = {
         ]
       },
       hotel:{
-        title:"Pierna A — Cuádriceps (habitación)",
+        title:"Pierna A — Cuádriceps (viaje)",
         warmup:[
+          "Kit de viaje: mochila cargada (botellas, libros, piedras), una toalla y — si cabe — una banda elástica.",
           "Movilidad de cadera: círculos 10 en cada dirección.",
           "Sentadilla peso corporal lenta: 12 reps.",
           "Estiramiento flexor de cadera en zancada: 20 seg cada pierna.",
           "Glute bridge en suelo: 15 reps lentas."
         ],
         exercises:[
-          {id:"hotel_sentadilla", name:"Sentadilla peso corporal (tempo 3 seg bajada)", scheme:"4 × 15-20", rest:75, sets:4, note:"Lenta y profunda; el tempo crea la intensidad sin peso.", vid:ytSearch("sentadilla peso corporal tempo lento tecnica"),
+          {id:"hotel_sentadilla", name:"Sentadilla goblet con mochila al pecho", scheme:"4 × 12-15", rest:90, sets:4, note:"Mochila abrazada contra el pecho: el peso delante te ayuda a bajar recto y profundo. Sin mochila, baja en 3 seg y para 1 seg abajo.", vid:ytSearch("sentadilla goblet con mochila tecnica"),
             alts:[
-              {name:"Sentadilla búlgara (pie atrás en cama/silla)", vid:ytSearch("sentadilla bulgara peso corporal tecnica")},
-              {name:"Sentadilla con salto suave", vid:ytSearch("sentadilla con salto tecnica")},
-              {name:"Sentadilla a una pierna asistida (pistol)", vid:ytSearch("pistol squat asistida tecnica")}
+              {name:"Sentadilla peso corporal (tempo 3 seg bajada)", vid:ytSearch("sentadilla peso corporal tempo lento tecnica")},
+              {name:"Sentadilla con mochila a la espalda", vid:ytSearch("sentadilla con mochila espalda tecnica")},
+              {name:"Sentadilla isométrica en pared (wall sit)", vid:ytSearch("wall sit sentadilla pared tecnica")}
             ]},
-          {id:"hotel_rdl", name:"Puente de glúteo a una pierna", scheme:"3 × 10-12 por pierna", rest:75, sets:3, note:"Fácil y seguro de hacer solo: tumbado, una pierna doblada, empuja con el talón y aprieta el glúteo arriba 1 seg.", vid:ytSearch("puente de gluteo a una pierna tecnica"),
+          {id:"hotel_stepup", name:"Step-up a silla, banco, roca o tronco (mochila opcional)", scheme:"3 × 10-12 por pierna", rest:75, sets:3, note:"Apoyo a la altura de la rodilla o menos, firme. Sube empujando con el talón de arriba, sin impulso de la pierna de abajo, y baja controlado. En el campo, cualquier roca o tronco estable vale.", vid:ytSearch("step up con mochila tecnica"),
             alts:[
-              {name:"Buenos días peso corporal (bisagra sencilla)", vid:ytSearch("buenos dias peso corporal bisagra cadera")},
-              {name:"RDL a una pierna (cuando tengas equilibrio)", vid:ytSearch("peso muerto rumano a una pierna peso corporal tecnica")},
-              {name:"Puente a dos piernas con mochila en la cadera", vid:ytSearch("puente de gluteo con peso tecnica")}
-            ]},
-          {id:"hotel_bulgara", name:"Sentadilla dividida (split squat)", scheme:"3 × 12-15 por pierna", rest:75, sets:3, note:"Los dos pies en el suelo: estable y fácil de controlar sin ayuda.", vid:ytSearch("split squat peso corporal tecnica"),
-            alts:[
-              {name:"Step-up a una silla firme", vid:ytSearch("step up peso corporal tecnica")},
-              {name:"Sentadilla búlgara (cuando tengas equilibrio)", vid:ytSearch("sentadilla bulgara peso corporal tecnica")},
+              {name:"Zancada inversa con mochila (más amable de rodilla)", vid:ytSearch("zancada inversa con mochila tecnica")},
+              {name:"Sentadilla dividida (split squat), dos pies en el suelo", vid:ytSearch("split squat peso corporal tecnica")},
               {name:"Zancadas caminando", vid:ytSearch("zancadas peso corporal tecnica")}
             ]},
-          {id:"hotel_zancada", name:"Zancadas caminando o estáticas", scheme:"3 × 12 por pierna", rest:60, sets:3, vid:ytSearch("zancadas peso corporal tecnica"),
+          {id:"hotel_bulgara", name:"Sentadilla búlgara (pie atrás en cama, silla o roca), mochila opcional", scheme:"3 × 10-12 por pierna", rest:75, sets:3, note:"El pie de atrás solo apoya; todo el trabajo lo hace la pierna de delante. Empieza sin peso; cuando salgan 12 fáciles, mochila al pecho.", vid:ytSearch("sentadilla bulgara peso corporal tecnica"),
             alts:[
-              {name:"Zancada inversa (más amable de rodilla)", vid:ytSearch("zancada inversa peso corporal tecnica")},
-              {name:"Sentadilla isométrica en pared (wall sit)", vid:ytSearch("wall sit sentadilla pared tecnica")},
+              {name:"Sentadilla dividida (split squat), dos pies en el suelo (más fácil)", vid:ytSearch("split squat peso corporal tecnica")},
+              {name:"Sentadilla a una pierna asistida (pistol), apoyo en una silla", vid:ytSearch("pistol squat asistida tecnica")},
               {name:"Sentadilla cosaca (movilidad + aductor)", vid:ytSearch("sentadilla cosaca tecnica")}
             ]},
-          {id:"hotel_gemelo", name:"Gemelo de pie a una pierna (en borde/escalón)", scheme:"4 × 15-20", rest:45, sets:4, note:"Pausa arriba, rango completo.", vid:ytSearch("gemelo a una pierna peso corporal tecnica"),
+          {id:"hotel_rdl", name:"Peso muerto rumano con mochila (a dos manos)", scheme:"3 × 10-12", rest:75, sets:3, note:"La mochila hace de kettlebell: cógela por las asas con las dos manos, culo atrás, espalda recta, baja solo hasta notar el estiramiento del isquio y sube apretando el glúteo. Mochila pegada a las piernas.", vid:ytSearch("peso muerto rumano con mochila tecnica"),
             alts:[
-              {name:"Gemelo a dos piernas en escalón", vid:ytSearch("gemelo a dos piernas escalon tecnica")},
+              {name:"Puente de glúteo a una pierna (más fácil)", vid:ytSearch("puente de gluteo a una pierna tecnica")},
+              {name:"RDL a una pierna con mochila (cuando tengas equilibrio)", vid:ytSearch("peso muerto rumano a una pierna mochila tecnica")},
+              {name:"Buenos días con mochila a la espalda", vid:ytSearch("buenos dias con mochila tecnica")}
+            ]},
+          {id:"hotel_gemelo", name:"Gemelo de pie a una pierna (escalón, bordillo o roca), mochila opcional", scheme:"4 × 15-20", rest:45, sets:4, note:"Pausa arriba 1 seg, baja del todo. Apóyate con una mano para el equilibrio.", vid:ytSearch("gemelo a una pierna peso corporal tecnica"),
+            alts:[
+              {name:"Gemelo a dos piernas en escalón con mochila", vid:ytSearch("gemelo a dos piernas escalon tecnica")},
               {name:"Gemelo sentado con mochila en las rodillas (sóleo)", vid:ytSearch("gemelo sentado con peso rodillas soleo tecnica")},
               {name:"Saltos suaves a la comba / a los talones", vid:ytSearch("saltos a la comba gemelo tecnica")}
             ]},
@@ -1299,49 +1300,51 @@ const PROGRAM_FUERZA = {
         ]
       },
       hotel:{
-        title:"Torso A — Empuje (habitación)",
+        title:"Torso A — Empuje (viaje)",
         warmTitle:"Calentamiento específico para escápula (5 min)",
         warmup:[
+          "Kit de viaje: mochila cargada (botellas, libros, piedras), una toalla y — si cabe — una banda elástica.",
           "Floor slides: 2 × 10 (boca arriba, brazos en W, deslizar pegados al suelo).",
           "Push-up plus de rodillas: 2 × 12 (flexión + empujar separando escápulas).",
           "Retracciones escapulares de pie: 2 × 15.",
           "Movilidad de hombro suave: 10 círculos hacia atrás."
         ],
         exercises:[
-          {id:"hotel_flexion", name:"Flexiones (rodillas o normales)", scheme:"3 × 8-15", rest:90, sets:3, note:"Escápula estable, no dejes caer los hombros.", vid:ytSearch("flexiones tecnica correcta escapula"),
+          {id:"hotel_flexion", name:"Flexiones (rodillas, normales o con mochila a la espalda)", scheme:"4 × 8-15", rest:90, sets:4, note:"Escápula estable, no dejes caer los hombros. Progresión sin material: rodillas → normales → tempo 3 seg → mochila a la espalda cuando 15 salgan fáciles.", vid:ytSearch("flexiones tecnica correcta escapula"),
             alts:[
-              {name:"Flexiones inclinadas (manos en cama/mesa) — más fáciles", vid:ytSearch("flexiones inclinadas tecnica")},
-              {name:"Flexiones lentas (tempo 3 seg bajada)", vid:ytSearch("flexiones lentas tempo tecnica")}
+              {name:"Flexiones inclinadas (manos en cama/mesa/roca) — más fáciles", vid:ytSearch("flexiones inclinadas tecnica")},
+              {name:"Flexiones lentas (tempo 3 seg bajada)", vid:ytSearch("flexiones lentas tempo tecnica")},
+              {name:"Flexiones con mochila a la espalda", vid:ytSearch("flexiones con mochila tecnica")}
             ]},
-          {id:"hotel_flexion_incl", name:"Flexiones con pies elevados (parte alta del pecho)", scheme:"3 × 8-12", rest:90, sets:3, note:"Pies en cama/silla: más carga en pecho superior y hombro.", vid:ytSearch("flexiones pies elevados tecnica"),
+          {id:"hotel_flexion_incl", name:"Flexiones con pies elevados (parte alta del pecho)", scheme:"3 × 8-12", rest:90, sets:3, note:"Pies en cama, silla o roca: más carga en pecho superior y hombro.", vid:ytSearch("flexiones pies elevados tecnica"),
             alts:[
               {name:"Flexiones declinadas amplias", vid:ytSearch("flexiones declinadas tecnica")},
               {name:"Flexiones normales (si las de pies elevados son mucho)", vid:ytSearch("flexiones tecnica correcta")}
             ]},
-          {id:"hotel_pike", name:"Pike push-up (hombro)", scheme:"3 × 8-10", rest:90, sets:3, note:"Conservador: si notas la escápula, reduce el rango o sáltalo. ⚠️ Auditoría: valídalo con tu fisio antes de progresarlo — es de los que más piden a la escápula. Si hay duda, usa la flexión en pared 'plus'.", vid:ytSearch("pike push up tecnica principiante"),
+          {id:"hotel_press_mochila", name:"Press de hombro con mochila, sentado (agarre neutro)", scheme:"3 × 10-12", rest:90, sets:3, note:"Sentado con la espalda recta, mochila cogida por los laterales con los codos al frente (como tu press de hombro en máquina). Sube sin bloquear del todo; si el hombro molesta, acorta el rango.", vid:ytSearch("press de hombro con mochila en casa tecnica"),
             alts:[
               {name:"Flexión contra la pared 'plus' (más suave para el hombro)", vid:ytSearch("flexion en pared push up plus tecnica")},
-              {name:"Press de hombro con mochila cargada, sentado", vid:ytSearch("press de hombro con mochila en casa tecnica")}
+              {name:"Pike push-up de rodillas (solo si tu fisio lo valida)", vid:ytSearch("pike push up tecnica principiante")}
             ]},
-          {id:"hotel_elev_lat", name:"Elevaciones laterales con mochila o botellas", scheme:"4 × 15", rest:60, sets:4, note:"Deltoides lateral. No pases de 90°.", vid:ytSearch("elevaciones laterales sin peso tecnica"),
+          {id:"hotel_elev_lat", name:"Elevaciones laterales con botellas, piedras o mochila ligera", scheme:"4 × 15", rest:60, sets:4, note:"Deltoides lateral. No pases de 90°; sin peso, aguanta 2 seg arriba en cada rep.", vid:ytSearch("elevaciones laterales botellas agua tecnica"),
             alts:[
               {name:"Elevaciones laterales isométricas (aguanta arriba)", vid:ytSearch("elevaciones laterales isometricas tecnica")},
               {name:"Elevaciones con garrafas de agua", vid:ytSearch("elevaciones laterales botellas agua tecnica")}
             ]},
-          {id:"hotel_triceps", name:"Flexiones diamante (tríceps)", scheme:"3 × 10-12", rest:75, sets:3, note:"Manos juntas bajo el pecho; enfatiza el tríceps.", vid:ytSearch("flexiones diamante triceps tecnica"),
+          {id:"hotel_triceps", name:"Flexiones diamante (tríceps)", scheme:"3 × 10-12", rest:75, sets:3, note:"Manos juntas bajo el pecho; enfatiza el tríceps. De rodillas si hace falta.", vid:ytSearch("flexiones diamante triceps tecnica"),
             alts:[
-              {name:"Extensión de tríceps sobre la cabeza con mochila", vid:ytSearch("extension triceps overhead mochila casa tecnica")},
-              {name:"Flexiones diamante de rodillas (más fáciles)", vid:ytSearch("flexiones diamante rodillas tecnica")}
+              {name:"Flexiones diamante de rodillas (más fáciles)", vid:ytSearch("flexiones diamante rodillas tecnica")},
+              {name:"Flexiones con manos estrechas en una cama o roca (inclinadas)", vid:ytSearch("flexiones inclinadas manos juntas triceps tecnica")}
             ]},
-          {id:"hotel_tri_dips", name:"Fondos de tríceps en silla (rango corto)", scheme:"2 × 10-12", rest:60, sets:2, note:"Rango corto, sin forzar el hombro hacia atrás. ⚠️ Auditoría: valídalo con tu fisio — es de los que más piden a la escápula. Si hay duda, usa la patada de tríceps.", vid:ytSearch("fondos de triceps en silla tecnica"),
+          {id:"hotel_tri_mochila", name:"Extensión de tríceps sobre la cabeza con mochila (a dos manos)", scheme:"2 × 12-15", rest:60, sets:2, note:"Mochila cogida por el fondo con las dos manos por detrás de la cabeza; codos apuntando al frente, solo se mueve el antebrazo.", vid:ytSearch("extension triceps overhead mochila casa tecnica"),
             alts:[
               {name:"Patada de tríceps con mochila/botella", vid:ytSearch("patada de triceps con mancuerna tecnica")},
-              {name:"Fondos entre dos sillas (avanzado)", vid:ytSearch("fondos entre dos sillas triceps tecnica")}
+              {name:"Fondos de tríceps en silla, rango corto (solo si tu fisio lo valida)", vid:ytSearch("fondos de triceps en silla tecnica")}
             ]},
-          {id:"hotel_espalda_f2", name:"Remo invertido suave bajo mesa (espalda · frecuencia 2)", scheme:"2 × 8-12", rest:60, sets:2, note:"Auditoría: repartir la espalda en 2 días/semana. Ángulo fácil (más vertical), lejos del fallo.", vid:ytSearch("remo invertido bajo mesa tecnica casa"),
+          {id:"hotel_espalda_f2", name:"Remo a una mano con mochila ligero (espalda · frecuencia 2)", scheme:"2 × 10-12 por brazo", rest:60, sets:2, note:"Auditoría: repartir la espalda en 2 días/semana. Apoya la otra mano en una silla, rodilla o roca; tira del codo hacia la cadera, lejos del fallo.", vid:ytSearch("remo a una mano con mochila casa tecnica"),
             alts:[
-              {name:"Remo con toalla en pomo de puerta", vid:ytSearch("remo con toalla en puerta tecnica casa")},
-              {name:"Superman (espalda baja/alta)", vid:ytSearch("superman ejercicio espalda tecnica")}
+              {name:"Remo invertido suave bajo una mesa firme", vid:ytSearch("remo invertido bajo mesa tecnica casa")},
+              {name:"Remo con toalla en pomo, poste o árbol", vid:ytSearch("remo con toalla en puerta tecnica casa")}
             ]}
         ]
       }
@@ -1462,48 +1465,43 @@ const PROGRAM_FUERZA = {
         ]
       },
       hotel:{
-        title:"Pierna B — Cadena posterior (habitación)",
+        title:"Pierna B — Cadena posterior (viaje)",
         warmup:[
+          "Kit de viaje: mochila cargada (botellas, libros, piedras), una toalla y — si cabe — una banda elástica.",
           "Movilidad de cadera: círculos 10 en cada dirección.",
           "Buenos días con peso corporal (bisagra de cadera): 12 reps lentas.",
           "Glute bridge en suelo: 15 reps lentas.",
           "Patada de glúteo en cuadrupedia: 10 por pierna."
         ],
         exercises:[
-          {id:"hotel_hip_thrust", name:"Hip thrust con mochila (dos piernas, espalda en cama/sofá)", scheme:"4 × 12-15", rest:75, sets:4, note:"A dos piernas es estable y fácil de hacer solo. Mochila cargada sobre la cadera; aprieta el glúteo 1 seg arriba.", vid:ytSearch("hip thrust con mochila casa tecnica"),
+          {id:"hotel_hip_thrust", name:"Hip thrust con mochila (dos piernas, espalda en cama, sofá o tronco)", scheme:"4 × 12-15", rest:75, sets:4, note:"A dos piernas es estable y fácil de hacer solo. Mochila cargada sobre la cadera; aprieta el glúteo 1 seg arriba. Sin dónde apoyar la espalda: puente en el suelo con la mochila encima.", vid:ytSearch("hip thrust con mochila casa tecnica"),
             alts:[
-              {name:"Puente de glúteo a dos piernas con pausa (más fácil)", vid:ytSearch("puente de gluteo peso corporal tecnica")},
+              {name:"Puente de glúteo en el suelo con mochila en la cadera", vid:ytSearch("puente de gluteo con peso tecnica")},
               {name:"Hip thrust a una pierna (cuando controles el gesto)", vid:ytSearch("hip thrust a una pierna peso corporal tecnica")},
               {name:"Marcha de glúteo (elevado, apoyo en cama)", vid:ytSearch("marcha de gluteo hip thrust tecnica")}
             ]},
-          {id:"hotel_puente", name:"Puente de glúteo (tempo, apretar arriba)", scheme:"3 × 15-20", rest:60, sets:3, vid:ytSearch("puente de gluteo peso corporal tecnica"),
+          {id:"hotel_rdl_kick", name:"Peso muerto rumano 'kickstand' con mochila (una pierna delante, la otra apoyada atrás)", scheme:"3 × 10-12 por pierna", rest:75, sets:3, note:"Versión a una pierna sin problemas de equilibrio: el pie de atrás apoya de puntillas como un caballete. Mochila en las dos manos, culo atrás, espalda recta; el isquio de la pierna de delante manda.", vid:ytSearch("peso muerto rumano kickstand tecnica"),
             alts:[
-              {name:"Puente de glúteo a una pierna", vid:ytSearch("puente de gluteo a una pierna tecnica")},
-              {name:"Puente con pies elevados en silla", vid:ytSearch("puente de gluteo pies elevados tecnica")},
-              {name:"Rana / frog pump", vid:ytSearch("frog pump gluteo tecnica")}
+              {name:"Peso muerto rumano con mochila a dos piernas", vid:ytSearch("peso muerto rumano con mochila tecnica")},
+              {name:"Buenos días con mochila a la espalda", vid:ytSearch("buenos dias con mochila tecnica")},
+              {name:"Puente de glúteo a una pierna", vid:ytSearch("puente de gluteo a una pierna tecnica")}
             ]},
-          {id:"hotel_buenosdias", name:"Buenos días peso corporal (bisagra de cadera)", scheme:"3 × 10-12", rest:60, sets:3, note:"La bisagra en su versión más simple: manos en la cintura, culo atrás, espalda recta, rodillas un poco flexionadas. Mochila cargada para añadir peso.", vid:ytSearch("buenos dias peso corporal bisagra cadera"),
+          {id:"hotel_curl_post", name:"Curl femoral deslizante con toalla (o puente con talones lejos)", scheme:"3 × 10-12", rest:60, sets:3, note:"Tumbado, talones sobre una toalla en suelo liso: levanta la cadera y desliza los talones lejos y de vuelta. Sin suelo liso, puente con los talones lejos del culo: el isquio manda.", vid:ytSearch("curl femoral con toalla deslizante casa"),
             alts:[
-              {name:"Puente de glúteo a una pierna", vid:ytSearch("puente de gluteo a una pierna tecnica")},
-              {name:"RDL a una pierna (cuando tengas equilibrio)", vid:ytSearch("peso muerto rumano a una pierna peso corporal tecnica")},
-              {name:"Bisagra con banda (pull-through), si llevas banda", vid:ytSearch("pull through con banda gluteo tecnica")}
+              {name:"Puente de glúteo con talones lejos (isquios), más fácil", vid:ytSearch("puente de gluteo talones lejos isquiotibiales tecnica")},
+              {name:"Curl femoral con banda (si la llevas)", vid:ytSearch("curl femoral con banda tumbado tecnica")},
+              {name:"Curl nórdico asistido (avanzado; pies bajo una cama)", vid:ytSearch("curl nordico tecnica principiante")}
             ]},
-          {id:"hotel_curl_post", name:"Puente de glúteo con talones lejos (isquios)", scheme:"3 × 12-15", rest:60, sets:3, note:"Como el puente normal pero con los talones más lejos del culo: el isquio manda. Fácil y seguro de hacer solo.", vid:ytSearch("puente de gluteo talones lejos isquiotibiales tecnica"),
+          {id:"hotel_kickback", name:"Patada de glúteo en cuadrupedia (botella o mochila en la corva, opcional)", scheme:"3 × 15 por pierna", rest:45, sets:3, note:"Rodilla doblada, talón hacia el techo, sin arquear la lumbar. Con una botella en la corva sube la dificultad.", vid:ytSearch("patada de gluteo cuadrupedia peso corporal tecnica"),
             alts:[
-              {name:"Curl deslizante con toalla (más exigente)", vid:ytSearch("curl femoral con toalla deslizante casa")},
-              {name:"Curl femoral con banda (si llevas banda)", vid:ytSearch("curl femoral con banda tumbado tecnica")},
-              {name:"Curl nórdico (avanzado)", vid:ytSearch("curl nordico tecnica principiante")}
-            ]},
-          {id:"hotel_kickback", name:"Patada de glúteo en cuadrupedia", scheme:"3 × 15 por pierna", rest:45, sets:3, vid:ytSearch("patada de gluteo cuadrupedia peso corporal tecnica"),
-            alts:[
-              {name:"Patada de glúteo con banda", vid:ytSearch("patada de gluteo con banda elastica tecnica")},
+              {name:"Patada de glúteo con banda (si la llevas)", vid:ytSearch("patada de gluteo con banda elastica tecnica")},
               {name:"Abducción de cadera tumbado (glúteo medio)", vid:ytSearch("abduccion de cadera tumbado lateral tecnica")},
               {name:"Fire hydrant (cuadrupedia lateral)", vid:ytSearch("fire hydrant gluteo tecnica")}
             ]},
-          {id:"hotel_gemelo_b", name:"Gemelo de pie a una pierna", scheme:"4 × 15-20", rest:45, sets:4, note:"Pausa arriba, rango completo.", vid:ytSearch("gemelo a una pierna peso corporal tecnica"),
+          {id:"hotel_gemelo_b", name:"Gemelo sentado con mochila en las rodillas (sóleo)", scheme:"4 × 15-20", rest:45, sets:4, note:"Sentado en silla o roca, puntas de los pies en un escalón o libro, mochila sobre las rodillas. Pausa arriba.", vid:ytSearch("gemelo sentado con peso rodillas soleo tecnica"),
             alts:[
-              {name:"Gemelo a dos piernas en escalón", vid:ytSearch("gemelo a dos piernas escalon tecnica")},
-              {name:"Gemelo sentado con mochila en rodillas (sóleo)", vid:ytSearch("gemelo sentado con peso rodillas soleo tecnica")},
+              {name:"Gemelo de pie a una pierna (escalón o roca)", vid:ytSearch("gemelo a una pierna peso corporal tecnica")},
+              {name:"Gemelo a dos piernas en escalón con mochila", vid:ytSearch("gemelo a dos piernas escalon tecnica")},
               {name:"Saltos suaves a la comba", vid:ytSearch("saltos a la comba gemelo tecnica")}
             ]},
           {id:"hotel_antirot", name:"Bird dog (core anti-rotación)", scheme:"2 × 10 por lado", rest:45, sets:2, note:"Auditoría: core anti-rotación sin material. Brazo y pierna contrarios, cadera estable, sin arquear la lumbar.", vid:ytSearch("bird dog ejercicio tecnica"),
@@ -1610,26 +1608,29 @@ const PROGRAM_FUERZA = {
         ]
       },
       hotel:{
-        title:"Torso B — Tirón (habitación)",
+        title:"Torso B — Tirón (viaje)",
         warmup:[
+          "Kit de viaje: mochila cargada (botellas, libros, piedras), una toalla y — si cabe — una banda elástica.",
           "Retracciones escapulares de pie: 2 × 15 (brazos al frente, juntar escápulas).",
           "Y-T-W tumbado boca abajo sin peso: 2 × 8 cada letra.",
           "Movilidad de hombro: 10 círculos hacia atrás."
         ],
         exercises:[
-          {id:"hotel_remo_mesa", name:"Remo invertido bajo una mesa resistente", scheme:"3 × 8-12", rest:90, sets:3, note:"Túmbate bajo una mesa firme y tira del borde llevando el pecho arriba. Comprueba que aguanta tu peso.", vid:ytSearch("remo invertido bajo mesa tecnica casa"),
+          {id:"hotel_remo_mesa", name:"Remo a una mano con mochila (apoyo en silla, rodilla o roca)", scheme:"3 × 10-12 por brazo", rest:75, sets:3, note:"El tirón universal: funciona en cualquier sitio. Mano libre apoyada, espalda recta, tira del codo hacia la cadera y baja controlado. Carga la mochila con lo que haya.", vid:ytSearch("remo a una mano con mochila casa tecnica"),
             alts:[
-              {name:"Remo invertido con pies elevados (más difícil)", vid:ytSearch("remo invertido pies elevados tecnica")},
-              {name:"Dominadas en el marco de una puerta firme", vid:ytSearch("dominadas marco puerta tecnica")}
+              {name:"Remo invertido bajo una mesa firme (si la hay)", vid:ytSearch("remo invertido bajo mesa tecnica casa")},
+              {name:"Dominadas en el marco de una puerta o rama firme", vid:ytSearch("dominadas marco puerta tecnica")},
+              {name:"Remo con banda anclada (si la llevas)", vid:ytSearch("remo sentado con banda elastica tecnica")}
             ]},
-          {id:"hotel_remo_toalla", name:"Remo con toalla en pomo de puerta", scheme:"3 × 12", rest:75, sets:3, note:"Toalla alrededor de un pomo firme, te inclinas atrás y tiras.", vid:ytSearch("remo con toalla en puerta tecnica casa"),
+          {id:"hotel_remo_toalla", name:"Remo con toalla en pomo, poste o árbol (cuerpo inclinado atrás)", scheme:"3 × 12", rest:75, sets:3, note:"Toalla alrededor de un punto firme a la altura del pecho; te inclinas atrás con el cuerpo recto y tiras llevando el pecho al punto. Más inclinado = más difícil.", vid:ytSearch("remo con toalla en puerta tecnica casa"),
             alts:[
-              {name:"Remo a una mano con mochila cargada", vid:ytSearch("remo a una mano con mochila casa tecnica")},
+              {name:"Remo con mochila a dos manos, inclinado (bisagra de cadera)", vid:ytSearch("remo inclinado con mochila tecnica")},
               {name:"Remo invertido con sábana en la puerta", vid:ytSearch("remo invertido con sabana puerta tecnica")}
             ]},
           {id:"hotel_ytw", name:"Y-T-W tumbado boca abajo (escápula)", scheme:"3 × 10 cada letra", rest:60, sets:3, key:true, note:"CLAVE para el serrato/escápula: sustituye al face pull. Despega brazos del suelo juntando escápulas.", vid:ytSearch("ejercicio YTW tumbado escapula tecnica"),
             alts:[
               {name:"Pájaros (reverse fly) con mochila/botellas, inclinado", vid:ytSearch("pajaros reverse fly inclinado casa tecnica")},
+              {name:"Face pull con banda (si la llevas)", vid:ytSearch("face pull con banda elastica tecnica")},
               {name:"Push-up plus (serrato) de rodillas", vid:ytSearch("push up plus serrato tecnica")}
             ]},
           {id:"hotel_superman", name:"Superman / extensiones de espalda", scheme:"3 × 12", rest:45, sets:3, vid:ytSearch("superman ejercicio espalda tecnica"),
@@ -1637,14 +1638,14 @@ const PROGRAM_FUERZA = {
               {name:"Superman alterno (brazo y pierna contrarios)", vid:ytSearch("superman alterno bird dog tecnica")},
               {name:"Extensiones de espalda en suelo (cobra)", vid:ytSearch("extension de espalda cobra suelo tecnica")}
             ]},
-          {id:"hotel_curl", name:"Curl de bíceps con mochila cargada", scheme:"3 × 12-15", rest:45, sets:3, note:"Llena una mochila con libros/botellas como peso.", vid:ytSearch("curl de biceps con mochila en casa"),
+          {id:"hotel_curl", name:"Curl de bíceps con mochila cargada", scheme:"3 × 12-15", rest:45, sets:3, note:"Mochila por las asas, codos pegados al cuerpo. Sube el peso metiendo más botellas.", vid:ytSearch("curl de biceps con mochila en casa"),
             alts:[
-              {name:"Curl con banda elástica", vid:ytSearch("curl de biceps con banda tecnica")},
+              {name:"Curl con banda elástica (si la llevas)", vid:ytSearch("curl de biceps con banda tecnica")},
               {name:"Curl isométrico con toalla (autorresistencia)", vid:ytSearch("curl isometrico toalla autorresistencia tecnica")}
             ]},
           {id:"hotel_pecho_f2", name:"Flexiones suaves (pecho · frecuencia 2)", scheme:"2 × 10-15", rest:60, sets:2, note:"Auditoría: repartir el pecho en 2 días/semana. Lejos del fallo (RIR 3-4); de rodillas si hace falta.", vid:ytSearch("flexiones tecnica correcta"),
             alts:[
-              {name:"Flexiones inclinadas (manos en cama/mesa)", vid:ytSearch("flexiones inclinadas tecnica")},
+              {name:"Flexiones inclinadas (manos en cama/mesa/roca)", vid:ytSearch("flexiones inclinadas tecnica")},
               {name:"Flexiones de rodillas", vid:ytSearch("flexiones de rodillas tecnica")}
             ]}
         ]
@@ -1710,7 +1711,8 @@ const PROGRAM_TONO = {
           exFrom("lunes","casa","casa_gemelo",{scheme:"3 × 15-20", rest:45, sets:3}),
           CARDIO_FIN.casa
         ]},
-      hotel:{ title:"Glúteo y pierna A (habitación)", warmup:[
+      hotel:{ title:"Glúteo y pierna A (viaje)", warmup:[
+          "Kit de viaje: mochila cargada (botellas, libros, piedras), una toalla y — si cabe — una banda elástica.",
           "Marcha en el sitio: 2-3 min.",
           "Círculos de cadera: 10 en cada dirección.",
           "Sentadilla peso corporal lenta: 10 reps.",
@@ -1718,8 +1720,8 @@ const PROGRAM_TONO = {
         ],
         exercises:[
           exFrom("jueves","hotel","hotel_hip_thrust",{scheme:"4 × 12-15", rest:60}),
-          exFrom("lunes","hotel","hotel_sentadilla",{scheme:"3 × 15-20", rest:60, sets:3}),
-          exFrom("lunes","hotel","hotel_rdl",{scheme:"3 × 12-15 por pierna", rest:60}),
+          exFrom("lunes","hotel","hotel_sentadilla",{scheme:"3 × 12-15", rest:60, sets:3}),
+          exFrom("lunes","hotel","hotel_rdl",{scheme:"3 × 12-15", rest:60}),
           exFrom("jueves","hotel","hotel_kickback",{scheme:"3 × 15 por pierna", rest:45}),
           exFrom("lunes","hotel","hotel_gemelo",{scheme:"3 × 15-20", rest:45, sets:3}),
           CARDIO_FIN.hotel
@@ -1759,14 +1761,15 @@ const PROGRAM_TONO = {
           exFrom("lunes","casa","casa_plancha",{scheme:"3 × 30-45 seg", rest:45}),
           CARDIO_FIN.casa
         ]},
-      hotel:{ title:"Cuerpo completo (habitación)", warmup:[
+      hotel:{ title:"Cuerpo completo (viaje)", warmup:[
+          "Kit de viaje: mochila cargada (botellas, libros, piedras), una toalla y — si cabe — una banda elástica.",
           "Marcha en el sitio: 2-3 min.",
           "Movilidad de hombros: 10 círculos de brazos en cada dirección.",
           "Sentadilla peso corporal: 10 reps."
         ],
         exercises:[
-          exFrom("martes","hotel","hotel_flexion",{scheme:"3 × 8-15", rest:60, note:"De rodillas si hace falta; tronco firme, sin dejar caer la cadera."}),
-          exFrom("viernes","hotel","hotel_remo_mesa",{scheme:"3 × 8-12", rest:60}),
+          exFrom("martes","hotel","hotel_flexion",{scheme:"3 × 8-15", rest:60, note:"De rodillas si hace falta; tronco firme, sin dejar caer la cadera. Cuando 15 salgan fáciles, mochila a la espalda.", vid:ytSearch("flexiones tecnica correcta principiante")}),
+          exFrom("viernes","hotel","hotel_remo_mesa",{scheme:"3 × 12 por brazo", rest:60}),
           exFrom("martes","hotel","hotel_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
           exFrom("viernes","hotel","hotel_curl",{scheme:"2 × 12-15", rest:45, sets:2}),
           exFrom("martes","hotel","hotel_triceps",{scheme:"2 × 10-12", rest:45, sets:2}),
@@ -1806,7 +1809,8 @@ const PROGRAM_TONO = {
           exFrom("jueves","casa","casa_pallof",{note:"Core anti-rotación. Banda anclada a un punto firme a la altura del pecho; resiste el giro."}),
           CARDIO_FIN.casa
         ]},
-      hotel:{ title:"Glúteo y cuerpo B (habitación)", warmup:[
+      hotel:{ title:"Glúteo y cuerpo B (viaje)", warmup:[
+          "Kit de viaje: mochila cargada (botellas, libros, piedras), una toalla y — si cabe — una banda elástica.",
           "Marcha en el sitio: 2-3 min.",
           "Círculos de cadera: 10 en cada dirección.",
           "Glute bridge en suelo: 15 reps lentas."
@@ -1869,7 +1873,7 @@ STRETCH.tono_full_a = STRETCH.torso_a;
 function warmQuery(text){
   const base=String(text).split(":")[0].split("(")[0].trim();
   // Series de aproximación y cardio genérico: no hay vídeo que buscar (el ejercicio ya tiene el suyo)
-  if(/aproximaci|primer ejercicio|peso vacío|cardio ligero|marcha en el sitio/i.test(base)) return null;
+  if(/aproximaci|primer ejercicio|peso vacío|cardio ligero|marcha en el sitio|kit de viaje/i.test(base)) return null;
   return ytSearch(base+" ejercicio tecnica");
 }
 
@@ -4450,7 +4454,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.09.26-1 · BIELA";
+const APP_VERSION = "2026.09.26-2 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
