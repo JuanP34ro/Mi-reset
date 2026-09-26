@@ -1360,7 +1360,7 @@ const PROGRAM_FUERZA = {
           "Estiramiento de isquiotibial tumbado: 20 seg cada pierna.",
           "Glute bridge en suelo: 15 reps lentas.",
           "Patada de glúteo en cuadrupedia: 10 por pierna.",
-          "Aproximación en puente de glúteo o prensa: peso ligero 10 reps."
+          "Aproximación en puente de glúteo o hack: peso ligero 10 reps."
         ],
         exercises:[
           {id:"hip_thrust", name:"Puente de glúteo con mancuerna (en el suelo)", scheme:"4 × 10-15", rest:90, sets:4, note:"Lo más específico de glúteo sin máquina ni discos: tumbado en el suelo, mancuerna o kettlebell sobre la cadera (pon una toalla debajo). Aprieta el glúteo 1 seg arriba, barbilla metida, baja controlado.", vid:ytSearch("puente de gluteo con mancuerna tecnica"),
@@ -1369,11 +1369,11 @@ const PROGRAM_FUERZA = {
               {name:"Puente de glúteo a una pierna (cuando la mancuerna se quede corta)", vid:ytSearch("puente de gluteo a una pierna tecnica")},
               {name:"Puente de glúteo con pausa de 3 seg arriba (más difícil sin más peso)", vid:ytSearch("puente de gluteo pausa tecnica")}
             ]},
-          {id:"prensa_alta", name:"Prensa de piernas, pies altos en la plataforma", scheme:"3 × 12-15", rest:120, sets:3, note:"Pies altos = más glúteo e isquios.", vid:ytSearch("prensa de piernas pies altos gluteo tecnica"),
+          {id:"hack_squat", name:"Hack squat en máquina (pies altos y anchos)", scheme:"3 × 10-12", rest:120, sets:3, note:"Segunda dosis de hack en la semana para mejorar en ella: más ligera que el lunes (RIR 3), pies algo más altos y anchos en la plataforma para llevarla a glúteo. Aquí se pule el gesto; el lunes se carga.", vid:ytSearch("hack squat pies altos gluteo tecnica"),
             alts:[
-              {name:"Zancada inversa con mancuernas", vid:ytSearch("zancada inversa con mancuernas tecnica")},
-              {name:"Sentadilla profunda (pies juntos)", vid:ytSearch("sentadilla profunda tecnica")},
-              {name:"Peso muerto rumano", vid:ytSearch("peso muerto rumano tecnica")}
+              {name:"Prensa de piernas, pies altos en la plataforma", vid:ytSearch("prensa de piernas pies altos gluteo tecnica")},
+              {name:"Sentadilla en multipower (Smith), pies adelantados", vid:ytSearch("sentadilla multipower pies adelantados gluteo tecnica")},
+              {name:"Zancada inversa con mancuernas", vid:ytSearch("zancada inversa con mancuernas tecnica")}
             ]},
           {id:"curl_fem_sent", name:"Curl femoral sentado", scheme:"3 × 10-15", rest:75, sets:3, note:"Sentado = isquio en longitud larga (más crecimiento).", vid:ytSearch("curl femoral sentado maquina tecnica"),
             alts:[
@@ -1784,7 +1784,7 @@ const PROGRAM_TONO = {
           "Primer ejercicio con poco peso: 10 reps de aproximación."
         ],
         exercises:[
-          exFrom("jueves","gym","prensa_alta",{scheme:"3 × 12-15", rest:75}),
+          exFrom("lunes","gym","prensa",{id:"prensa_alta", name:"Prensa de piernas, pies altos en la plataforma", scheme:"3 × 12-15", rest:75, note:"Pies altos en la plataforma = más glúteo e isquios.", vid:ytSearch("prensa de piernas pies altos gluteo tecnica")}),
           exFrom("viernes","gym","jalon",{scheme:"3 × 12-15", rest:75}),
           exFrom("lunes","gym","curl_fem_tumb",{scheme:"3 × 12-15", rest:60}),
           exFrom("martes","gym","elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
@@ -4450,7 +4450,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.09.13-8 · BIELA";
+const APP_VERSION = "2026.09.26-1 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
