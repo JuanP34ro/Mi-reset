@@ -632,6 +632,39 @@
   .mood-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;
     font-size:13.5px;line-height:1.5;margin-bottom:14px}
   .mood-card span{color:var(--muted);display:block;margin-top:4px;font-size:12.5px}
+  /* ---- Día de meditación ---- */
+  .medit{background:linear-gradient(160deg,#312e81,#5b21b6 55%,#7c3aed);color:#fff;border-radius:var(--radius);
+    box-shadow:var(--shadow),0 10px 34px rgba(124,58,237,.28);padding:24px 20px 18px;text-align:center;animation:rise .35s ease both}
+  .medit .md-ico{font-size:60px;line-height:1;animation:breathe 4.5s ease-in-out infinite;filter:drop-shadow(0 6px 14px rgba(0,0,0,.3))}
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+  .medit h2{margin:12px 0 4px;font-size:22px;font-weight:800}
+  .medit .md-sub{margin:0 0 16px;font-size:14.5px;color:rgba(255,255,255,.85)}
+  .medit .md-btn{border:0;border-radius:999px;padding:13px 26px;font-weight:800;font-size:15.5px;cursor:pointer;
+    background:rgba(255,255,255,.95);color:#4c1d95;box-shadow:0 6px 20px rgba(0,0,0,.25);transition:all .25s}
+  .medit .md-btn.on{background:#2ecc71;color:#fff;box-shadow:0 6px 20px rgba(46,204,113,.4)}
+  .medit .md-note{margin-top:10px;font-size:12.5px;color:rgba(255,255,255,.8);font-style:italic}
+  .medit .md-rec{margin-top:18px;background:rgba(255,255,255,.1);border-radius:14px;padding:12px 12px 6px;text-align:left}
+  .medit .md-h{font-weight:800;font-size:14px;margin-bottom:8px}
+  .medit .md-h small{font-weight:500;color:rgba(255,255,255,.75)}
+  .medit .md-item{display:flex;align-items:center;gap:10px;padding:8px 2px;border-top:1px solid rgba(255,255,255,.12)}
+  .medit .md-item .n{width:22px;height:22px;flex:none;border-radius:50%;background:rgba(255,255,255,.2);display:flex;
+    align-items:center;justify-content:center;font-size:12px;font-weight:800}
+  .medit .md-tx{flex:1;min-width:0}
+  .medit .md-tx b{display:block;font-size:13.5px}
+  .medit .md-tx small{display:block;font-size:12px;color:rgba(255,255,255,.75);line-height:1.35}
+  .medit .item-vid{flex:none}
+  .medit .md-diary{margin-top:14px}
+  .cal-cell.medit{background:rgba(139,92,246,.18);border-color:rgba(139,92,246,.55)}
+  .cal-cell.trained.medit{background:linear-gradient(135deg,rgba(47,208,127,.18),rgba(139,92,246,.22))}
+  .cal-med{position:absolute;top:1px;right:2px;font-size:9px;font-style:normal;line-height:1}
+  .mind-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px;
+    border-left:4px solid #7c3aed}
+  .mind-card .mc-h{font-weight:800;font-size:14px;margin-bottom:10px}
+  .mind-card .mc-row{display:flex;gap:10px;flex-wrap:wrap}
+  .mind-card .mc-row div{flex:1;min-width:90px;background:rgba(124,58,237,.08);border-radius:12px;padding:9px 10px;text-align:center}
+  .mind-card .mc-row b{display:block;font-size:22px;font-weight:800;line-height:1.1}
+  .mind-card .mc-row span{font-size:11.5px;color:var(--muted)}
+  .mind-card .mc-sub{margin-top:10px;font-size:12.5px;color:var(--muted);line-height:1.45}
   /* Muro de frutos (Progreso): hechos, no premios */
   .fruit{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;line-height:1.5;align-items:flex-start}
   .fruit:last-child{border-bottom:none}
@@ -1192,7 +1225,7 @@ const PROGRAM_FUERZA = {
       }
     }
   },
-  martes: {
+  miercoles: {
     type:"session", key:"torso_a", label:"Torso A",
     variants:{
       gym:{
@@ -1350,8 +1383,8 @@ const PROGRAM_FUERZA = {
       }
     }
   },
-  miercoles:{ type:"rest" },
-  jueves: {
+  martes:{ type:"rest", medit:true },
+  viernes: {
     type:"session", key:"pierna_b", label:"Pierna B",
     variants:{
       gym:{
@@ -1514,7 +1547,7 @@ const PROGRAM_FUERZA = {
       }
     }
   },
-  viernes: {
+  sabado: {
     type:"session", key:"torso_b", label:"Torso B",
     variants:{
       gym:{
@@ -1652,7 +1685,7 @@ const PROGRAM_FUERZA = {
       }
     }
   },
-  sabado:{ type:"rest" },
+  jueves:{ type:"rest", medit:true },
   domingo:{ type:"rest" }
 };
 
@@ -1664,7 +1697,8 @@ const PROGRAM_FUERZA = {
    remate de cardio suave. La fuerza se mantiene: conserva el músculo
    mientras se pierde grasa.
    =========================================================== */
-function exFrom(dia, loc, id, over){
+function exFrom(sess, loc, id, over){
+  const dia = Object.keys(PROGRAM_FUERZA).find(d=>PROGRAM_FUERZA[d].key===sess);
   const base = PROGRAM_FUERZA[dia].variants[loc].exercises.find(e=>e.id===id);
   return Object.assign({}, base, over||{});
 }
@@ -1688,12 +1722,12 @@ const PROGRAM_TONO = {
           "Primer ejercicio con poco peso: 10 reps de aproximación."
         ],
         exercises:[
-          exFrom("jueves","gym","hip_thrust",{scheme:"4 × 12-15", rest:90}),
-          exFrom("lunes","gym","prensa",{scheme:"3 × 12-15", rest:75, sets:3}),
-          exFrom("lunes","gym","rdl",{scheme:"3 × 12-15", rest:90, note:"Bisagra de cadera: isquios y glúteo. Baja solo hasta notar el estiramiento sin perder la espalda neutra, mancuernas pegadas a las piernas, y sube peso solo cuando el gesto salga solo."}),
-          exFrom("jueves","gym","kickback",{scheme:"3 × 15-20", rest:45}),
-          exFrom("jueves","gym","curl_fem_sent",{scheme:"3 × 12-15", rest:60}),
-          exFrom("lunes","gym","gemelo_pie",{scheme:"3 × 15-20", rest:45, sets:3}),
+          exFrom("pierna_b","gym","hip_thrust",{scheme:"4 × 12-15", rest:90}),
+          exFrom("pierna_a","gym","prensa",{scheme:"3 × 12-15", rest:75, sets:3}),
+          exFrom("pierna_a","gym","rdl",{scheme:"3 × 12-15", rest:90, note:"Bisagra de cadera: isquios y glúteo. Baja solo hasta notar el estiramiento sin perder la espalda neutra, mancuernas pegadas a las piernas, y sube peso solo cuando el gesto salga solo."}),
+          exFrom("pierna_b","gym","kickback",{scheme:"3 × 15-20", rest:45}),
+          exFrom("pierna_b","gym","curl_fem_sent",{scheme:"3 × 12-15", rest:60}),
+          exFrom("pierna_a","gym","gemelo_pie",{scheme:"3 × 15-20", rest:45, sets:3}),
           CARDIO_FIN.gym
         ]},
       casa:{ title:"Glúteo y pierna A (casa)", warmup:[
@@ -1703,12 +1737,12 @@ const PROGRAM_TONO = {
           "Glute bridge en suelo: 15 reps lentas."
         ],
         exercises:[
-          exFrom("jueves","casa","casa_hip_thrust",{scheme:"4 × 12-15", rest:75}),
-          exFrom("lunes","casa","casa_goblet",{scheme:"3 × 12-15", rest:75, sets:3}),
-          exFrom("lunes","casa","casa_rdl_a",{scheme:"3 × 12-15", rest:75}),
-          exFrom("jueves","casa","casa_kickback",{scheme:"3 × 15 por pierna", rest:45}),
-          exFrom("lunes","casa","casa_curl_banda",{scheme:"3 × 12-15", rest:45}),
-          exFrom("lunes","casa","casa_gemelo",{scheme:"3 × 15-20", rest:45, sets:3}),
+          exFrom("pierna_b","casa","casa_hip_thrust",{scheme:"4 × 12-15", rest:75}),
+          exFrom("pierna_a","casa","casa_goblet",{scheme:"3 × 12-15", rest:75, sets:3}),
+          exFrom("pierna_a","casa","casa_rdl_a",{scheme:"3 × 12-15", rest:75}),
+          exFrom("pierna_b","casa","casa_kickback",{scheme:"3 × 15 por pierna", rest:45}),
+          exFrom("pierna_a","casa","casa_curl_banda",{scheme:"3 × 12-15", rest:45}),
+          exFrom("pierna_a","casa","casa_gemelo",{scheme:"3 × 15-20", rest:45, sets:3}),
           CARDIO_FIN.casa
         ]},
       hotel:{ title:"Glúteo y pierna A (viaje)", warmup:[
@@ -1719,11 +1753,11 @@ const PROGRAM_TONO = {
           "Glute bridge en suelo: 15 reps lentas."
         ],
         exercises:[
-          exFrom("jueves","hotel","hotel_hip_thrust",{scheme:"4 × 12-15", rest:60}),
-          exFrom("lunes","hotel","hotel_sentadilla",{scheme:"3 × 12-15", rest:60, sets:3}),
-          exFrom("lunes","hotel","hotel_rdl",{scheme:"3 × 12-15", rest:60}),
-          exFrom("jueves","hotel","hotel_kickback",{scheme:"3 × 15 por pierna", rest:45}),
-          exFrom("lunes","hotel","hotel_gemelo",{scheme:"3 × 15-20", rest:45, sets:3}),
+          exFrom("pierna_b","hotel","hotel_hip_thrust",{scheme:"4 × 12-15", rest:60}),
+          exFrom("pierna_a","hotel","hotel_sentadilla",{scheme:"3 × 12-15", rest:60, sets:3}),
+          exFrom("pierna_a","hotel","hotel_rdl",{scheme:"3 × 12-15", rest:60}),
+          exFrom("pierna_b","hotel","hotel_kickback",{scheme:"3 × 15 por pierna", rest:45}),
+          exFrom("pierna_a","hotel","hotel_gemelo",{scheme:"3 × 15-20", rest:45, sets:3}),
           CARDIO_FIN.hotel
         ]}
     }},
@@ -1738,12 +1772,12 @@ const PROGRAM_TONO = {
           "Primer ejercicio con poco peso: 10 reps de aproximación."
         ],
         exercises:[
-          exFrom("martes","gym","press_pecho_maq",{scheme:"3 × 12-15", rest:75, note:"Compuesto principal de empuje. Espalda bien apoyada, baja controlado."}),
-          exFrom("viernes","gym","remo_maq",{scheme:"3 × 12-15", rest:75, note:"Grosor de espalda. Tira con los codos hacia atrás, pecho firme, sin encoger los hombros."}),
-          exFrom("martes","gym","press_hombro_maq",{scheme:"2 × 12-15", rest:60, sets:2, note:"Ligero y controlado; si el hombro molesta, sáltalo y haz una serie más de laterales."}),
-          exFrom("viernes","gym","curl_mancuernas",{scheme:"2 × 12-15", rest:45, sets:2}),
-          exFrom("martes","gym","tri_pushdown",{scheme:"2 × 12-15", rest:45}),
-          exFrom("lunes","gym","crunch_maq",{scheme:"3 × 12-15", rest:45}),
+          exFrom("torso_a","gym","press_pecho_maq",{scheme:"3 × 12-15", rest:75, note:"Compuesto principal de empuje. Espalda bien apoyada, baja controlado."}),
+          exFrom("torso_b","gym","remo_maq",{scheme:"3 × 12-15", rest:75, note:"Grosor de espalda. Tira con los codos hacia atrás, pecho firme, sin encoger los hombros."}),
+          exFrom("torso_a","gym","press_hombro_maq",{scheme:"2 × 12-15", rest:60, sets:2, note:"Ligero y controlado; si el hombro molesta, sáltalo y haz una serie más de laterales."}),
+          exFrom("torso_b","gym","curl_mancuernas",{scheme:"2 × 12-15", rest:45, sets:2}),
+          exFrom("torso_a","gym","tri_pushdown",{scheme:"2 × 12-15", rest:45}),
+          exFrom("pierna_a","gym","crunch_maq",{scheme:"3 × 12-15", rest:45}),
           CARDIO_FIN.gym
         ]},
       casa:{ title:"Cuerpo completo (casa)", warmup:[
@@ -1753,12 +1787,12 @@ const PROGRAM_TONO = {
           "Sentadilla peso corporal: 10 reps."
         ],
         exercises:[
-          exFrom("martes","casa","casa_floor_press",{scheme:"3 × 12-15", rest:60}),
-          exFrom("viernes","casa","casa_remo_banda",{scheme:"3 × 12-15", rest:60}),
-          exFrom("martes","casa","casa_press_hombro",{scheme:"2 × 12-15", rest:60, sets:2, note:"Ligero y controlado; agarre neutro."}),
-          exFrom("viernes","casa","casa_curl",{scheme:"2 × 12-15", rest:45, sets:2}),
-          exFrom("martes","casa","casa_tri_pushdown",{scheme:"2 × 12-15", rest:45}),
-          exFrom("lunes","casa","casa_plancha",{scheme:"3 × 30-45 seg", rest:45}),
+          exFrom("torso_a","casa","casa_floor_press",{scheme:"3 × 12-15", rest:60}),
+          exFrom("torso_b","casa","casa_remo_banda",{scheme:"3 × 12-15", rest:60}),
+          exFrom("torso_a","casa","casa_press_hombro",{scheme:"2 × 12-15", rest:60, sets:2, note:"Ligero y controlado; agarre neutro."}),
+          exFrom("torso_b","casa","casa_curl",{scheme:"2 × 12-15", rest:45, sets:2}),
+          exFrom("torso_a","casa","casa_tri_pushdown",{scheme:"2 × 12-15", rest:45}),
+          exFrom("pierna_a","casa","casa_plancha",{scheme:"3 × 30-45 seg", rest:45}),
           CARDIO_FIN.casa
         ]},
       hotel:{ title:"Cuerpo completo (viaje)", warmup:[
@@ -1768,12 +1802,12 @@ const PROGRAM_TONO = {
           "Sentadilla peso corporal: 10 reps."
         ],
         exercises:[
-          exFrom("martes","hotel","hotel_flexion",{scheme:"3 × 8-15", rest:60, note:"De rodillas si hace falta; tronco firme, sin dejar caer la cadera. Cuando 15 salgan fáciles, mochila a la espalda.", vid:ytSearch("flexiones tecnica correcta principiante")}),
-          exFrom("viernes","hotel","hotel_remo_mesa",{scheme:"3 × 12 por brazo", rest:60}),
-          exFrom("martes","hotel","hotel_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
-          exFrom("viernes","hotel","hotel_curl",{scheme:"2 × 12-15", rest:45, sets:2}),
-          exFrom("martes","hotel","hotel_triceps",{scheme:"2 × 10-12", rest:45, sets:2}),
-          exFrom("lunes","hotel","hotel_plancha",{scheme:"3 × 30-45 seg", rest:45}),
+          exFrom("torso_a","hotel","hotel_flexion",{scheme:"3 × 8-15", rest:60, note:"De rodillas si hace falta; tronco firme, sin dejar caer la cadera. Cuando 15 salgan fáciles, mochila a la espalda.", vid:ytSearch("flexiones tecnica correcta principiante")}),
+          exFrom("torso_b","hotel","hotel_remo_mesa",{scheme:"3 × 12 por brazo", rest:60}),
+          exFrom("torso_a","hotel","hotel_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
+          exFrom("torso_b","hotel","hotel_curl",{scheme:"2 × 12-15", rest:45, sets:2}),
+          exFrom("torso_a","hotel","hotel_triceps",{scheme:"2 × 10-12", rest:45, sets:2}),
+          exFrom("pierna_a","hotel","hotel_plancha",{scheme:"3 × 30-45 seg", rest:45}),
           CARDIO_FIN.hotel
         ]}
     }},
@@ -1787,12 +1821,12 @@ const PROGRAM_TONO = {
           "Primer ejercicio con poco peso: 10 reps de aproximación."
         ],
         exercises:[
-          exFrom("lunes","gym","prensa",{id:"prensa_alta", name:"Prensa de piernas, pies altos en la plataforma", scheme:"3 × 12-15", rest:75, note:"Pies altos en la plataforma = más glúteo e isquios.", vid:ytSearch("prensa de piernas pies altos gluteo tecnica")}),
-          exFrom("viernes","gym","jalon",{scheme:"3 × 12-15", rest:75}),
-          exFrom("lunes","gym","curl_fem_tumb",{scheme:"3 × 12-15", rest:60}),
-          exFrom("martes","gym","elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
-          exFrom("jueves","gym","gemelo_sent",{scheme:"3 × 15-20", rest:45, sets:3}),
-          exFrom("jueves","gym","pallof_polea",{note:"Core anti-rotación. Brazos al frente, resiste el giro del torso; respira normal, no aguantes el aire."}),
+          exFrom("pierna_a","gym","prensa",{id:"prensa_alta", name:"Prensa de piernas, pies altos en la plataforma", scheme:"3 × 12-15", rest:75, note:"Pies altos en la plataforma = más glúteo e isquios.", vid:ytSearch("prensa de piernas pies altos gluteo tecnica")}),
+          exFrom("torso_b","gym","jalon",{scheme:"3 × 12-15", rest:75}),
+          exFrom("pierna_a","gym","curl_fem_tumb",{scheme:"3 × 12-15", rest:60}),
+          exFrom("torso_a","gym","elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
+          exFrom("pierna_b","gym","gemelo_sent",{scheme:"3 × 15-20", rest:45, sets:3}),
+          exFrom("pierna_b","gym","pallof_polea",{note:"Core anti-rotación. Brazos al frente, resiste el giro del torso; respira normal, no aguantes el aire."}),
           CARDIO_FIN.gym
         ]},
       casa:{ title:"Glúteo y cuerpo B (casa)", warmup:[
@@ -1801,12 +1835,12 @@ const PROGRAM_TONO = {
           "Glute bridge en suelo: 15 reps lentas."
         ],
         exercises:[
-          exFrom("lunes","casa","casa_bulgara",{scheme:"3 × 12-15 por pierna", rest:60}),
-          exFrom("viernes","casa","casa_remo_man",{scheme:"3 × 12 por brazo", rest:60}),
-          exFrom("jueves","casa","casa_curl_post",{scheme:"3 × 12-15", rest:45}),
-          exFrom("martes","casa","casa_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
-          exFrom("jueves","casa","casa_gemelo_b",{scheme:"3 × 15-20", rest:45, sets:3}),
-          exFrom("jueves","casa","casa_pallof",{note:"Core anti-rotación. Banda anclada a un punto firme a la altura del pecho; resiste el giro."}),
+          exFrom("pierna_a","casa","casa_bulgara",{scheme:"3 × 12-15 por pierna", rest:60}),
+          exFrom("torso_b","casa","casa_remo_man",{scheme:"3 × 12 por brazo", rest:60}),
+          exFrom("pierna_b","casa","casa_curl_post",{scheme:"3 × 12-15", rest:45}),
+          exFrom("torso_a","casa","casa_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
+          exFrom("pierna_b","casa","casa_gemelo_b",{scheme:"3 × 15-20", rest:45, sets:3}),
+          exFrom("pierna_b","casa","casa_pallof",{note:"Core anti-rotación. Banda anclada a un punto firme a la altura del pecho; resiste el giro."}),
           CARDIO_FIN.casa
         ]},
       hotel:{ title:"Glúteo y cuerpo B (viaje)", warmup:[
@@ -1816,12 +1850,12 @@ const PROGRAM_TONO = {
           "Glute bridge en suelo: 15 reps lentas."
         ],
         exercises:[
-          exFrom("lunes","hotel","hotel_bulgara",{scheme:"3 × 12-15 por pierna", rest:60}),
-          exFrom("viernes","hotel","hotel_remo_toalla",{scheme:"3 × 12", rest:60}),
-          exFrom("jueves","hotel","hotel_curl_post",{scheme:"3 × 12-15", rest:45}),
-          exFrom("martes","hotel","hotel_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
-          exFrom("jueves","hotel","hotel_gemelo_b",{scheme:"3 × 15-20", rest:45, sets:3}),
-          exFrom("jueves","hotel","hotel_antirot",{note:"Core anti-rotación sin material. Brazo y pierna contrarios, cadera estable, sin arquear la lumbar."}),
+          exFrom("pierna_a","hotel","hotel_bulgara",{scheme:"3 × 12-15 por pierna", rest:60}),
+          exFrom("torso_b","hotel","hotel_remo_toalla",{scheme:"3 × 12", rest:60}),
+          exFrom("pierna_b","hotel","hotel_curl_post",{scheme:"3 × 12-15", rest:45}),
+          exFrom("torso_a","hotel","hotel_elev_lat",{scheme:"3 × 15", rest:45, sets:3}),
+          exFrom("pierna_b","hotel","hotel_gemelo_b",{scheme:"3 × 15-20", rest:45, sets:3}),
+          exFrom("pierna_b","hotel","hotel_antirot",{note:"Core anti-rotación sin material. Brazo y pierna contrarios, cadera estable, sin arquear la lumbar."}),
           CARDIO_FIN.hotel
         ]}
     }},
@@ -1832,7 +1866,7 @@ const PROGRAM_TONO = {
 const DAY_ORDER = ["lunes","martes","miercoles","jueves","viernes","sabado","domingo"];
 const DAY_SHORT = {lunes:"Lun",martes:"Mar",miercoles:"Mié",jueves:"Jue",viernes:"Vie",sabado:"Sáb",domingo:"Dom"};
 // Etiqueta del día según el plan activo (se resuelve en el render)
-function dayTag(d){ const day=PROGRAM[d]; return (day && day.type==="session") ? day.label : "Descanso"; }
+function dayTag(d){ const day=PROGRAM[d]; return (day && day.type==="session") ? day.label : (day && day.medit ? "Medita" : "Descanso"); }
 // Sesiones semanales del plan activo (fuerza: 4 · tonificar: 3)
 function sessionsPerWeek(){ return DAY_ORDER.filter(d=>PROGRAM[d] && PROGRAM[d].type==="session").length; }
 
@@ -1895,6 +1929,7 @@ const LS_WEEK_ANCHOR = "reset_gym_week_anchor_v1"; // lunes (real) al que corres
 const LS_SESSMETA = "reset_gym_sessmeta_v1";       // por sesión: hora de la primera y última serie (duración)
 const LS_DIARY = "reset_gym_diary_v1";             // diario de una línea por día ("¿qué has demostrado hoy?")
 const LS_MOOD = "reset_gym_mood_v1";               // sensación tras cada sesión: { "YYYY-MM-DD": 1-4 }
+const LS_MEDIT = "reset_gym_medit_v1";             // días de meditación: { "YYYY-MM-DD": 1 }
 const LS_REST = "reset_gym_rest_v1";               // descanso en curso {endAt,total} — sobrevive a recargas/cierres
 const LS_PROFILE = "reset_gym_profile_v1";         // plan elegido: fuerza (💪) | tono (🔥 perder peso y tonificar)
 
@@ -1992,7 +2027,7 @@ if(PROFILE!=="fuerza" && PROFILE!=="tono") PROFILE = null;
 if(!PROFILE && Object.keys(LOG).length){ PROFILE="fuerza"; try{ localStorage.setItem(LS_PROFILE,"fuerza"); }catch(e){} }
 let PROGRAM = (PROFILE==="tono") ? PROGRAM_TONO : PROGRAM_FUERZA;
 const PROFILE_INFO = {
-  fuerza:{ icon:"💪", label:"Fuerza y músculo", desc:"Torso/pierna 4 días, cargas progresivas" },
+  fuerza:{ icon:"💪", label:"Fuerza y músculo", desc:"Torso/pierna 4 días (L·X·V·S) · meditación M y J" },
   tono:{ icon:"🔥", label:"Perder peso y tonificar", desc:"3 días (L·X·V): glúteo/pierna + cuerpo completo, reps altas y remate cardio quema-grasa" }
 };
 function setProfile(p){
@@ -2112,6 +2147,11 @@ function sanitizeMood(o){
   });
   return out;
 }
+function sanitizeMedit(o){
+  const out={};
+  if(o && typeof o==="object") Object.keys(o).forEach(k=>{ if(/^\d{4}-\d{2}-\d{2}$/.test(k) && o[k]) out[k]=1; });
+  return out;
+}
 function moodNote(v){
   return v===1 ? "Normal en días exigentes: hoy, comer y dormir bien vale doble."
                : "Apúntatelo: así es como te deja entrenar. El mejor motivo para volver.";
@@ -2196,6 +2236,7 @@ let PLAN = loadJSON(LS_PLAN, {});      // hitos marcados por el usuario
 let TRAINED = loadJSON(LS_DATES, {});  // { "YYYY-MM-DD": ["torso_a", ...] } fechas entrenadas
 let DIARY = sanitizeDiary(loadJSON(LS_DIARY, {})); // { "YYYY-MM-DD": "una línea" }
 let MOOD = sanitizeMood(loadJSON(LS_MOOD, {}));    // cómo te quedaste tras entrenar
+let MEDIT = sanitizeMedit(loadJSON(LS_MEDIT, {})); // meditaciones apuntadas
 let calRef = null;                     // {y, m} mes mostrado en el calendario
 const SESSION_LABEL = (()=>{ const o={}; [PROGRAM_FUERZA, PROGRAM_TONO].forEach(P=>Object.values(P).forEach(d=>{ if(d.key) o[d.key]=d.label; })); return o; })();
 // Registra que HOY se entrenó esta sesión (para el calendario)
@@ -2525,11 +2566,11 @@ function renderCalendar(){
   for(let i=0;i<startWd;i++){ const c=document.createElement("div"); c.className="cal-cell blank"; grid.appendChild(c); }
   for(let d=1; d<=days; d++){
     const ds=`${y}-${pad2(m+1)}-${pad2(d)}`;
-    const trained=TRAINED[ds];
+    const trained=TRAINED[ds], med=MEDIT[ds];
     const c=document.createElement("div");
-    c.className="cal-cell"+(trained?" trained":"")+(ds===tS?" today":"");
-    c.innerHTML=`<span>${d}</span>`+(trained?'<i class="cal-dot"></i>':"");
-    if(trained){ c.title=trained.map(k=>SESSION_LABEL[k]||k).join(", "); }
+    c.className="cal-cell"+(trained?" trained":"")+(med?" medit":"")+(ds===tS?" today":"");
+    c.innerHTML=`<span>${d}</span>`+(trained?'<i class="cal-dot"></i>':"")+(med?'<i class="cal-med">🧘</i>':"");
+    if(trained||med){ c.title=[...(trained||[]).map(k=>SESSION_LABEL[k]||k), ...(med?["Meditación"]:[])].join(", "); }
     grid.appendChild(c);
   }
   card.appendChild(grid);
@@ -2539,8 +2580,9 @@ function renderCalendar(){
   const sesMes=Object.keys(TRAINED).filter(k=>k.startsWith(mk)).length;
   const sesTotal=Object.keys(TRAINED).length;
   const foot=document.createElement("div"); foot.className="cal-foot";
+  const medMes=Object.keys(MEDIT).filter(k=>k.startsWith(mk)).length;
   foot.innerHTML=`<span><b>${sesMes}</b> días este mes</span><span><b>${sesTotal}</b> en total</span>
-    <span class="cal-leg"><i class="cal-dot"></i> entrenado</span>`;
+    <span class="cal-leg"><i class="cal-dot"></i> entrenado</span>${medMes?`<span class="cal-leg">🧘 ${medMes} meditado${medMes>1?"s":""}</span>`:""}`;
   card.appendChild(foot);
 
   content.appendChild(card);
@@ -2989,7 +3031,58 @@ function renderLocationSelector(){
   });
 }
 
+/* Recuperación de 5 min para el día de meditación, según la sesión del día anterior */
+const MEDIT_RECOVERY = {
+  martes:{ after:"Pierna A", items:[
+    {t:"Flexor de cadera en zancada (psoas)", q:"estiramiento flexor de cadera psoas zancada", tip:"30 s por lado. Aprieta el glúteo de atrás, sin arquear la lumbar."},
+    {t:"Glúteo en figura 4 (tumbado)", q:"estiramiento de gluteo figura 4 tumbado", tip:"30 s por lado, respirando lento."},
+    {t:"Gemelo en la pared", q:"estiramiento de gemelo en pared tecnica", tip:"30 s por pierna, talón pegado al suelo."}
+  ]},
+  jueves:{ after:"Torso A", items:[
+    {t:"Floor slides (boca arriba, brazos en W)", q:"floor slides escapula ejercicio tecnica", tip:"2 × 10 lentos, brazos pegados al suelo. Los deberes de escápula del fisio."},
+    {t:"Retracciones escapulares de pie", q:"retracciones escapulares de pie ejercicio", tip:"2 × 15, aguanta 2 s juntando las escápulas."},
+    {t:"Pecho en el marco de la puerta", q:"estiramiento de pecho en marco de puerta", tip:"30 s por lado, codo a 90°, sin forzar el hombro."}
+  ]}
+};
+function renderMeditDay(){
+  const isToday = selectedDay===todayKey();
+  const ds=todayStr(), done=!!MEDIT[ds];
+  const rec=MEDIT_RECOVERY[selectedDay]||MEDIT_RECOVERY.martes;
+  const dToday=DIARY[ds]||"";
+  const c=document.createElement("div");
+  c.className="medit";
+  c.innerHTML=`<div class="md-ico">🧘</div>
+    <h2>Día de meditación</h2>
+    <p class="md-sub">El cuerpo descansa, la cabeza entrena.</p>
+    ${isToday
+      ? `<button class="md-btn${done?" on":""}">${done?"✓ Meditado hoy":"He meditado hoy"}</button>
+         <div class="md-note">${done?"Apuntado en tu calendario. Por lo que sea 🧘":"Un toque y queda en tu calendario, como un entreno."}</div>`
+      : `<div class="md-note">Marca la meditación el propio día, desde la pestaña de hoy.</div>`}
+    <div class="md-rec">
+      <div class="md-h">🌿 Recuperación de 5 min <small>· ayer ${rec.after}</small></div>
+      ${rec.items.map((it,i)=>`<div class="md-item"><span class="n">${i+1}</span>
+        <div class="md-tx"><b>${it.t}</b><small>${it.tip}</small></div>
+        <a class="item-vid" href="${ytSearch(it.q)}" target="_blank" rel="noopener" aria-label="Ver vídeo">▶</a></div>`).join("")}
+    </div>
+    ${isToday?`<textarea class="cierre-diary md-diary" rows="2" placeholder="¿Qué te ha dejado la meditación hoy? Una línea…">${esc(dToday)}</textarea>`:""}`;
+  content.appendChild(c);
+  const btn=c.querySelector(".md-btn");
+  if(btn) btn.onclick=()=>{
+    if(MEDIT[ds]) delete MEDIT[ds]; else { MEDIT[ds]=1; toast("Meditación apuntada 🧘"); }
+    saveJSON(LS_MEDIT, MEDIT); scheduleCloudSync(); render();
+  };
+  const ta=c.querySelector(".md-diary");
+  if(ta) ta.oninput=(e)=>{
+    const t=e.target.value;
+    if(t.trim()) DIARY[ds]=t; else delete DIARY[ds];
+    saveJSON(LS_DIARY, DIARY); scheduleCloudSync();
+  };
+  renderBackupReminder();
+}
+
 function renderRestDay(){
+  const rd=PROGRAM[selectedDay];
+  if(rd && rd.medit){ renderMeditDay(); return; }
   const c=document.createElement("div");
   c.className="rest-day";
   c.innerHTML = `<div class="big">🌿</div>
@@ -3816,6 +3909,7 @@ document.getElementById("restoreBackup").onclick=()=>{
   PLAN = mergePlan(PLAN, sanitizePlan(data.plan)); saveJSON(LS_PLAN, PLAN);               // hitos: unión
   DIARY = mergeDiary(DIARY, sanitizeDiary(data.diary)); saveJSON(LS_DIARY, DIARY);        // diario: unión
   MOOD = mergeDiary(MOOD, sanitizeMood(data.mood)); saveJSON(LS_MOOD, MOOD);             // sensaciones: unión
+  MEDIT = mergeDiary(MEDIT, sanitizeMedit(data.medit)); saveJSON(LS_MEDIT, MEDIT);       // meditaciones: unión
   // La semana de la copia se "envejece" según cuándo se guardó (no retrocede el tiempo real)
   const w=parseInt(data.week,10); if(Number.isFinite(w)) setWeek(w + weeksSinceSaved(data.savedAt));
   markCloudReplace();  // el siguiente push refleja esta restauración tal cual
@@ -3835,6 +3929,7 @@ document.getElementById("undoRestore").onclick=()=>{
   if(p.plan){ PLAN = sanitizePlan(p.plan); saveJSON(LS_PLAN, PLAN); }
   if(p.diary){ DIARY = sanitizeDiary(p.diary); saveJSON(LS_DIARY, DIARY); }
   if(p.mood){ MOOD = sanitizeMood(p.mood); saveJSON(LS_MOOD, MOOD); }
+  if(p.medit){ MEDIT = sanitizeMedit(p.medit); saveJSON(LS_MEDIT, MEDIT); }
   const w=parseInt(p.week,10); if(Number.isFinite(w)) setWeek(w);
   saveJSON(LS_PREDO, current);
   markCloudReplace();  // el siguiente push refleja el estado recuperado
@@ -3861,7 +3956,7 @@ function cloudPayload(){
   // Sin entradas vacías (las que crea el render al navegar): copias y nube limpias
   const log={};
   Object.keys(LOG).forEach(k=>{ if(!isEmptyEntry(LOG[k])) log[k]=LOG[k]; });
-  return JSON.stringify({ v:2, week:WEEK, log, dates:TRAINED, plan:PLAN, diary:DIARY, mood:MOOD, savedAt:new Date().toISOString() }, null, 2);
+  return JSON.stringify({ v:2, week:WEEK, log, dates:TRAINED, plan:PLAN, diary:DIARY, mood:MOOD, medit:MEDIT, savedAt:new Date().toISOString() }, null, 2);
 }
 /* Semanas transcurridas desde que se guardó una copia (para "envejecer" su nº de semana al restaurarla) */
 function weeksSinceSaved(savedAt){
@@ -3938,7 +4033,7 @@ async function cloudFetchRemote(token, id){
   if(f.truncated && f.raw_url){ content=await (await fetch(f.raw_url)).text(); }
   const data=JSON.parse(content);
   if(!data || typeof data.log!=="object") return null;
-  return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan), diary:sanitizeDiary(data.diary), mood:sanitizeMood(data.mood) };
+  return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan), diary:sanitizeDiary(data.diary), mood:sanitizeMood(data.mood), medit:sanitizeMedit(data.medit) };
 }
 
 /* Tras "Borrar semana" o "Restaurar copia", el siguiente push debe REEMPLAZAR la nube
@@ -3990,6 +4085,7 @@ async function cloudPush(flush){
           PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);
           DIARY = mergeDiary(DIARY, remote.diary); saveJSON(LS_DIARY, DIARY);
           MOOD = mergeDiary(MOOD, sanitizeMood(remote.mood)); saveJSON(LS_MOOD, MOOD);
+          MEDIT = mergeDiary(MEDIT, sanitizeMedit(remote.medit)); saveJSON(LS_MEDIT, MEDIT);
         }
       }catch(e){ /* si el GET falla seguimos y subimos lo local */ }
     }
@@ -4028,7 +4124,8 @@ async function cloudPull(){
     TRAINED = mergeDates(TRAINED, remote.dates); saveJSON(LS_DATES, TRAINED); // calendario: unión
     PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);             // hitos: unión
     DIARY = mergeDiary(DIARY, remote.diary); saveJSON(LS_DIARY, DIARY);
-          MOOD = mergeDiary(MOOD, sanitizeMood(remote.mood)); saveJSON(LS_MOOD, MOOD);       // diario: unión
+          MOOD = mergeDiary(MOOD, sanitizeMood(remote.mood)); saveJSON(LS_MOOD, MOOD);
+          MEDIT = mergeDiary(MEDIT, sanitizeMedit(remote.medit)); saveJSON(LS_MEDIT, MEDIT);       // diario: unión
     // La semana de la copia se "envejece" según cuándo se guardó (no retrocede el tiempo real)
     const w=parseInt(remote.week,10);
     const aged = Number.isFinite(w) ? w + weeksSinceSaved(remote.savedAt) : NaN;
@@ -4065,6 +4162,7 @@ async function cloudConnect(){
           PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);
           DIARY = mergeDiary(DIARY, remote.diary); saveJSON(LS_DIARY, DIARY);
           MOOD = mergeDiary(MOOD, sanitizeMood(remote.mood)); saveJSON(LS_MOOD, MOOD);
+          MEDIT = mergeDiary(MEDIT, sanitizeMedit(remote.medit)); saveJSON(LS_MEDIT, MEDIT);
           const w=parseInt(remote.week,10);
           const aged = Number.isFinite(w) ? w + weeksSinceSaved(remote.savedAt) : NaN;
           if(Number.isFinite(aged) && aged>WEEK) setWeek(aged);
@@ -4204,6 +4302,26 @@ function computeProgress(){
   return {maxWeek, perWeek, totalSets, totalVolume, prs, sessionsComplete, byLoc, weeksActive};
 }
 
+function renderMindCard(){
+  // Cuerpo y mente: entrenos + meditaciones de la semana (si el plan tiene días de meditación o hay registros)
+  const hasMedit = DAY_ORDER.some(d=>PROGRAM[d] && PROGRAM[d].medit) || Object.keys(MEDIT).length>0;
+  if(!hasMedit) return;
+  const _t=parseLocalDate(todayStr()), _mon=new Date(_t); _mon.setDate(_t.getDate()-((_t.getDay()+6)%7));
+  const monStr=_mon.getFullYear()+"-"+pad2(_mon.getMonth()+1)+"-"+pad2(_mon.getDate());
+  const wkTrain=Object.keys(TRAINED).filter(ds=>ds>=monStr).length;
+  const wkMed=Object.keys(MEDIT).filter(ds=>ds>=monStr).length;
+  const medDays=DAY_ORDER.filter(d=>PROGRAM[d] && PROGRAM[d].medit).length;
+  const totMed=Object.keys(MEDIT).length;
+  const mind=document.createElement("div");
+  mind.className="mind-card";
+  mind.innerHTML=`<div class="mc-h">🧘 Cuerpo y mente · esta semana</div>
+    <div class="mc-row"><div><b>${wkTrain}</b><span>/${sessionsPerWeek()} entrenos</span></div>
+      <div><b>${wkMed}</b><span>/${medDays||2} meditaciones</span></div>
+      <div><b>${totMed}</b><span>meditaciones en total</span></div></div>
+    <div class="mc-sub">${wkTrain>=sessionsPerWeek() && wkMed>=(medDays||2) ? "Semana redonda: cuerpo y cabeza. Por lo que sea 🤝" : "Entrenar calma la mente; meditar la entrena. Los dos hábitos se refuerzan."}</div>`;
+  content.appendChild(mind);
+}
+
 function renderProgress(){
   const p=computeProgress();
 
@@ -4213,6 +4331,7 @@ function renderProgress(){
     e.innerHTML=`<div class="big">📈</div><h2>Aún no hay datos</h2>
       <p>Registra tus primeras series en la pestaña <b>Entreno</b> y aquí verás tu evolución semana a semana.</p>`;
     content.appendChild(e);
+    renderMindCard();
     return;
   }
 
@@ -4238,6 +4357,9 @@ function renderProgress(){
       <div class="sub">Constancia: objetivo ${goalSes} sesiones por semana 🎯</div>
     </div>`;
   content.appendChild(hero);
+
+  renderMindCard();
+
 
   // Tu propia evidencia: cómo te deja entrenar (a partir de 3 registros)
   const mVals=Object.values(MOOD);
@@ -4454,7 +4576,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.09.26-2 · BIELA";
+const APP_VERSION = "2026.09.26-3 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
