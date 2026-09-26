@@ -665,6 +665,36 @@
   .mind-card .mc-row b{display:block;font-size:22px;font-weight:800;line-height:1.1}
   .mind-card .mc-row span{font-size:11.5px;color:var(--muted)}
   .mind-card .mc-sub{margin-top:10px;font-size:12.5px;color:var(--muted);line-height:1.45}
+  .mind-card .mc-streak{margin-top:10px;display:inline-block;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;
+    border-radius:999px;padding:6px 13px;font-size:13px;font-weight:800}
+  .medit .md-alt{margin-top:12px;border:1.5px solid rgba(255,255,255,.4);background:rgba(255,255,255,.1);color:#fff;
+    border-radius:999px;padding:8px 14px;font-size:12.5px;cursor:pointer}
+  /* ---- Respiración ---- */
+  .breath{position:fixed;inset:0;z-index:140;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:16px;padding:20px;text-align:center;background:radial-gradient(circle at 50% 38%,#5b21b6,#1e1b4b 72%);animation:tutoIn .3s ease both}
+  .breath .b-stop{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.16);
+    border:0;color:#fff;border-radius:999px;padding:7px 15px;font-size:13px;cursor:pointer}
+  .breath .b-ring{position:relative;width:270px;height:270px;display:flex;align-items:center;justify-content:center}
+  .breath .b-circle{width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.16);border:3px solid rgba(255,255,255,.6);
+    box-shadow:0 0 70px rgba(167,139,250,.55);animation:bBreath 10s ease-in-out infinite}
+  @keyframes bBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.75)}}
+  .breath .b-txt{position:absolute;font-weight:800;font-size:23px;letter-spacing:.5px;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+  .breath .b-time{font-size:36px;font-weight:800;font-variant-numeric:tabular-nums}
+  .breath .b-hint{font-size:13px;color:rgba(255,255,255,.75);max-width:300px;line-height:1.45}
+  /* ---- Cierre de semana ---- */
+  .weekly{background:linear-gradient(150deg,#0f766e,#0e7490 60%,#2563eb);color:#fff;border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:18px 18px 16px;margin-bottom:14px;animation:rise .35s ease both}
+  .weekly .wk-h{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .weekly .wk-ico{font-size:34px}
+  .weekly h2{margin:0;font-size:21px;font-weight:800}
+  .weekly small{color:rgba(255,255,255,.8);font-size:12.5px}
+  .weekly .wk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .weekly .wk-grid div{background:rgba(255,255,255,.14);border-radius:12px;padding:10px 8px;text-align:center}
+  .weekly .wk-grid b{display:block;font-size:24px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+  .weekly .wk-grid span{font-size:11.5px;color:rgba(255,255,255,.85)}
+  .weekly .wk-line{margin-top:13px;font-size:14px;line-height:1.5}
+  .weekly .wk-line span{font-size:12.5px;color:rgba(255,255,255,.8)}
+  .weekly .wk-diary{margin-top:12px}
   /* Muro de frutos (Progreso): hechos, no premios */
   .fruit{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;line-height:1.5;align-items:flex-start}
   .fruit:last-child{border-bottom:none}
@@ -3044,6 +3074,30 @@ const MEDIT_RECOVERY = {
     {t:"Pecho en el marco de la puerta", q:"estiramiento de pecho en marco de puerta", tip:"30 s por lado, codo a 90°, sin forzar el hombro."}
   ]}
 };
+/* Plan B del día de meditación: 5 min de respiración coherente (5 s dentro · 5 s fuera) */
+function startBreathing(){
+  if(document.querySelector(".breath")) return;
+  const total=300; let left=total, phase="in";
+  const ov=document.createElement("div"); ov.className="breath";
+  ov.innerHTML=`<button class="b-stop">Parar</button>
+    <div class="b-ring"><div class="b-circle"></div><div class="b-txt">Inhala</div></div>
+    <div class="b-time">5:00</div>
+    <div class="b-hint">5 s dentro · 5 s fuera. Por la nariz, sin forzar. Solo cuenta la respiración.</div>`;
+  document.body.appendChild(ov);
+  const txt=ov.querySelector(".b-txt"), tm=ov.querySelector(".b-time");
+  const mark=(msg)=>{ MEDIT[todayStr()]=1; saveJSON(LS_MEDIT, MEDIT); scheduleCloudSync(); toast(msg); render(); };
+  const iv=setInterval(()=>{
+    left--;
+    if(left%5===0){ phase = phase==="in" ? "out" : "in"; txt.textContent = phase==="in" ? "Inhala" : "Exhala"; }
+    tm.textContent=Math.floor(left/60)+":"+pad2(left%60);
+    if(left<=0){ clearInterval(iv); ov.remove(); mark("5 minutos de respiración. Apuntado como meditación 🧘"); }
+  },1000);
+  ov.querySelector(".b-stop").onclick=()=>{
+    clearInterval(iv); ov.remove();
+    if(total-left>=180) mark("Más de 3 minutos: apuntado 🧘"); else toast("Sin prisa: cuando quieras, vuelves.");
+  };
+}
+
 function renderMeditDay(){
   const isToday = selectedDay===todayKey();
   const ds=todayStr(), done=!!MEDIT[ds];
@@ -3056,7 +3110,8 @@ function renderMeditDay(){
     <p class="md-sub">El cuerpo descansa, la cabeza entrena.</p>
     ${isToday
       ? `<button class="md-btn${done?" on":""}">${done?"✓ Meditado hoy":"He meditado hoy"}</button>
-         <div class="md-note">${done?"Apuntado en tu calendario. Por lo que sea 🧘":"Un toque y queda en tu calendario, como un entreno."}</div>`
+         <div class="md-note">${done?"Apuntado en tu calendario. Por lo que sea 🧘":"Un toque y queda en tu calendario, como un entreno."}</div>
+         ${done?"":`<button class="md-alt">Hoy no he podido ir → 5 min de respiración</button>`}`
       : `<div class="md-note">Marca la meditación el propio día, desde la pestaña de hoy.</div>`}
     <div class="md-rec">
       <div class="md-h">🌿 Recuperación de 5 min <small>· ayer ${rec.after}</small></div>
@@ -3066,6 +3121,8 @@ function renderMeditDay(){
     </div>
     ${isToday?`<textarea class="cierre-diary md-diary" rows="2" placeholder="¿Qué te ha dejado la meditación hoy? Una línea…">${esc(dToday)}</textarea>`:""}`;
   content.appendChild(c);
+  const alt=c.querySelector(".md-alt");
+  if(alt) alt.onclick=startBreathing;
   const btn=c.querySelector(".md-btn");
   if(btn) btn.onclick=()=>{
     if(MEDIT[ds]) delete MEDIT[ds]; else { MEDIT[ds]=1; toast("Meditación apuntada 🧘"); }
@@ -3080,9 +3137,41 @@ function renderMeditDay(){
   renderBackupReminder();
 }
 
+function renderWeekRecap(){
+  const s=weekStats(), spw=sessionsPerWeek(), md=meditDaysPlan();
+  const isToday = selectedDay===todayKey();
+  const round = s.train>=spw && s.meds>=md;
+  const good=s.moods.filter(v=>v>=2).length;
+  let line;
+  if(round) line="🎉 <b>Semana redonda.</b> Cuerpo y cabeza, sin excusas. Por lo que sea 🤝";
+  else if(s.train===0) line="Semana en blanco. Pasa. Lo que cuenta es volver el lunes.";
+  else line=`<b>${s.train} de ${spw} entrenos.</b> Lo hecho, hecho está; la semana que viene se empieza el lunes.`;
+  if(s.moods.length) line+=`<br><span>Después de entrenar saliste bien o mejor en ${good} de ${s.moods.length}.</span>`;
+  const dToday=DIARY[todayStr()]||"";
+  const c=document.createElement("div");
+  c.className="weekly";
+  c.innerHTML=`<div class="wk-h"><span class="wk-ico">🗓️</span><div><h2>Tu semana</h2><small>Semana ${WEEK} del plan · desde el ${fmtDate(+parseLocalDate(s.mon))}</small></div></div>
+    <div class="wk-grid">
+      <div><b>${s.train}</b><span>/${spw} entrenos</span></div>
+      ${md?`<div><b>${s.meds}</b><span>/${md} meditaciones</span></div>`:""}
+      <div><b>${fmt(s.vol)}</b><span>kg movidos</span></div>
+      <div><b>${s.prs?"🥇 "+s.prs:s.sets}</b><span>${s.prs?"récord"+(s.prs>1?"s":""):"series"}</span></div>
+    </div>
+    <div class="wk-line">${line}</div>
+    ${isToday?`<textarea class="cierre-diary wk-diary" rows="2" placeholder="¿Qué te llevas de esta semana? Una línea…">${esc(dToday)}</textarea>`:""}`;
+  content.appendChild(c);
+  const ta=c.querySelector(".wk-diary");
+  if(ta) ta.oninput=(e)=>{
+    const t=e.target.value;
+    if(t.trim()) DIARY[todayStr()]=t; else delete DIARY[todayStr()];
+    saveJSON(LS_DIARY, DIARY); scheduleCloudSync();
+  };
+}
+
 function renderRestDay(){
   const rd=PROGRAM[selectedDay];
   if(rd && rd.medit){ renderMeditDay(); return; }
+  if(selectedDay==="domingo") renderWeekRecap();
   const c=document.createElement("div");
   c.className="rest-day";
   c.innerHTML = `<div class="big">🌿</div>
@@ -4302,22 +4391,62 @@ function computeProgress(){
   return {maxWeek, perWeek, totalSets, totalVolume, prs, sessionsComplete, byLoc, weeksActive};
 }
 
+/* Lunes (YYYY-MM-DD) de la semana que contiene una fecha */
+function mondayStrOf(ds){
+  const t=parseLocalDate(ds), m=new Date(t); m.setDate(t.getDate()-((t.getDay()+6)%7));
+  return m.getFullYear()+"-"+pad2(m.getMonth()+1)+"-"+pad2(m.getDate());
+}
+function meditDaysPlan(){ return DAY_ORDER.filter(d=>PROGRAM[d] && PROGRAM[d].medit).length; }
+/* Semanas "redondas" (todos los entrenos y meditaciones del plan) consecutivas hasta hoy */
+function roundWeeksStreak(){
+  const spw=sessionsPerWeek(), md=meditDaysPlan();
+  const byWeek={};
+  Object.keys(TRAINED).forEach(ds=>{ const w=mondayStrOf(ds); (byWeek[w]=byWeek[w]||{t:0,m:0}).t++; });
+  Object.keys(MEDIT).forEach(ds=>{ const w=mondayStrOf(ds); (byWeek[w]=byWeek[w]||{t:0,m:0}).m++; });
+  const ok=w=>!!byWeek[w] && byWeek[w].t>=spw && byWeek[w].m>=md;
+  let n=0, cur=parseLocalDate(mondayStrOf(todayStr()));
+  const key=d=>d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+  if(!ok(key(cur))) cur.setDate(cur.getDate()-7);   // la semana en curso solo cuenta si ya está completa
+  while(ok(key(cur))){ n++; cur.setDate(cur.getDate()-7); }
+  return n;
+}
+/* Datos de la semana en curso (fechas) y del bloque WEEK del plan (series/kilos/récords) */
+function weekStats(){
+  const mon=mondayStrOf(todayStr());
+  const train=Object.keys(TRAINED).filter(ds=>ds>=mon).length;
+  const meds=Object.keys(MEDIT).filter(ds=>ds>=mon).length;
+  let vol=0, sets=0, prs=0;
+  Object.keys(LOG).forEach(k=>{
+    const q=parseKey(k); if(q.week!==WEEK) return;
+    const e=LOG[k]; if(!e || !e.sets) return;
+    let best=0;
+    e.sets.forEach(s=>{
+      if(!s.done) return; sets++; if(s.warm) return;
+      const w=parseNum(s.w), r=parseNum(s.r);
+      if(!isNaN(w) && !isNaN(r)){ vol+=w*r; if(w>best) best=w; }
+    });
+    if(best>0){ const b=bestBefore(q.session, q.ex, WEEK, q.loc); if(b.weight>0 && best>b.weight) prs++; }
+  });
+  const moods=Object.keys(MOOD).filter(ds=>ds>=mon).map(ds=>MOOD[ds]);
+  return {mon, train, meds, vol, sets, prs, moods};
+}
 function renderMindCard(){
   // Cuerpo y mente: entrenos + meditaciones de la semana (si el plan tiene días de meditación o hay registros)
-  const hasMedit = DAY_ORDER.some(d=>PROGRAM[d] && PROGRAM[d].medit) || Object.keys(MEDIT).length>0;
+  const hasMedit = meditDaysPlan()>0 || Object.keys(MEDIT).length>0;
   if(!hasMedit) return;
-  const _t=parseLocalDate(todayStr()), _mon=new Date(_t); _mon.setDate(_t.getDate()-((_t.getDay()+6)%7));
-  const monStr=_mon.getFullYear()+"-"+pad2(_mon.getMonth()+1)+"-"+pad2(_mon.getDate());
+  const monStr=mondayStrOf(todayStr());
   const wkTrain=Object.keys(TRAINED).filter(ds=>ds>=monStr).length;
   const wkMed=Object.keys(MEDIT).filter(ds=>ds>=monStr).length;
-  const medDays=DAY_ORDER.filter(d=>PROGRAM[d] && PROGRAM[d].medit).length;
+  const medDays=meditDaysPlan();
   const totMed=Object.keys(MEDIT).length;
+  const streak=roundWeeksStreak();
   const mind=document.createElement("div");
   mind.className="mind-card";
   mind.innerHTML=`<div class="mc-h">🧘 Cuerpo y mente · esta semana</div>
     <div class="mc-row"><div><b>${wkTrain}</b><span>/${sessionsPerWeek()} entrenos</span></div>
       <div><b>${wkMed}</b><span>/${medDays||2} meditaciones</span></div>
       <div><b>${totMed}</b><span>meditaciones en total</span></div></div>
+    ${streak>0?`<div class="mc-streak">🔥 ${streak} semana${streak>1?"s":""} redonda${streak>1?"s":""} seguida${streak>1?"s":""}</div>`:""}
     <div class="mc-sub">${wkTrain>=sessionsPerWeek() && wkMed>=(medDays||2) ? "Semana redonda: cuerpo y cabeza. Por lo que sea 🤝" : "Entrenar calma la mente; meditar la entrena. Los dos hábitos se refuerzan."}</div>`;
   content.appendChild(mind);
 }
@@ -4576,7 +4705,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.09.26-3 · BIELA";
+const APP_VERSION = "2026.09.26-4 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
