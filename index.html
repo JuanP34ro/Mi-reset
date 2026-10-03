@@ -729,6 +729,19 @@
   .wt-spark{width:100%;height:54px;display:block;margin:4px 0 8px}
   .wt-spark path{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
   .wt-spark circle{fill:var(--accent)}
+  .rir-chip{margin-top:10px;background:rgba(255,255,255,.14);border-radius:12px;padding:8px 11px;font-size:13px}
+  .rir-chip small{display:block;font-size:11.5px;opacity:.85;margin-top:2px;line-height:1.35}
+  .metodo{margin:10px 0 4px}
+  .mt-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .mt-lbl{font-size:12px;font-weight:800;color:var(--muted);margin-right:2px}
+  .mt-chip{border:1.5px solid var(--line);background:var(--soft);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+  .mt-chip.on{background:rgba(240,163,60,.16);border-color:var(--warn);color:#f5cf95}
+  .mt-panel{margin-top:8px;background:rgba(240,163,60,.08);border:1px solid rgba(240,163,60,.3);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+  .mt-panel b{color:#f5cf95}
+  .mt-log{margin-top:6px;font-size:12.5px;color:var(--muted)}
+  .mt-btn{margin-top:8px;width:100%;border:0;border-radius:999px;padding:10px;background:var(--warn);color:#2b1700;font-weight:800;font-size:13.5px;cursor:pointer}
+  .mt-foot{margin-top:7px;font-size:11.5px;color:var(--muted);font-style:italic}
+  .mt-tag{margin-left:4px;font-size:12px}
   .welcome .w-tip{margin:-4px 0 12px;font-size:12.5px;color:rgba(255,255,255,.85);background:rgba(255,255,255,.12);border-radius:10px;padding:8px 10px}
   /* Muro de frutos (Progreso): hechos, no premios */
   .fruit{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;line-height:1.5;align-items:flex-start}
@@ -1143,7 +1156,7 @@ const PROGRAM_FUERZA = {
           "Aproximación hack squat: vacía 10 reps + 50% peso 6-8 reps."
         ],
         exercises:[
-          {id:"hack_squat", name:"Hack squat en máquina", scheme:"4 × 6-10", rest:150, sets:4, note:"Compuesto principal de cuádriceps. Profundo y controlado, RIR 2-3.", vid:ytSearch("hack squat tecnica powerexplosive"),
+          {id:"hack_squat", name:"Hack squat en máquina", scheme:"4 × 6-10", rest:150, sets:4, note:"Compuesto principal de cuádriceps. Profundo y controlado, RIR 2-3. Tempo 3-0-1-0: baja en 3 s, sube en 1.", vid:ytSearch("hack squat tecnica powerexplosive"),
             alts:[
               {name:"Sentadilla libre con barra", vid:ytSearch("sentadilla con barra tecnica")},
               {name:"Prensa de piernas (pies medios)", vid:ytSearch("prensa de piernas tecnica")},
@@ -1156,7 +1169,7 @@ const PROGRAM_FUERZA = {
               {name:"Pull-through en polea (la polea te guía)", vid:ytSearch("pull through polea gluteo tecnica")},
               {name:"RDL con barra (cuando la bisagra salga sola)", vid:ytSearch("peso muerto rumano barra tecnica sergio peinado")}
             ]},
-          {id:"prensa", name:"Prensa de piernas", scheme:"2 × 12-15", rest:120, sets:2, note:"Complementa al hack; con 2 series basta (evita solape).", vid:ytSearch("prensa de piernas tecnica sergio peinado"),
+          {id:"prensa", name:"Prensa de piernas", scheme:"2 × 12-15", rest:120, sets:2, note:"Complementa al hack; con 2 series basta (evita solape). Tempo 3-0-1-0: baja en 3 s, sube en 1.", vid:ytSearch("prensa de piernas tecnica sergio peinado"),
             alts:[
               {name:"Zancadas con mancuernas", vid:ytSearch("zancadas con mancuernas tecnica")},
               {name:"Sentadilla búlgara", vid:ytSearch("sentadilla bulgara tecnica")},
@@ -1305,17 +1318,17 @@ const PROGRAM_FUERZA = {
           "Band pull-apart en polea baja: 2 × 15."
         ],
         exercises:[
-          {id:"press_pecho_maq", name:"Press de pecho en máquina", scheme:"3 × 8-12", rest:120, sets:3, note:"Compuesto principal. Escápula estable, no exige al serrato.", vid:ytSearch("press de pecho en maquina tecnica"),
+          {id:"press_pecho_maq", name:"Press de pecho en máquina", scheme:"3 × 8-12", rest:120, sets:3, note:"Compuesto principal. Escápula estable, no exige al serrato. Tempo 3-0-1-0: baja en 3 s, sube en 1, sin bloquear del todo.", vid:ytSearch("press de pecho en maquina tecnica"),
             alts:[
               {name:"Press de pecho con mancuernas en banco plano", vid:ytSearch("press de pecho con mancuernas banco plano tecnica")},
               {name:"Press de pecho en multipower (Smith)", vid:ytSearch("press de pecho en multipower smith tecnica")}
             ]},
-          {id:"press_inclinado", name:"Press inclinado en máquina", scheme:"3 × 10-12", rest:120, sets:3, note:"Parte alta del pecho (clavicular). Banco a ~30°.", vid:ytSearch("press inclinado en maquina tecnica"),
+          {id:"press_inclinado", name:"Press inclinado en máquina", scheme:"3 × 10-12", rest:120, sets:3, note:"Parte alta del pecho (clavicular). Banco a ~30°. Tempo 3-0-1-0.", vid:ytSearch("press inclinado en maquina tecnica"),
             alts:[
               {name:"Press inclinado con mancuernas (banco 30°)", vid:ytSearch("press inclinado con mancuernas 30 grados tecnica")},
               {name:"Press inclinado en multipower (Smith)", vid:ytSearch("press inclinado smith multipower tecnica")}
             ]},
-          {id:"press_hombro_maq", name:"Press de hombros en máquina sentado", scheme:"3 × 10-12", rest:90, sets:3, note:"Muy conservador (RIR 3-4). Si el hombro molesta, sáltalo y sube una serie de laterales.", vid:ytSearch("press de hombros en maquina sentado tecnica"),
+          {id:"press_hombro_maq", name:"Press de hombros en máquina sentado", scheme:"3 × 10-12", rest:90, sets:3, note:"Muy conservador (RIR 3-4). Si el hombro molesta, sáltalo y sube una serie de laterales. Tempo 3-0-1-0 y, si el hombro protesta, 4-0-1-0 (más control, menos carga).", vid:ytSearch("press de hombros en maquina sentado tecnica"),
             alts:[
               {name:"Landmine press (barra en esquina) — más amable para el hombro", vid:ytSearch("landmine press tecnica hombro")},
               {name:"Press de hombro con mancuernas, agarre neutro", vid:ytSearch("press de hombro mancuernas agarre neutro tecnica")}
@@ -1625,12 +1638,12 @@ const PROGRAM_FUERZA = {
           "Retracciones escapulares de pie: 2 × 15 (brazos al frente, juntar escápulas)."
         ],
         exercises:[
-          {id:"jalon", name:"Jalón al pecho en máquina, agarre ancho", scheme:"3 × 10-12", rest:120, sets:3, note:"Anchura de espalda. Lleva los codos abajo y atrás.", vid:ytSearch("jalon al pecho agarre ancho tecnica powerexplosive"),
+          {id:"jalon", name:"Jalón al pecho en máquina, agarre ancho", scheme:"3 × 10-12", rest:120, sets:3, note:"Anchura de espalda. Lleva los codos abajo y atrás. Tempo 2-1-2-0: tira en 2 s, aguanta 1 abajo, sube controlado en 2.", vid:ytSearch("jalon al pecho agarre ancho tecnica powerexplosive"),
             alts:[
               {name:"Jalón agarre neutro/estrecho (hombro más amable)", vid:ytSearch("jalon agarre neutro tecnica")},
               {name:"Dominadas asistidas en máquina", vid:ytSearch("dominadas asistidas maquina tecnica")}
             ]},
-          {id:"remo_maq", name:"Remo en máquina sentado", scheme:"3 × 10-12", rest:120, sets:3, note:"Grosor de espalda. Aprieta las escápulas al final.", vid:ytSearch("remo en maquina sentado tecnica"),
+          {id:"remo_maq", name:"Remo en máquina sentado", scheme:"3 × 10-12", rest:120, sets:3, note:"Grosor de espalda. Aprieta las escápulas al final. Tempo 2-1-2-0: aguanta 1 s con las escápulas juntas.", vid:ytSearch("remo en maquina sentado tecnica"),
             alts:[
               {name:"Remo en polea sentado (agarre en V)", vid:ytSearch("remo en polea sentado agarre v tecnica")},
               {name:"Remo en máquina con apoyo en pecho", vid:ytSearch("remo maquina apoyo pecho chest supported tecnica")}
@@ -2058,7 +2071,7 @@ function sanitizeEntry(e){
     rpe:  (s && s.rpe!=null) ? String(s.rpe) : "",
     warm: !!(s && s.warm)
   })) : [];
-  return { sets, note: (e.note!=null ? String(e.note) : ""), molestia: !!(e && e.molestia), up: (+e.up>0 ? +e.up : 0) };
+  return { sets, note: (e.note!=null ? String(e.note) : ""), molestia: !!(e && e.molestia), metodo: (e && e.metodo ? String(e.metodo) : ""), up: (+e.up>0 ? +e.up : 0) };
 }
 
 /* Migración: las versiones antiguas guardaban "week|sessionKey|exId" (3 partes).
@@ -2333,6 +2346,16 @@ function markTrainedToday(sessionKey){
 }
 
 // Bloque/fase según la semana
+/* RIR objetivo por semana del bloque (ondulación dentro del mesociclo, guía de métodos):
+   compuestos nunca al fallo; el aislamiento puede acercarse en las semanas duras. Hombro/escápula: +1. */
+const RIR_WEEK = {
+  1:{ rir:"3",   t:"Semana de entrada: 3 reps en reserva. Técnica y pesos base." },
+  2:{ rir:"2-3", t:"Sube un punto: 2-3 en reserva." },
+  3:{ rir:"2",   t:"Aprieta: 2 en reserva en compuestos; el aislamiento puede llegar a 1." },
+  4:{ rir:"1-2", t:"Semana dura: 1-2 en reserva en compuestos (nunca al fallo); aislamiento hasta 0-1." },
+  5:{ rir:"1-2", t:"Última dura: 1-2 en reserva; los récords, si salen solos. Aislamiento al fallo técnico permitido." },
+  6:{ rir:"4-5", t:"Descarga: mitad de series, 4-5 en reserva. Recuperas y creces." }
+};
 function planBlock(week){
   const weekInBlock = ((week-1)%6)+1;       // 1..6
   const isDeload = weekInBlock===6;          // la 6ª semana de cada bloque es descarga
@@ -2360,7 +2383,8 @@ function planBlock(week){
   }
   // Plan tonificar: zona de reps más alta (el resto de la periodización sirve igual)
   if(PROFILE==="tono"){ reps = week<=12 ? "12-18" : "10-15"; }
-  return { phase, block, objetivo, reps, rir, weekInBlock, isDeload, blockNum:Math.ceil(week/6) };
+  const rirWeek = PROFILE==="tono" ? { rir:"2-3", t:"Plan de inicio: siempre 2-3 reps en reserva." } : RIR_WEEK[weekInBlock];
+  return { phase, block, objetivo, reps, rir, rirWeek, weekInBlock, isDeload, blockNum:Math.ceil(week/6) };
 }
 
 // Extrae el rango de repeticiones de un esquema tipo "4 × 8-12" o "4 × 15"
@@ -2860,7 +2884,8 @@ function renderPlan(){
     <p>${b.objetivo}</p>
     <div class="plan-rows">
       <div><span>Reps objetivo</span><b>${b.reps}</b></div>
-      <div><span>RIR (reps en reserva)</span><b>${b.rir}</b></div>
+      <div><span>RIR del bloque</span><b>${b.rir}</b></div>
+      <div><span>Esta semana (${b.weekInBlock}/6)</span><b>RIR ${b.rirWeek.rir}</b></div>
       <div><span>Descarga</span><b>1 semana de cada 6</b></div>
     </div>`;
   content.appendChild(card);
@@ -2868,7 +2893,8 @@ function renderPlan(){
   const rule=document.createElement("div"); rule.className="plan-card";
   rule.innerHTML=`<h3>📈 Cómo progresar (doble progresión)</h3>
     <p>Sube <b>reps</b> hacia el tope del rango cada semana manteniendo tu RIR. Cuando llegues al tope en <b>todas las series</b> con técnica limpia y sin dolor, <b>sube al peso mínimo siguiente</b> y reinicia en la parte baja del rango.</p>
-    <p class="plan-tip">💡 En <b>Entreno</b>, cada ejercicio te dirá si toca <b>subir peso</b> o <b>sumar reps</b> según tu último registro. Y los <b>rangos de reps de cada tarjeta se ajustan solos al bloque actual</b> (dentro del rango propio de cada ejercicio).</p>`;
+    <p class="plan-tip">💡 En <b>Entreno</b>, cada ejercicio te dirá si toca <b>subir peso</b> o <b>sumar reps</b> según tu último registro. Y los <b>rangos de reps de cada tarjeta se ajustan solos al bloque actual</b> (dentro del rango propio de cada ejercicio).</p>
+    ${PROFILE!=="tono"?`<p class="plan-tip">⏱ <b>Si te estancas sin poder subir peso:</b> dos semanas de tempo 4-1-2-0 (baja en 4 s, pausa 1, sube en 2) con un 20-40 % menos de carga. Más tiempo bajo tensión, misma seguridad. Y en los aislamientos tienes los <b>⚡ métodos</b> (myo-reps, drop set, superserie) como remate opcional: máximo 1-2 por sesión.</p>`:""}`;
   content.appendChild(rule);
 
   // Estado de la Fase 2 (peso libre) cuando toca o ya está activa
@@ -3049,7 +3075,8 @@ function renderEntreno(){
   const modeTag = sessionMode==="full" ? "" : ` · ⏱️ ${MODE_INFO[sessionMode].label}`;
   banner.innerHTML = `<div class="label">${DAY_SHORT[selectedDay]} · ${selectedDay==todayKey()?"hoy":"sesión"} · ${LOCATIONS[LOCATION].tag}${modeTag}</div>
     <h2>${sv.title}</h2>
-    <div class="meta">${nEx} ejercicios · ${totalSets} series · Fase 1</div>
+    <div class="meta">${nEx} ejercicios · ${totalSets} series · ${planBlock(WEEK).phase.split(" · ")[0]}</div>
+    ${PROFILE!=="tono"?`<div class="rir-chip">🎯 Semana ${planBlock(WEEK).weekInBlock}/6 del bloque · <b>RIR ${planBlock(WEEK).rirWeek.rir}</b><small>${planBlock(WEEK).rirWeek.t} Hombro y escápula: +1.</small></div>`:""}
     <div class="day-progress"><div class="dp-fill" data-w="${dayPct}"></div></div>
     <div class="dp-label${sessionComplete?" full":""}">${sessionComplete?"✓ Sesión completada":completedEx+"/"+nEx+" ejercicios completados"}</div>
     <div class="frase-banner">${fraseDe("banner")}</div>`;
@@ -3540,6 +3567,59 @@ function updateDayProgress(){
   return {complete, transition};
 }
 
+/* ---- Métodos de intensidad (guía de métodos): remate opcional en aislamientos.
+   Solo plan fuerza, desde el bloque A2 (semana 7), nunca en descarga, con molestia ni en ejercicios clave. ---- */
+const METODOS = {
+  myo:  { t:"Myo-reps", when:"Solo en la última serie", rest:5, title:"Myo-reps · 5 s", btn:"⏱ Micro-descanso de 5 s",
+          how:"Haz 12-20 reps (que te queden 1-2), descansa 5 s, 3-5 reps, 5 s, 3-5 reps… y para cuando no completes 3. Todas las mini-series son reps efectivas.",
+          log:"Apunta esa serie como reps totales (ej. 15+5+4+3 = 27)." },
+  drop: { t:"Drop set", when:"Solo en la última serie, en máquina", rest:150, title:"Tras el drop set", btn:"⏱ Descanso largo de 150 s",
+          how:"Llega cerca del fallo, baja el peso un 20-30 % sin descansar y sigue hasta cerca del fallo; repítelo una vez más (2 bajadas).",
+          log:"Apunta la serie con el peso inicial y las reps totales." },
+  super:{ t:"Superserie", when:"Con el siguiente ejercicio", rest:100, title:"Superserie", btn:"⏱ Descanso de la pareja: 100 s",
+          how:"Una serie de este y, sin descansar, una de «{next}». Luego 90-120 s y repite. Misma hipertrofia en un 40 % menos de tiempo (Paz, 2017). Baja un poco la carga del segundo.",
+          log:"Apunta cada ejercicio en su tarjeta, como siempre." }
+};
+const METODO_RULES = {
+  myo:  /elev_lat|ext_cuad|curl_fem|curl_post|curl_banda|pushdown|ext_triceps|curl_man|curl_mart|casa_curl$|hotel_curl$|gemelo|kickback|aductores|pec_deck|casa_triceps|hotel_triceps|tri_mochila/,
+  drop: /ext_cuad|curl_fem|pec_deck|elev_lat$|tri_pushdown|ext_triceps_polea|gemelo_pie|gemelo_sent|aductores/
+};
+const SUPER_PAIRS = { pierna_a:["ext_cuad","curl_fem_tumb"], torso_a:["elev_lat","tri_pushdown"], pierna_b:["curl_fem_sent","gemelo_sent"] };
+function metodosFor(day, ex, entry){
+  if(PROFILE==="tono" || WEEK<7 || planBlock(WEEK).isDeload || ex.key || entry.molestia) return [];
+  const out=[];
+  if(METODO_RULES.myo.test(ex.id)) out.push("myo");
+  if(LOCATION==="gym" && METODO_RULES.drop.test(ex.id)) out.push("drop");
+  const pair=SUPER_PAIRS[day.key];
+  if(LOCATION==="gym" && pair && pair[0]===ex.id && day.variants.gym.exercises.some(e=>e.id===pair[1])) out.push("super");
+  return out;
+}
+function renderMetodos(day, ex, entry){
+  const mets=metodosFor(day, ex, entry);
+  if(!mets.length) return null;
+  const box=document.createElement("div"); box.className="metodo";
+  let cur = (entry.metodo && mets.includes(entry.metodo)) ? entry.metodo : "";
+  const pair=SUPER_PAIRS[day.key];
+  const nextEx = pair ? day.variants.gym.exercises.find(e=>e.id===pair[1]) : null;
+  const paint=()=>{
+    const m = cur ? METODOS[cur] : null;
+    box.innerHTML=`<div class="mt-row"><span class="mt-lbl">⚡ Remate</span>${mets.map(k=>`<button class="mt-chip${k===cur?" on":""}" data-m="${k}">${METODOS[k].t}</button>`).join("")}</div>
+      ${m?`<div class="mt-panel"><b>${m.when}.</b> ${m.how.replace("{next}", nextEx?esc(nextEx.name):"el siguiente")}
+        <div class="mt-log">📝 ${m.log}</div>
+        <button class="mt-btn">${m.btn}</button>
+        <div class="mt-foot">Máximo 1-2 métodos por sesión. Domina uno antes de pasar al siguiente.</div></div>`:""}`;
+    box.querySelectorAll(".mt-chip").forEach(b=>b.onclick=()=>{
+      const k=b.getAttribute("data-m");
+      cur = (cur===k) ? "" : k;
+      entry.metodo=cur; touchEntry(entry); persist(); paint();
+      const last=box.closest(".ex-detail")?.querySelector(".mt-tag"); if(last) last.style.display=cur?"":"none";
+    });
+    const bt=box.querySelector(".mt-btn"); if(bt) bt.onclick=()=>startRest(m.rest, m.title);
+  };
+  paint();
+  return box;
+}
+
 function renderExercise(day,ex,num){
   const entry = getEntry(day.key,ex.id,ex.sets);
   const open = UI.openEx[ex.id];
@@ -3628,6 +3708,10 @@ function renderExercise(day,ex,num){
     detail.appendChild(ph);
   }
 
+  // Métodos de intensidad (remate opcional)
+  const metBox = renderMetodos(day, ex, entry);
+  if(metBox) detail.appendChild(metBox);
+
   // sets table
   const prevBest = prevRef ? bestBefore(day.key, ex.id, WEEK) : {weight:0,e1rm:0};
   const hasPrevBest = prevBest.weight>0 || prevBest.e1rm>0;
@@ -3648,7 +3732,8 @@ function renderExercise(day,ex,num){
     );
 
     const tdN=document.createElement("td"); tdN.className="serie-cell";
-    tdN.innerHTML = (s.warm?"W":(si+1)) + (isPR?' <span class="pr-dot" aria-label="Récord">🥇</span>':'');
+    tdN.innerHTML = (s.warm?"W":(si+1)) + (isPR?' <span class="pr-dot" aria-label="Récord">🥇</span>':'')
+      + ((si===visN-1 && !s.warm && metBox) ? `<span class="mt-tag" title="Serie con método"${entry.metodo?"":' style="display:none"'}>⚡</span>` : '');
     tdN.title = "Toca para marcar/quitar serie de calentamiento";
     tdN.onclick=()=>{ s.warm=!s.warm; touchEntry(entry); persist(); render(); };
 
@@ -3977,7 +4062,8 @@ function ensureAudio(){
 function saveRestState(){ saveJSON(LS_REST, {endAt:restEndAt, total:restTotal}); }
 function clearRestState(){ try{ localStorage.removeItem(LS_REST); }catch(e){} }
 
-function startRest(seconds){
+function startRest(seconds, title){
+  const tt=document.querySelector(".rest-box .ttl"); if(tt) tt.textContent = title || "Descanso";
   restTotal=seconds; restRemaining=seconds; restPaused=false; restDone=false;
   restEndAt=Date.now()+seconds*1000;
   saveRestState(); // sobrevive a que iOS mate la app: al reabrir se reanuda solo
@@ -4918,7 +5004,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.10.03-1 · BIELA";
+const APP_VERSION = "2026.10.03-2 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
