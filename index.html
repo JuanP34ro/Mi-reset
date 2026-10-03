@@ -695,6 +695,41 @@
   .weekly .wk-line{margin-top:13px;font-size:14px;line-height:1.5}
   .weekly .wk-line span{font-size:12.5px;color:rgba(255,255,255,.8)}
   .weekly .wk-diary{margin-top:12px}
+  /* ---- Nutrición ---- */
+  .nutri h3 .nx-edit,.plan-card h3 .nx-edit{border:1px solid var(--line);background:var(--soft);color:var(--muted);border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer}
+  .nx-sex{display:flex;gap:8px;margin-bottom:10px}
+  .nx-sex button,.nx-goal button{flex:1;border:1.5px solid var(--line);background:var(--soft);color:var(--muted);border-radius:12px;padding:9px 6px;font-size:13px;font-weight:700;cursor:pointer}
+  .nx-sex button.on,.nx-goal button.on{background:rgba(27,180,232,.14);border-color:var(--accent);color:var(--ink)}
+  .nx-goal{display:flex;gap:8px;margin-bottom:12px}
+  .nx-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+  .nx-fields label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--muted)}
+  .nx-fields input,.wt-in input{width:100%;box-sizing:border-box;background:var(--soft);border:1.5px solid var(--line);color:var(--ink);border-radius:10px;padding:9px 8px;font-size:15px;font-weight:700;text-align:center}
+  .nx-fields input:focus,.wt-in input:focus{outline:none;border-color:var(--accent)}
+  .nx-calc,.wt-in button{border:0;border-radius:999px;background:var(--accent);color:#06202c;font-weight:800;font-size:14px;padding:10px 18px;cursor:pointer}
+  .nx-calc{width:100%;margin-bottom:8px}
+  .nx-kcal{text-align:center;margin:4px 0 12px}
+  .nx-kcal b{display:block;font-size:40px;font-weight:800;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+  .nx-kcal span{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+  .nx-kcal small{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+  .nx-bars{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+  .nx-bar{display:grid;grid-template-columns:64px 1fr 56px;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+  .nx-bar b{color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+  .nb-track{height:12px;border-radius:999px;background:var(--soft);overflow:hidden}
+  .nb-track i{display:block;height:100%;border-radius:999px;min-width:6px;transition:width .5s ease}
+  .nb-track i.p{background:var(--ok)} .nb-track i.c{background:#d9b54a} .nb-track i.g{background:var(--warn)}
+  .nx-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .nx-row div{background:var(--soft);border-radius:12px;padding:10px;font-size:12px;color:var(--muted);line-height:1.35}
+  .nx-row b{display:block;font-size:19px;color:var(--ink);margin:2px 0}
+  .wt-in{display:flex;gap:8px;margin-bottom:10px}
+  .wt-in input{flex:1;text-align:left}
+  .wt-avg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .wt-avg div{background:var(--soft);border-radius:12px;padding:10px;text-align:center}
+  .wt-avg b{display:block;font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .wt-avg span{font-size:11.5px;color:var(--muted)}
+  .wt-spark{width:100%;height:54px;display:block;margin:4px 0 8px}
+  .wt-spark path{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+  .wt-spark circle{fill:var(--accent)}
+  .welcome .w-tip{margin:-4px 0 12px;font-size:12.5px;color:rgba(255,255,255,.85);background:rgba(255,255,255,.12);border-radius:10px;padding:8px 10px}
   /* Muro de frutos (Progreso): hechos, no premios */
   .fruit{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;line-height:1.5;align-items:flex-start}
   .fruit:last-child{border-bottom:none}
@@ -1068,8 +1103,10 @@ function renderWelcome(){
   const frase = WELCOME_FRASES[dayOfYear()%WELCOME_FRASES.length];
   const c=document.createElement("div");
   c.className="welcome";
+  const dToday=PROGRAM[todayKey()], isSession=dToday && dToday.type==="session";
   c.innerHTML=`<div class="w-hi">${saludo} 👋</div>
     <div class="w-msg">${frase}</div>
+    ${isSession?`<div class="w-tip">🍌 Antes de entrenar: proteína + carbohidratos 1-2 h antes. Si vas temprano, un plátano y listo.</div>`:""}
     <div class="w-row"><span class="w-sign">— Por lo que sea 🤝</span>
       <button class="w-btn">¡Vamos! 💪</button></div>`;
   c.querySelector(".w-btn").onclick=()=>{
@@ -1960,6 +1997,8 @@ const LS_SESSMETA = "reset_gym_sessmeta_v1";       // por sesión: hora de la pr
 const LS_DIARY = "reset_gym_diary_v1";             // diario de una línea por día ("¿qué has demostrado hoy?")
 const LS_MOOD = "reset_gym_mood_v1";               // sensación tras cada sesión: { "YYYY-MM-DD": 1-4 }
 const LS_MEDIT = "reset_gym_medit_v1";             // días de meditación: { "YYYY-MM-DD": 1 }
+const LS_BODY = "reset_gym_body_v1";               // datos para la calculadora de nutrición: {sexo, edad, altura, peso, goal, up}
+const LS_WEIGHTS = "reset_gym_weights_v1";         // báscula: { "YYYY-MM-DD": kg }
 const LS_REST = "reset_gym_rest_v1";               // descanso en curso {endAt,total} — sobrevive a recargas/cierres
 const LS_PROFILE = "reset_gym_profile_v1";         // plan elegido: fuerza (💪) | tono (🔥 perder peso y tonificar)
 
@@ -2182,6 +2221,21 @@ function sanitizeMedit(o){
   if(o && typeof o==="object") Object.keys(o).forEach(k=>{ if(/^\d{4}-\d{2}-\d{2}$/.test(k) && o[k]) out[k]=1; });
   return out;
 }
+function sanitizeBody(o){
+  if(!o || typeof o!=="object") return null;
+  const b={ sexo:o.sexo==="m"?"m":"h", edad:parseInt(o.edad,10)||0, altura:parseInt(o.altura,10)||0,
+            peso:Math.round((parseFloat(o.peso)||0)*10)/10, goal:String(o.goal||""), up:parseInt(o.up,10)||0 };
+  return (b.edad>=14 && b.edad<=99 && b.altura>=120 && b.altura<=230 && b.peso>=30 && b.peso<=300) ? b : null;
+}
+function mergeBody(a,b){ if(!a) return b||null; if(!b) return a; return (b.up||0)>(a.up||0) ? b : a; }
+function sanitizeWeights(o){
+  const out={};
+  if(o && typeof o==="object") Object.keys(o).forEach(k=>{
+    const v=parseFloat(o[k]);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(k) && v>=30 && v<=300) out[k]=Math.round(v*10)/10;
+  });
+  return out;
+}
 function moodNote(v){
   return v===1 ? "Normal en días exigentes: hoy, comer y dormir bien vale doble."
                : "Apúntatelo: así es como te deja entrenar. El mejor motivo para volver.";
@@ -2267,6 +2321,8 @@ let TRAINED = loadJSON(LS_DATES, {});  // { "YYYY-MM-DD": ["torso_a", ...] } fec
 let DIARY = sanitizeDiary(loadJSON(LS_DIARY, {})); // { "YYYY-MM-DD": "una línea" }
 let MOOD = sanitizeMood(loadJSON(LS_MOOD, {}));    // cómo te quedaste tras entrenar
 let MEDIT = sanitizeMedit(loadJSON(LS_MEDIT, {})); // meditaciones apuntadas
+let BODY = sanitizeBody(loadJSON(LS_BODY, null));   // datos de la calculadora (null hasta rellenarlos)
+let WEIGHTS = sanitizeWeights(loadJSON(LS_WEIGHTS, {})); // pesajes
 let calRef = null;                     // {y, m} mes mostrado en el calendario
 const SESSION_LABEL = (()=>{ const o={}; [PROGRAM_FUERZA, PROGRAM_TONO].forEach(P=>Object.values(P).forEach(d=>{ if(d.key) o[d.key]=d.label; })); return o; })();
 // Registra que HOY se entrenó esta sesión (para el calendario)
@@ -2621,6 +2677,146 @@ function renderCalendar(){
 }
 
 /* ---- Pestaña Plan de mejora ---- */
+/* ---- Nutrición: calculadora (Mifflin-St Jeor) y báscula semanal ---- */
+const NUTRI_GOALS = {
+  fuerza:[ {k:"ganar", t:"Ganar músculo", adj:275, d:"superávit moderado (+250-300 kcal): músculo con poca grasa"},
+           {k:"mantener", t:"Recomposición", adj:0, d:"a mantenimiento: ganar músculo y perder grasa a la vez, despacio"} ],
+  tono:[   {k:"perder", t:"Perder grasa", adj:-400, d:"déficit moderado (−400 kcal): ~0,4 kg a la semana"},
+           {k:"suave", t:"Déficit suave", adj:-250, d:"déficit suave (−250 kcal): más lento, más fácil de mantener"} ]
+};
+function currentWeight(){ const ks=Object.keys(WEIGHTS).sort(); return ks.length ? WEIGHTS[ks[ks.length-1]] : null; }
+function nutriGoal(){
+  const opts=NUTRI_GOALS[PROFILE==="tono"?"tono":"fuerza"];
+  return opts.find(o=>o.k===(BODY&&BODY.goal)) || opts[0];
+}
+function nutriCalc(){
+  if(!BODY) return null;
+  const peso = currentWeight() || BODY.peso;
+  const tmb = 10*peso + 6.25*BODY.altura - 5*BODY.edad + (BODY.sexo==="m" ? -161 : 5);
+  const spw = sessionsPerWeek();
+  const act = spw<=2 ? 1.375 : spw<=5 ? 1.55 : 1.725;
+  const mant = tmb*act;
+  const goal = nutriGoal();
+  const kcal = Math.round((mant+goal.adj)/10)*10;
+  const prot = Math.round(peso*2.0);          // 1,6-2,2 g/kg: 2,0 (protege músculo en déficit y lo construye en superávit)
+  const fat  = Math.round(peso*1.0);          // 0,8-1,2 g/kg: mínimo para la salud hormonal
+  const carb = Math.max(0, Math.round((kcal - prot*4 - fat*9)/4));
+  const agua = Math.round(peso*37/100)/10;    // 35-40 ml/kg
+  return { peso, tmb:Math.round(tmb), mant:Math.round(mant), act, goal, kcal, prot, fat, carb, agua,
+           porComida:Math.round(prot/4), lowCarb: carb < peso*2 };
+}
+function weeklyWeightAvgs(){
+  const by={};
+  Object.keys(WEIGHTS).forEach(ds=>{ const w=mondayStrOf(ds); (by[w]=by[w]||[]).push(WEIGHTS[ds]); });
+  return Object.keys(by).sort().map(w=>({ mon:w, n:by[w].length, avg:Math.round(by[w].reduce((a,v)=>a+v,0)/by[w].length*10)/10 }));
+}
+function weightAdvice(){
+  const a=weeklyWeightAvgs(); if(a.length<3) return null;
+  const last=a[a.length-1], prev=a[a.length-2], prev2=a[a.length-3];
+  const d1=last.avg-prev.avg, d2=prev.avg-prev2.avg, g=nutriGoal().k;
+  if(g==="ganar"){
+    if(d1<0.1 && d2<0.1) return "Dos semanas sin subir → <b>suma 200 kcal</b> (en carbohidratos).";
+    if(d1>0.5) return "Subes más de 0,5 kg/semana → <b>resta 150 kcal</b>: estarías ganando grasa de más.";
+    return "Ritmo bueno (+0,1 a +0,5 kg/semana): <b>sigue igual</b>.";
+  }
+  if(g==="perder" || g==="suave"){
+    if(d1>-0.1 && d2>-0.1) return "Dos semanas sin bajar → <b>resta 150 kcal</b> o suma 2.000 pasos al día.";
+    if(d1 < -last.avg*0.01) return "Bajas más del 1 % a la semana → <b>come un poco más</b>: así proteges el músculo.";
+    return "Ritmo bueno (−0,25 a −0,5 kg/semana): <b>sigue igual</b>.";
+  }
+  if(Math.abs(d1)>0.5) return d1>0 ? "Subes más de 0,5 kg/semana → <b>resta 150 kcal</b>." : "Bajas más de 0,5 kg/semana → <b>suma 150 kcal</b>.";
+  return "Peso estable: <b>recomposición en marcha</b>. Mira la cinta métrica y el espejo.";
+}
+const fmtKg = v => (Math.round(v*10)/10).toLocaleString("es-ES",{minimumFractionDigits:1, maximumFractionDigits:1});
+function renderNutrition(){
+  const card=document.createElement("div"); card.className="plan-card nutri";
+  const opts=NUTRI_GOALS[PROFILE==="tono"?"tono":"fuerza"];
+  const showForm = !BODY || card.dataset.edit==="1";
+  const form = (b)=>`<div class="nx-form">
+      <div class="nx-sex"><button class="${(b&&b.sexo==="h")?"on":""}" data-s="h">Hombre</button><button class="${(b&&b.sexo==="m")?"on":""}" data-s="m">Mujer</button></div>
+      <div class="nx-fields">
+        <label><span>Edad</span><input type="number" inputmode="numeric" id="nxEdad" value="${b?b.edad:""}" placeholder="40"></label>
+        <label><span>Altura (cm)</span><input type="number" inputmode="numeric" id="nxAlt" value="${b?b.altura:""}" placeholder="175"></label>
+        <label><span>Peso (kg)</span><input type="text" inputmode="decimal" id="nxPeso" value="${b?fmtKg(b.peso):""}" placeholder="80"></label>
+      </div>
+      <button class="nx-calc">Calcular</button>
+      <p class="plan-tip">Solo se usan para calcular. Se guardan con tus datos (nube incluida).</p></div>`;
+  const paint=()=>{
+    const n = nutriCalc();
+    if(!n || card.dataset.edit==="1"){
+      card.innerHTML=`<h3>🍽️ Tu nutrición</h3>
+        <p>${n?"Edita tus datos:":"Calorías, proteína, carbohidratos, grasas y agua para tu objetivo, con la fórmula que usan los nutricionistas (Mifflin-St Jeor)."}</p>${form(BODY)}`;
+      let sexo = BODY ? BODY.sexo : null;
+      card.querySelectorAll(".nx-sex button").forEach(bt=>bt.onclick=()=>{ sexo=bt.getAttribute("data-s"); card.querySelectorAll(".nx-sex button").forEach(x=>x.classList.toggle("on", x===bt)); });
+      card.querySelector(".nx-calc").onclick=()=>{
+        const b=sanitizeBody({ sexo, edad:card.querySelector("#nxEdad").value, altura:card.querySelector("#nxAlt").value,
+                               peso:parseNum(card.querySelector("#nxPeso").value), goal:BODY?BODY.goal:"", up:Date.now() });
+        if(!sexo){ toast("Elige hombre o mujer"); return; }
+        if(!b){ toast("Revisa edad, altura y peso"); return; }
+        BODY=b; saveJSON(LS_BODY, BODY); scheduleCloudSync();
+        if(!WEIGHTS[todayStr()]){ WEIGHTS[todayStr()]=b.peso; saveJSON(LS_WEIGHTS, WEIGHTS); }
+        card.dataset.edit="0"; paint(); toast("Calculado 🍽️");
+      };
+      return;
+    }
+    const tot=n.prot*4+n.carb*4+n.fat*9;
+    const pct=v=>Math.round(v/tot*100);
+    card.innerHTML=`<h3>🍽️ Tu nutrición <button class="nx-edit">✏️ Datos</button></h3>
+      <div class="nx-goal">${opts.map(o=>`<button class="${o.k===n.goal.k?"on":""}" data-g="${o.k}">${o.t}</button>`).join("")}</div>
+      <div class="nx-kcal"><b>${fmt(n.kcal)}</b><span>kcal al día</span>
+        <small>${n.goal.d} · mantenimiento ${fmt(n.mant)} kcal</small></div>
+      <div class="nx-bars">
+        <div class="nx-bar"><span>Proteína</span><div class="nb-track"><i class="p" style="width:${pct(n.prot*4)}%"></i></div><b>${n.prot} g</b></div>
+        <div class="nx-bar"><span>Carbos</span><div class="nb-track"><i class="c" style="width:${pct(n.carb*4)}%"></i></div><b>${n.carb} g</b></div>
+        <div class="nx-bar"><span>Grasas</span><div class="nb-track"><i class="g" style="width:${pct(n.fat*9)}%"></i></div><b>${n.fat} g</b></div>
+      </div>
+      <div class="nx-row">
+        <div>🍗 <b>${n.porComida} g</b><span>de proteína por comida, en 4 comidas</span></div>
+        <div>💧 <b>${fmtKg(n.agua)} L</b><span>de agua al día, +0,5 L por hora de entreno</span></div>
+      </div>
+      ${n.lowCarb?`<p class="plan-tip">⚠️ Los carbohidratos quedan bajos para entrenar bien: elige el objetivo más suave o acepta que las sesiones costarán un poco más.</p>`:""}
+      <p class="plan-tip">Calculado con ${fmtKg(n.peso)} kg y ${sessionsPerWeek()} sesiones/semana (×${n.act}). Es un punto de partida: la báscula de abajo te dirá si ajustar. Si tu día a día es muy activo, suma 100-200 kcal.</p>`;
+    card.querySelector(".nx-edit").onclick=()=>{ card.dataset.edit="1"; paint(); };
+    card.querySelectorAll(".nx-goal button").forEach(bt=>bt.onclick=()=>{
+      BODY.goal=bt.getAttribute("data-g"); BODY.up=Date.now(); saveJSON(LS_BODY, BODY); scheduleCloudSync(); paint();
+    });
+  };
+  paint();
+  content.appendChild(card);
+}
+function renderScale(){
+  const card=document.createElement("div"); card.className="plan-card scale";
+  const paint=()=>{
+    const avgs=weeklyWeightAvgs(), last=avgs[avgs.length-1], prev=avgs[avgs.length-2];
+    const today=WEIGHTS[todayStr()];
+    const advice=weightAdvice();
+    let spark="";
+    if(avgs.length>=2){
+      const pts=avgs.slice(-10), lo=Math.min(...pts.map(p=>p.avg)), hi=Math.max(...pts.map(p=>p.avg)), span=Math.max(hi-lo, 0.6);
+      const W=300, H=54, x=i=>8+i*(W-16)/Math.max(pts.length-1,1), y=v=>H-8-((v-lo)/span)*(H-16);
+      const d=pts.map((p,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(p.avg).toFixed(1)).join(" ");
+      spark=`<svg class="wt-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d}"/>
+        ${pts.map((p,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(p.avg).toFixed(1)}" r="3"/>`).join("")}</svg>`;
+    }
+    card.innerHTML=`<h3>⚖️ Báscula semanal</h3>
+      <div class="wt-in"><input type="text" inputmode="decimal" id="wtIn" placeholder="kg hoy" value="${today?fmtKg(today):""}"><button id="wtAdd">${today?"Corregir":"Apuntar"}</button></div>
+      ${last?`<div class="wt-avg">
+        <div><b>${fmtKg(last.avg)}</b><span>media de 7 días (${last.n} pesaje${last.n>1?"s":""})</span></div>
+        <div><b>${prev?(last.avg-prev.avg>=0?"+":"−")+fmtKg(Math.abs(last.avg-prev.avg)):"—"}</b><span>vs semana anterior</span></div>
+      </div>${spark}`:""}
+      <p class="plan-tip">${advice ? advice : "Pésate 3-4 veces por semana, en ayunas y a la misma hora. La app usa la <b>media semanal</b>, que es la que no engaña; con 3 semanas te dirá si toca ajustar las calorías."}</p>`;
+    card.querySelector("#wtAdd").onclick=()=>{
+      const v=parseNum(card.querySelector("#wtIn").value);
+      if(isNaN(v) || v<30 || v>300){ toast("Pon un peso válido (kg)"); return; }
+      WEIGHTS[todayStr()]=Math.round(v*10)/10; saveJSON(LS_WEIGHTS, WEIGHTS); scheduleCloudSync();
+      toast("Pesaje apuntado ⚖️");
+      render(); // la calculadora usa el último peso: se actualiza entera
+    };
+  };
+  paint();
+  content.appendChild(card);
+}
+
 function renderPlan(){
   const b = planBlock(WEEK);
 
@@ -2688,6 +2884,9 @@ function renderPlan(){
     const fb=f2.querySelector("#f2back"); if(fb) fb.onclick=fase2Revert;
   }
 
+  renderNutrition();
+  renderScale();
+
   const g=document.createElement("div"); g.className="plan-card";
   g.innerHTML = PROFILE==="tono"
     ? `<h3>🧭 Claves para perder peso y tonificar</h3>
@@ -2698,13 +2897,15 @@ function renderPlan(){
       <li><b>Pasos diarios:</b> 8.000-10.000 al día mueven más grasa que cualquier sesión suelta. El remate de cardio de cada sesión suma.</li>
       <li><b>Sueño 7-9 h:</b> dormir poco dispara el hambre y frena la pérdida.</li>
       <li><b>La báscula engaña:</b> mírala como media semanal y acompáñala de la cinta métrica y el espejo — el músculo pesa.</li>
+      <li><b>Antes de dormir:</b> algo de proteína lenta (yogur griego, queso fresco) mejora la recuperación nocturna.</li>
       <li><b>Autodidacta:</b> los titulares son las versiones más fáciles de hacer bien sin monitor; las variantes técnicas están en ⇄ para cuando las domines.</li>
     </ul>`
     : `<h3>🧭 Claves a los 40</h3>
     <ul class="plan-ul">
       <li><b>No al fallo:</b> deja 2-3 reps en reserva (3-4 en hombro/escápula). Ganas casi el mismo músculo con mucha menos fatiga y riesgo.</li>
       <li><b>Proteína:</b> 1,6-2,0 g/kg al día.</li>
-      <li><b>Sueño:</b> 7-9 h — tu mejor recuperación.</li>
+      <li><b>Sueño:</b> 7-9 h — tu mejor recuperación. Dormir menos de 7 h recorta la síntesis de músculo hasta un 18 %.</li>
+      <li><b>Antes de dormir:</b> proteína lenta (yogur griego, queso fresco, caseína) mejora la recuperación nocturna.</li>
       <li><b>Constancia y técnica</b> por encima de cargas máximas: la adherencia es lo que más resultado da.</li>
       <li><b>Escápula primero:</b> trabajo escapular en cada calentamiento; press de hombro sin prisa.</li>
       <li><b>Autodidacta:</b> los titulares de cada ejercicio son las versiones más fáciles de hacer bien sin monitor. Las variantes técnicas (búlgara, RDL a una pierna, barra…) están en ⇄ para cuando las domines — el mejor ejercicio es el que haces bien solo.</li>
@@ -2928,6 +3129,7 @@ function renderEntreno(){
     };
     if(HITOS[nSess]) facts.unshift(HITOS[nSess]);
     else if(sessWeek===sessionsPerWeek() && nSess>1) facts.unshift(`🎉 <b>Semana completa:</b> las ${sessWeek} sesiones del plan. Así se construye.`);
+    facts.push("🍗 Ahora: 25-40 g de proteína en las próximas horas. La ventana real son 4-6 h: sin agobio.");
     // Volumen del mismo entreno la vez anterior (misma sesión y lugar)
     for(let w=WEEK-1; w>=1; w--){
       let pv=0, any=false;
@@ -3156,6 +3358,7 @@ function renderWeekRecap(){
       ${md?`<div><b>${s.meds}</b><span>/${md} meditaciones</span></div>`:""}
       <div><b>${fmt(s.vol)}</b><span>kg movidos</span></div>
       <div><b>${s.prs?"🥇 "+s.prs:s.sets}</b><span>${s.prs?"récord"+(s.prs>1?"s":""):"series"}</span></div>
+      ${(()=>{ const a=weeklyWeightAvgs(); const l=a[a.length-1]; return (l && l.mon===s.mon) ? `<div><b>⚖️ ${fmtKg(l.avg)}</b><span>kg, media de la semana</span></div>` : ""; })()}
     </div>
     <div class="wk-line">${line}</div>
     ${isToday?`<textarea class="cierre-diary wk-diary" rows="2" placeholder="¿Qué te llevas de esta semana? Una línea…">${esc(dToday)}</textarea>`:""}`;
@@ -3999,6 +4202,8 @@ document.getElementById("restoreBackup").onclick=()=>{
   DIARY = mergeDiary(DIARY, sanitizeDiary(data.diary)); saveJSON(LS_DIARY, DIARY);        // diario: unión
   MOOD = mergeDiary(MOOD, sanitizeMood(data.mood)); saveJSON(LS_MOOD, MOOD);             // sensaciones: unión
   MEDIT = mergeDiary(MEDIT, sanitizeMedit(data.medit)); saveJSON(LS_MEDIT, MEDIT);       // meditaciones: unión
+  BODY = mergeBody(BODY, sanitizeBody(data.body)); saveJSON(LS_BODY, BODY);                // datos: el más reciente
+  WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(data.weights)); saveJSON(LS_WEIGHTS, WEIGHTS); // báscula: unión
   // La semana de la copia se "envejece" según cuándo se guardó (no retrocede el tiempo real)
   const w=parseInt(data.week,10); if(Number.isFinite(w)) setWeek(w + weeksSinceSaved(data.savedAt));
   markCloudReplace();  // el siguiente push refleja esta restauración tal cual
@@ -4019,6 +4224,8 @@ document.getElementById("undoRestore").onclick=()=>{
   if(p.diary){ DIARY = sanitizeDiary(p.diary); saveJSON(LS_DIARY, DIARY); }
   if(p.mood){ MOOD = sanitizeMood(p.mood); saveJSON(LS_MOOD, MOOD); }
   if(p.medit){ MEDIT = sanitizeMedit(p.medit); saveJSON(LS_MEDIT, MEDIT); }
+  if(p.body){ BODY = sanitizeBody(p.body); saveJSON(LS_BODY, BODY); }
+  if(p.weights){ WEIGHTS = sanitizeWeights(p.weights); saveJSON(LS_WEIGHTS, WEIGHTS); }
   const w=parseInt(p.week,10); if(Number.isFinite(w)) setWeek(w);
   saveJSON(LS_PREDO, current);
   markCloudReplace();  // el siguiente push refleja el estado recuperado
@@ -4045,7 +4252,7 @@ function cloudPayload(){
   // Sin entradas vacías (las que crea el render al navegar): copias y nube limpias
   const log={};
   Object.keys(LOG).forEach(k=>{ if(!isEmptyEntry(LOG[k])) log[k]=LOG[k]; });
-  return JSON.stringify({ v:2, week:WEEK, log, dates:TRAINED, plan:PLAN, diary:DIARY, mood:MOOD, medit:MEDIT, savedAt:new Date().toISOString() }, null, 2);
+  return JSON.stringify({ v:2, week:WEEK, log, dates:TRAINED, plan:PLAN, diary:DIARY, mood:MOOD, medit:MEDIT, body:BODY, weights:WEIGHTS, savedAt:new Date().toISOString() }, null, 2);
 }
 /* Semanas transcurridas desde que se guardó una copia (para "envejecer" su nº de semana al restaurarla) */
 function weeksSinceSaved(savedAt){
@@ -4122,7 +4329,7 @@ async function cloudFetchRemote(token, id){
   if(f.truncated && f.raw_url){ content=await (await fetch(f.raw_url)).text(); }
   const data=JSON.parse(content);
   if(!data || typeof data.log!=="object") return null;
-  return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan), diary:sanitizeDiary(data.diary), mood:sanitizeMood(data.mood), medit:sanitizeMedit(data.medit) };
+  return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan), diary:sanitizeDiary(data.diary), mood:sanitizeMood(data.mood), medit:sanitizeMedit(data.medit), body:sanitizeBody(data.body), weights:sanitizeWeights(data.weights) };
 }
 
 /* Tras "Borrar semana" o "Restaurar copia", el siguiente push debe REEMPLAZAR la nube
@@ -4175,6 +4382,8 @@ async function cloudPush(flush){
           DIARY = mergeDiary(DIARY, remote.diary); saveJSON(LS_DIARY, DIARY);
           MOOD = mergeDiary(MOOD, sanitizeMood(remote.mood)); saveJSON(LS_MOOD, MOOD);
           MEDIT = mergeDiary(MEDIT, sanitizeMedit(remote.medit)); saveJSON(LS_MEDIT, MEDIT);
+          BODY = mergeBody(BODY, sanitizeBody(remote.body)); saveJSON(LS_BODY, BODY);
+          WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(remote.weights)); saveJSON(LS_WEIGHTS, WEIGHTS);
         }
       }catch(e){ /* si el GET falla seguimos y subimos lo local */ }
     }
@@ -4214,7 +4423,9 @@ async function cloudPull(){
     PLAN = mergePlan(PLAN, remote.plan); saveJSON(LS_PLAN, PLAN);             // hitos: unión
     DIARY = mergeDiary(DIARY, remote.diary); saveJSON(LS_DIARY, DIARY);
           MOOD = mergeDiary(MOOD, sanitizeMood(remote.mood)); saveJSON(LS_MOOD, MOOD);
-          MEDIT = mergeDiary(MEDIT, sanitizeMedit(remote.medit)); saveJSON(LS_MEDIT, MEDIT);       // diario: unión
+          MEDIT = mergeDiary(MEDIT, sanitizeMedit(remote.medit)); saveJSON(LS_MEDIT, MEDIT);
+          BODY = mergeBody(BODY, sanitizeBody(remote.body)); saveJSON(LS_BODY, BODY);
+          WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(remote.weights)); saveJSON(LS_WEIGHTS, WEIGHTS);       // diario: unión
     // La semana de la copia se "envejece" según cuándo se guardó (no retrocede el tiempo real)
     const w=parseInt(remote.week,10);
     const aged = Number.isFinite(w) ? w + weeksSinceSaved(remote.savedAt) : NaN;
@@ -4252,6 +4463,8 @@ async function cloudConnect(){
           DIARY = mergeDiary(DIARY, remote.diary); saveJSON(LS_DIARY, DIARY);
           MOOD = mergeDiary(MOOD, sanitizeMood(remote.mood)); saveJSON(LS_MOOD, MOOD);
           MEDIT = mergeDiary(MEDIT, sanitizeMedit(remote.medit)); saveJSON(LS_MEDIT, MEDIT);
+          BODY = mergeBody(BODY, sanitizeBody(remote.body)); saveJSON(LS_BODY, BODY);
+          WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(remote.weights)); saveJSON(LS_WEIGHTS, WEIGHTS);
           const w=parseInt(remote.week,10);
           const aged = Number.isFinite(w) ? w + weeksSinceSaved(remote.savedAt) : NaN;
           if(Number.isFinite(aged) && aged>WEEK) setWeek(aged);
@@ -4705,7 +4918,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.09.26-4 · BIELA";
+const APP_VERSION = "2026.10.03-1 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
