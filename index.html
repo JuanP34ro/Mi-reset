@@ -729,6 +729,37 @@
   .wt-spark{width:100%;height:54px;display:block;margin:4px 0 8px}
   .wt-spark path{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
   .wt-spark circle{fill:var(--accent)}
+  .checkin{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:12px;animation:rise .3s ease both}
+  .checkin .ck-q{font-weight:800;font-size:14px;margin-bottom:8px}
+  .checkin .ck-row{display:flex;align-items:center;gap:6px;margin-top:6px}
+  .checkin .ck-row>span{width:56px;font-size:12px;color:var(--muted);font-weight:700}
+  .checkin .ck-opt{flex:1;border:1.5px solid var(--line);background:var(--soft);color:var(--ink);border-radius:12px;padding:7px 4px;font-size:17px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
+  .checkin .ck-opt small{font-size:10.5px;color:var(--muted)}
+  .checkin .ck-opt.on{border-color:var(--accent);background:rgba(27,180,232,.14)}
+  .checkin.done{padding:10px 14px}
+  .checkin .ck-done{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px}
+  .checkin .ck-edit{border:0;background:none;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer}
+  .checkin .ck-adv{margin-top:8px;font-size:13px;line-height:1.45;background:rgba(240,163,60,.1);border:1px solid rgba(240,163,60,.3);border-radius:10px;padding:8px 10px}
+  .checkin .ck-adv.ok{background:var(--ok-soft);border-color:rgba(47,208,127,.3);color:var(--muted)}
+  .checkin.low{border-left:4px solid var(--warn)}
+  .ms-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+  .ms-fields label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink)}
+  .ms-fields label small{color:var(--muted);font-size:10.5px}
+  .ms-fields input{width:100%;box-sizing:border-box;background:var(--soft);border:1.5px solid var(--line);color:var(--ink);border-radius:10px;padding:9px 8px;font-size:15px;font-weight:700;text-align:center}
+  .ms-fields input:focus{outline:none;border-color:var(--accent)}
+  .ms-btns{display:flex;gap:8px}
+  .ms-btns button{flex:1;border:0;border-radius:999px;padding:10px;font-weight:800;font-size:14px;cursor:pointer}
+  .ms-btns .ms-save{background:var(--accent);color:#06202c}
+  .ms-btns .ms-cancel{background:var(--soft);color:var(--muted)}
+  .ms-wrap{overflow-x:auto;margin:4px 0 8px}
+  .ms-table{width:100%;border-collapse:collapse;font-size:13px}
+  .ms-table th{font-weight:600;color:var(--muted);text-align:left;padding:6px 4px;font-size:11.5px;white-space:nowrap}
+  .ms-table thead th{text-align:center}
+  .ms-table td{text-align:center;padding:6px 4px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+  .ms-table td b{color:var(--ink)}
+  .ms-table td small{display:block;font-size:10.5px}
+  .ms-table small.dn{color:var(--ok)} .ms-table small.up{color:var(--warn)}
+  .mood-card.sleep{border-left:4px solid #6366f1}
   .rir-chip{margin-top:10px;background:rgba(255,255,255,.14);border-radius:12px;padding:8px 11px;font-size:13px}
   .rir-chip small{display:block;font-size:11.5px;opacity:.85;margin-top:2px;line-height:1.35}
   .metodo{margin:10px 0 4px}
@@ -2012,6 +2043,8 @@ const LS_MOOD = "reset_gym_mood_v1";               // sensación tras cada sesi�
 const LS_MEDIT = "reset_gym_medit_v1";             // días de meditación: { "YYYY-MM-DD": 1 }
 const LS_BODY = "reset_gym_body_v1";               // datos para la calculadora de nutrición: {sexo, edad, altura, peso, goal, up}
 const LS_WEIGHTS = "reset_gym_weights_v1";         // báscula: { "YYYY-MM-DD": kg }
+const LS_CHECKIN = "reset_gym_checkin_v1";         // check-in pre-sesión: { "YYYY-MM-DD": {s:1-3 sueño, e:1-3 energía} }
+const LS_MEASURES = "reset_gym_measures_v1";       // medidas corporales: { "YYYY-MM-DD": {cintura, cadera, pecho, brazo, muslo} }
 const LS_REST = "reset_gym_rest_v1";               // descanso en curso {endAt,total} — sobrevive a recargas/cierres
 const LS_PROFILE = "reset_gym_profile_v1";         // plan elegido: fuerza (💪) | tono (🔥 perder peso y tonificar)
 
@@ -2249,6 +2282,25 @@ function sanitizeWeights(o){
   });
   return out;
 }
+const MEAS_FIELDS = [["cintura","Cintura","en el ombligo"],["cadera","Cadera","en el punto más ancho"],["pecho","Pecho","a la altura del pezón"],["brazo","Brazo","relajado, a mitad"],["muslo","Muslo","a mitad, de pie"]];
+function sanitizeCheckin(o){
+  const out={};
+  if(o && typeof o==="object") Object.keys(o).forEach(k=>{
+    const v=o[k]||{}; const s=parseInt(v.s,10), e=parseInt(v.e,10);
+    const c={}; if(s>=1&&s<=3) c.s=s; if(e>=1&&e<=3) c.e=e;
+    if(/^\d{4}-\d{2}-\d{2}$/.test(k) && (c.s||c.e)) out[k]=c;
+  });
+  return out;
+}
+function sanitizeMeasures(o){
+  const out={};
+  if(o && typeof o==="object") Object.keys(o).forEach(k=>{
+    const v=o[k]||{}, m={};
+    MEAS_FIELDS.forEach(([f])=>{ const x=parseFloat(v[f]); if(x>=20 && x<=250) m[f]=Math.round(x*10)/10; });
+    if(/^\d{4}-\d{2}-\d{2}$/.test(k) && Object.keys(m).length) out[k]=m;
+  });
+  return out;
+}
 function moodNote(v){
   return v===1 ? "Normal en días exigentes: hoy, comer y dormir bien vale doble."
                : "Apúntatelo: así es como te deja entrenar. El mejor motivo para volver.";
@@ -2336,6 +2388,8 @@ let MOOD = sanitizeMood(loadJSON(LS_MOOD, {}));    // cómo te quedaste tras ent
 let MEDIT = sanitizeMedit(loadJSON(LS_MEDIT, {})); // meditaciones apuntadas
 let BODY = sanitizeBody(loadJSON(LS_BODY, null));   // datos de la calculadora (null hasta rellenarlos)
 let WEIGHTS = sanitizeWeights(loadJSON(LS_WEIGHTS, {})); // pesajes
+let CHECKIN = sanitizeCheckin(loadJSON(LS_CHECKIN, {}));  // cómo llegas a entrenar
+let MEASURES = sanitizeMeasures(loadJSON(LS_MEASURES, {})); // cinta métrica
 let calRef = null;                     // {y, m} mes mostrado en el calendario
 const SESSION_LABEL = (()=>{ const o={}; [PROGRAM_FUERZA, PROGRAM_TONO].forEach(P=>Object.values(P).forEach(d=>{ if(d.key) o[d.key]=d.label; })); return o; })();
 // Registra que HOY se entrenó esta sesión (para el calendario)
@@ -2872,7 +2926,7 @@ function renderPlan(){
 
   if(b.isDeload){
     const d=document.createElement("div"); d.className="plan-deload";
-    d.innerHTML=`🌙 <b>Semana de DESCARGA.</b> Haz la mitad de las series, sube el RIR a 4-5 (lejos del fallo) y mantén la técnica. Sin récords: deja que tendones y articulaciones se pongan al día.`;
+    d.innerHTML=`🌙 <b>Semana de DESCARGA.</b> Haz la mitad de las series, sube el RIR a 4-5 (lejos del fallo) y mantén la técnica. Sin récords: deja que tendones y articulaciones se pongan al día.${measuresDue()?" 📏 Y es <b>semana de medidas</b>: cinta métrica más abajo.":""}`;
     content.appendChild(d);
   }
 
@@ -2912,6 +2966,7 @@ function renderPlan(){
 
   renderNutrition();
   renderScale();
+  renderMeasures();
 
   const g=document.createElement("div"); g.className="plan-card";
   g.innerHTML = PROFILE==="tono"
@@ -3016,7 +3071,7 @@ function renderEntreno(){
   if(planBlock(WEEK).isDeload){
     const n=document.createElement("div");
     n.className="phase12";
-    n.innerHTML = `🌙 <b>Semana ${WEEK}: descarga.</b> Haz la <b>mitad de las series</b> y deja más reps en reserva (RIR 4-5). Mantén la técnica, sin récords — recuperas tendones y articulaciones. Ver <b>📅 Plan</b>.`;
+    n.innerHTML = `🌙 <b>Semana ${WEEK}: descarga.</b> Haz la <b>mitad de las series</b> y deja más reps en reserva (RIR 4-5). Mantén la técnica, sin récords — recuperas tendones y articulaciones. Ver <b>📅 Plan</b>.${measuresDue()?" 📏 <b>Semana de medidas:</b> cintura, cadera, brazo y muslo en Plan.":""}`;
     content.appendChild(n);
   }
 
@@ -3076,7 +3131,7 @@ function renderEntreno(){
   banner.innerHTML = `<div class="label">${DAY_SHORT[selectedDay]} · ${selectedDay==todayKey()?"hoy":"sesión"} · ${LOCATIONS[LOCATION].tag}${modeTag}</div>
     <h2>${sv.title}</h2>
     <div class="meta">${nEx} ejercicios · ${totalSets} series · ${planBlock(WEEK).phase.split(" · ")[0]}</div>
-    ${PROFILE!=="tono"?`<div class="rir-chip">🎯 Semana ${planBlock(WEEK).weekInBlock}/6 del bloque · <b>RIR ${planBlock(WEEK).rirWeek.rir}</b><small>${planBlock(WEEK).rirWeek.t} Hombro y escápula: +1.</small></div>`:""}
+    ${PROFILE!=="tono"?`<div class="rir-chip">🎯 Semana ${planBlock(WEEK).weekInBlock}/6 del bloque · <b>RIR ${planBlock(WEEK).rirWeek.rir}</b>${(selectedDay===todayKey() && checkinLow())?` → hoy <b>+1</b> (autorregulado)`:""}<small>${planBlock(WEEK).rirWeek.t} Hombro y escápula: +1.</small></div>`:""}
     <div class="day-progress"><div class="dp-fill" data-w="${dayPct}"></div></div>
     <div class="dp-label${sessionComplete?" full":""}">${sessionComplete?"✓ Sesión completada":completedEx+"/"+nEx+" ejercicios completados"}</div>
     <div class="frase-banner">${fraseDe("banner")}</div>`;
@@ -3084,6 +3139,7 @@ function renderEntreno(){
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     const f=banner.querySelector(".dp-fill"); if(f) f.style.width=f.getAttribute("data-w")+"%";
   }));
+  renderCheckin(day);
 
   // Selector de tiempo disponible
   const modeSel=document.createElement("div");
@@ -3618,6 +3674,86 @@ function renderMetodos(day, ex, entry){
   };
   paint();
   return box;
+}
+
+/* ---- Check-in pre-sesión (kit del entrenador): sueño y energía → autorregulación ---- */
+const CK_S = ["","😴 menos de 6 h","🙂 6-7 h","😃 7 h o más"], CK_E = ["","🔋 energía baja","🔋 energía normal","⚡ a tope"];
+function checkinLow(){ const c=CHECKIN[todayStr()]; return !!(c && (c.s===1 || c.e===1)); }
+function renderCheckin(day){
+  if(!isLiveTraining(day)) return;
+  const ds=todayStr();
+  const box=document.createElement("div"); box.className="checkin";
+  const paint=()=>{
+    const c=CHECKIN[ds]||{};
+    if(c.s && c.e){
+      const low = c.s===1 || c.e===1;
+      box.className="checkin done"+(low?" low":"");
+      box.innerHTML=`<div class="ck-done"><span>${CK_S[c.s]} · ${CK_E[c.e]}</span><button class="ck-edit">cambiar</button></div>
+        ${low?`<div class="ck-adv">🧭 <b>Hoy, autorregula:</b> una rep más en reserva (RIR +1) o la versión express. Entrenar flojo gana a no entrenar; mañana se recupera.</div>`
+             :`<div class="ck-adv ok">Buen punto de partida: hoy toca lo que marca la semana. 💪</div>`}`;
+      box.querySelector(".ck-edit").onclick=()=>{ delete CHECKIN[ds]; saveJSON(LS_CHECKIN, CHECKIN); scheduleCloudSync(); render(); };
+      return;
+    }
+    box.className="checkin";
+    const opts=(k,arr,icons)=>arr.map((l,i)=>`<button class="ck-opt${c[k]===i+1?" on":""}" data-k="${k}" data-v="${i+1}">${icons[i]}<small>${l}</small></button>`).join("");
+    box.innerHTML=`<div class="ck-q">¿Cómo llegas hoy?</div>
+      <div class="ck-row"><span>Sueño</span>${opts("s",["< 6 h","6-7 h","7 h +"],["😴","🙂","😃"])}</div>
+      <div class="ck-row"><span>Energía</span>${opts("e",["baja","normal","a tope"],["🔋","🔋","⚡"])}</div>`;
+    box.querySelectorAll(".ck-opt").forEach(b=>b.onclick=()=>{
+      const k=b.getAttribute("data-k"), v=+b.getAttribute("data-v");
+      CHECKIN[ds]=Object.assign({}, CHECKIN[ds]||{}, {[k]:v});
+      saveJSON(LS_CHECKIN, CHECKIN); scheduleCloudSync();
+      if(CHECKIN[ds].s && CHECKIN[ds].e) render(); else paint();   // completo: el banner recalcula el RIR del día
+    });
+  };
+  paint();
+  content.appendChild(box);
+}
+
+/* ---- Medidas corporales (kit del entrenador): cada 6 semanas, en la semana de descarga ---- */
+function measuresDue(){
+  const ds=Object.keys(MEASURES).sort(); if(!ds.length) return true;
+  return (parseLocalDate(todayStr()) - parseLocalDate(ds[ds.length-1]))/86400000 >= 35;
+}
+function renderMeasures(){
+  const card=document.createElement("div"); card.className="plan-card meas";
+  const paint=()=>{
+    const ds=Object.keys(MEASURES).sort(), last=ds[ds.length-1];
+    if(card.dataset.edit==="1"){
+      const prev=last?MEASURES[last]:{};
+      card.innerHTML=`<h3>📏 Nueva medición</h3>
+        <p class="plan-tip">Por la mañana, en ayunas, cinta sin apretar. Rellena las que midas; el resto en blanco.</p>
+        <div class="ms-fields">${MEAS_FIELDS.map(([f,l,h])=>`<label><span>${l} <small>${h}</small></span><input type="text" inputmode="decimal" data-f="${f}" placeholder="${prev[f]?fmtKg(prev[f]):"cm"}"></label>`).join("")}</div>
+        <div class="ms-btns"><button class="ms-save">Guardar</button><button class="ms-cancel">Cancelar</button></div>`;
+      card.querySelector(".ms-cancel").onclick=()=>{ card.dataset.edit="0"; paint(); };
+      card.querySelector(".ms-save").onclick=()=>{
+        const m={}; card.querySelectorAll("input[data-f]").forEach(i=>{ const v=parseNum(i.value); if(!isNaN(v)) m[i.getAttribute("data-f")]=v; });
+        const clean=sanitizeMeasures({[todayStr()]:m})[todayStr()];
+        if(!clean){ toast("Pon al menos una medida en cm"); return; }
+        MEASURES[todayStr()]=Object.assign({}, MEASURES[todayStr()]||{}, clean); saveJSON(LS_MEASURES, MEASURES); scheduleCloudSync();
+        card.dataset.edit="0"; toast("Medidas guardadas 📏"); paint();
+      };
+      return;
+    }
+    const due=measuresDue();
+    const cols=ds.slice(-4);
+    let table="";
+    if(cols.length){
+      const cell=(f,i)=>{ const v=MEASURES[cols[i]][f]; if(v==null) return "<td>–</td>";
+        const pv = i>0 ? MEASURES[cols[i-1]][f] : (ds.length>cols.length ? (MEASURES[ds[ds.length-cols.length-1]]||{})[f] : null);
+        const d = (pv!=null && i===cols.length-1) ? v-pv : null;
+        return `<td><b>${fmtKg(v)}</b>${d!=null && Math.abs(d)>=0.1 ? `<small class="${d<0?"dn":"up"}">${d>0?"+":"−"}${fmtKg(Math.abs(d))}</small>` : ""}</td>`; };
+      table=`<div class="ms-wrap"><table class="ms-table"><thead><tr><th></th>${cols.map(d=>`<th>${fmtDate(+parseLocalDate(d))}</th>`).join("")}</tr></thead>
+        <tbody>${MEAS_FIELDS.map(([f,l])=>`<tr><th>${l}</th>${cols.map((_,i)=>cell(f,i)).join("")}</tr>`).join("")}</tbody></table></div>`;
+    }
+    const weeks = last ? Math.round((parseLocalDate(todayStr())-parseLocalDate(last))/604800000) : null;
+    card.innerHTML=`<h3>📏 Medidas <button class="nx-edit ms-new">➕ Medir</button></h3>
+      ${cols.length ? table : `<p>La cinta métrica cuenta lo que la báscula no: ${PROFILE==="tono"?"cintura y cadera bajando mientras el peso apenas se mueve es <b>grasa fuera, músculo dentro</b>":"brazo y muslo creciendo con la cintura quieta es <b>músculo, no grasa</b>"}. Toma tus <b>medidas de partida</b>.</p>`}
+      <p class="plan-tip">${due ? (last ? `⏰ Han pasado ${weeks} semanas: toca medir.` : "⏰ Toca medir.") + " Mejor en la semana de descarga, en ayunas, cinta sin apretar." : "Próxima medición en la semana de descarga: cada 6 semanas, siempre en las mismas condiciones."}</p>`;
+    card.querySelector(".ms-new").onclick=()=>{ card.dataset.edit="1"; paint(); };
+  };
+  paint();
+  content.appendChild(card);
 }
 
 function renderExercise(day,ex,num){
@@ -4290,6 +4426,8 @@ document.getElementById("restoreBackup").onclick=()=>{
   MEDIT = mergeDiary(MEDIT, sanitizeMedit(data.medit)); saveJSON(LS_MEDIT, MEDIT);       // meditaciones: unión
   BODY = mergeBody(BODY, sanitizeBody(data.body)); saveJSON(LS_BODY, BODY);                // datos: el más reciente
   WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(data.weights)); saveJSON(LS_WEIGHTS, WEIGHTS); // báscula: unión
+  CHECKIN = mergeDiary(CHECKIN, sanitizeCheckin(data.checkin)); saveJSON(LS_CHECKIN, CHECKIN);
+  MEASURES = mergeDiary(MEASURES, sanitizeMeasures(data.measures)); saveJSON(LS_MEASURES, MEASURES);
   // La semana de la copia se "envejece" según cuándo se guardó (no retrocede el tiempo real)
   const w=parseInt(data.week,10); if(Number.isFinite(w)) setWeek(w + weeksSinceSaved(data.savedAt));
   markCloudReplace();  // el siguiente push refleja esta restauración tal cual
@@ -4312,6 +4450,8 @@ document.getElementById("undoRestore").onclick=()=>{
   if(p.medit){ MEDIT = sanitizeMedit(p.medit); saveJSON(LS_MEDIT, MEDIT); }
   if(p.body){ BODY = sanitizeBody(p.body); saveJSON(LS_BODY, BODY); }
   if(p.weights){ WEIGHTS = sanitizeWeights(p.weights); saveJSON(LS_WEIGHTS, WEIGHTS); }
+  if(p.checkin){ CHECKIN = sanitizeCheckin(p.checkin); saveJSON(LS_CHECKIN, CHECKIN); }
+  if(p.measures){ MEASURES = sanitizeMeasures(p.measures); saveJSON(LS_MEASURES, MEASURES); }
   const w=parseInt(p.week,10); if(Number.isFinite(w)) setWeek(w);
   saveJSON(LS_PREDO, current);
   markCloudReplace();  // el siguiente push refleja el estado recuperado
@@ -4338,7 +4478,7 @@ function cloudPayload(){
   // Sin entradas vacías (las que crea el render al navegar): copias y nube limpias
   const log={};
   Object.keys(LOG).forEach(k=>{ if(!isEmptyEntry(LOG[k])) log[k]=LOG[k]; });
-  return JSON.stringify({ v:2, week:WEEK, log, dates:TRAINED, plan:PLAN, diary:DIARY, mood:MOOD, medit:MEDIT, body:BODY, weights:WEIGHTS, savedAt:new Date().toISOString() }, null, 2);
+  return JSON.stringify({ v:2, week:WEEK, log, dates:TRAINED, plan:PLAN, diary:DIARY, mood:MOOD, medit:MEDIT, body:BODY, weights:WEIGHTS, checkin:CHECKIN, measures:MEASURES, savedAt:new Date().toISOString() }, null, 2);
 }
 /* Semanas transcurridas desde que se guardó una copia (para "envejecer" su nº de semana al restaurarla) */
 function weeksSinceSaved(savedAt){
@@ -4415,7 +4555,7 @@ async function cloudFetchRemote(token, id){
   if(f.truncated && f.raw_url){ content=await (await fetch(f.raw_url)).text(); }
   const data=JSON.parse(content);
   if(!data || typeof data.log!=="object") return null;
-  return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan), diary:sanitizeDiary(data.diary), mood:sanitizeMood(data.mood), medit:sanitizeMedit(data.medit), body:sanitizeBody(data.body), weights:sanitizeWeights(data.weights) };
+  return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan), diary:sanitizeDiary(data.diary), mood:sanitizeMood(data.mood), medit:sanitizeMedit(data.medit), body:sanitizeBody(data.body), weights:sanitizeWeights(data.weights), checkin:sanitizeCheckin(data.checkin), measures:sanitizeMeasures(data.measures) };
 }
 
 /* Tras "Borrar semana" o "Restaurar copia", el siguiente push debe REEMPLAZAR la nube
@@ -4470,6 +4610,8 @@ async function cloudPush(flush){
           MEDIT = mergeDiary(MEDIT, sanitizeMedit(remote.medit)); saveJSON(LS_MEDIT, MEDIT);
           BODY = mergeBody(BODY, sanitizeBody(remote.body)); saveJSON(LS_BODY, BODY);
           WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(remote.weights)); saveJSON(LS_WEIGHTS, WEIGHTS);
+          CHECKIN = mergeDiary(CHECKIN, sanitizeCheckin(remote.checkin)); saveJSON(LS_CHECKIN, CHECKIN);
+          MEASURES = mergeDiary(MEASURES, sanitizeMeasures(remote.measures)); saveJSON(LS_MEASURES, MEASURES);
         }
       }catch(e){ /* si el GET falla seguimos y subimos lo local */ }
     }
@@ -4511,7 +4653,9 @@ async function cloudPull(){
           MOOD = mergeDiary(MOOD, sanitizeMood(remote.mood)); saveJSON(LS_MOOD, MOOD);
           MEDIT = mergeDiary(MEDIT, sanitizeMedit(remote.medit)); saveJSON(LS_MEDIT, MEDIT);
           BODY = mergeBody(BODY, sanitizeBody(remote.body)); saveJSON(LS_BODY, BODY);
-          WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(remote.weights)); saveJSON(LS_WEIGHTS, WEIGHTS);       // diario: unión
+          WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(remote.weights)); saveJSON(LS_WEIGHTS, WEIGHTS);
+          CHECKIN = mergeDiary(CHECKIN, sanitizeCheckin(remote.checkin)); saveJSON(LS_CHECKIN, CHECKIN);
+          MEASURES = mergeDiary(MEASURES, sanitizeMeasures(remote.measures)); saveJSON(LS_MEASURES, MEASURES);       // diario: unión
     // La semana de la copia se "envejece" según cuándo se guardó (no retrocede el tiempo real)
     const w=parseInt(remote.week,10);
     const aged = Number.isFinite(w) ? w + weeksSinceSaved(remote.savedAt) : NaN;
@@ -4551,6 +4695,8 @@ async function cloudConnect(){
           MEDIT = mergeDiary(MEDIT, sanitizeMedit(remote.medit)); saveJSON(LS_MEDIT, MEDIT);
           BODY = mergeBody(BODY, sanitizeBody(remote.body)); saveJSON(LS_BODY, BODY);
           WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(remote.weights)); saveJSON(LS_WEIGHTS, WEIGHTS);
+          CHECKIN = mergeDiary(CHECKIN, sanitizeCheckin(remote.checkin)); saveJSON(LS_CHECKIN, CHECKIN);
+          MEASURES = mergeDiary(MEASURES, sanitizeMeasures(remote.measures)); saveJSON(LS_MEASURES, MEASURES);
           const w=parseInt(remote.week,10);
           const aged = Number.isFinite(w) ? w + weeksSinceSaved(remote.savedAt) : NaN;
           if(Number.isFinite(aged) && aged>WEEK) setWeek(aged);
@@ -4798,6 +4944,17 @@ function renderProgress(){
     mc.innerHTML=`💆 De <b>${mVals.length}</b> sesiones en las que apuntaste cómo te quedaste, saliste bien o mejor en <b>${good}</b> (${Math.round(good/mVals.length*100)}%).<span>Cuando falten ganas, recuerda: no es empezar lo que sienta bien, es haber entrenado.</span>`;
     content.appendChild(mc);
   }
+
+  // Sueño y entreno: tu propia evidencia (a partir de 3 check-ins)
+  const ckDays=Object.keys(CHECKIN).filter(ds=>CHECKIN[ds].s);
+  if(ckDays.length>=3){
+    const good7=ckDays.filter(ds=>CHECKIN[ds].s===3).length;
+    const grp=(f)=>{ const d=ckDays.filter(f).filter(ds=>MOOD[ds]); return d.length>=3 ? Math.round(d.filter(ds=>MOOD[ds]>=2).length/d.length*100) : null; };
+    const a=grp(ds=>CHECKIN[ds].s===3), b=grp(ds=>CHECKIN[ds].s<3);
+    const sc=document.createElement("div"); sc.className="mood-card sleep";
+    sc.innerHTML=`😴 Dormiste <b>7 h o más</b> antes de <b>${good7}</b> de ${ckDays.length} entrenos.${(a!=null && b!=null)?` Saliste bien o mejor el <b>${a} %</b> de las veces con 7 h+, frente al <b>${b} %</b> con menos.`:""}<span>Dormir menos de 7 h recorta hasta un 18 % la síntesis de músculo. La cama también entrena.</span>`;
+    content.appendChild(sc);
+  }
   // anima el anillo tras pintar
   const ring=hero.querySelector("circle.prog");
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ ring.setAttribute("stroke-dashoffset", off.toFixed(1)); }));
@@ -5004,7 +5161,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.10.03-2 · BIELA";
+const APP_VERSION = "2026.10.03-3 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
