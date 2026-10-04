@@ -801,14 +801,29 @@
   /* ---- Ilustraciones y mapa muscular ---- */
   .ex-thumb{width:44px;height:44px;flex:none;border-radius:10px;background:var(--soft);object-fit:contain}
   .illu{position:relative;width:112px;height:112px;flex:none;border-radius:14px;background:var(--soft);overflow:hidden;cursor:pointer}
-  .illu img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;animation:illuCycle 2.8s linear infinite;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5)) drop-shadow(0 0 8px rgba(16,185,255,.18));will-change:opacity,transform}
-  @keyframes illuCycle{0%{opacity:0;transform:scale(.985)}6%{opacity:1}25%{opacity:1;transform:scale(1.015)}31%{opacity:0}100%{opacity:0;transform:scale(.985)}}
-  .illu.two img{animation-name:illuCycle2}
-  @keyframes illuCycle2{0%{opacity:0;transform:scale(.985)}8%{opacity:1}46%{opacity:1;transform:scale(1.015)}54%{opacity:0}100%{opacity:0;transform:scale(.985)}}
-  .illu.still img{animation:none;opacity:1}
-  .illu.big{width:min(260px,70vw);height:min(260px,70vw);margin:0 auto 10px}
-  @media (prefers-reduced-motion:reduce){.illu img{animation:none;opacity:0}.illu img:nth-child(2),.illu img:only-child{opacity:1}}
+  /* Reproducción: una repetición con el tempo del ejercicio (ida · aguanta · vuelta · pausa). El motor JS activa .on; el fundido lo hace CSS */
+  .illu img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transform:scale(.985);transition:opacity .4s ease-in-out,transform .4s ease-in-out;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5)) drop-shadow(0 0 8px rgba(16,185,255,.18));will-change:opacity,transform}
+  .illu img.on{opacity:1;transform:scale(1)}
+  .illu.still img{opacity:1;transform:none}
+  .illu.big{width:min(260px,70vw);height:min(260px,70vw);margin:0 auto}
+  .illu-wrap{flex:none;display:flex;flex-direction:column;align-items:center;gap:5px}
+  .illu-wrap.big{margin:0 auto 10px}
+  .illu-cap{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.3px;min-height:14px;text-align:center;transition:color .3s}
+  .illu-cap.go{color:var(--accent)}
+  .illu-wrap.big .illu-cap{font-size:13px}
+  @media (prefers-reduced-motion:reduce){.illu img{transition:none}}
   .illu-row{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+  /* BIELA en la cabecera de la sesión (ejercicio en curso) y en el descanso (lo que viene) */
+  .session-banner{position:relative}
+  .banner-illu{position:absolute;right:14px;top:14px;width:84px;height:84px;border-radius:16px;background:rgba(255,255,255,.16);overflow:hidden;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+  .banner-illu .illu-wrap{height:100%}.banner-illu .illu{width:84px;height:84px;background:none;border-radius:0}
+  .session-banner.has-illu .label,.session-banner.has-illu h2,.session-banner.has-illu .meta{padding-right:98px}
+  .rest-next{display:flex;align-items:center;gap:12px;text-align:left;margin:2px 0 14px;padding:10px;border-radius:16px;background:var(--soft)}
+  .rest-next:empty{display:none}
+  .rest-next .illu{width:74px;height:74px;border-radius:12px}
+  .rest-next .rn-t{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+  .rest-next .rn-n{font-size:14px;font-weight:800;color:var(--ink);line-height:1.2;margin-top:2px}
+  .rest-next .rn-s{font-size:12.5px;color:var(--muted);margin-top:3px}
   .illu-info{flex:1;min-width:0}
   .illu-t,.im-t{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
   .chips{display:flex;flex-wrap:wrap;gap:5px}
@@ -983,6 +998,7 @@
       <rect x="0" y="3" width="120" height="4" rx="2" fill="#2a2f3a"/>
       <rect id="restBar" x="0" y="3" width="120" height="4" rx="2" fill="#1bb4e8"/>
     </svg>
+    <div class="rest-next" id="restNext"></div>
     <div class="rest-btns">
       <button class="btn btn-soft" id="restPause">Pausar</button>
       <button class="btn btn-add" id="restAdd">+30s</button>
@@ -3315,7 +3331,12 @@ function renderEntreno(){
   banner.className="session-banner";
   const totalSets = exList.reduce((a,e)=>a+Math.min(e.sets,setCap()),0);
   const modeTag = sessionMode==="full" ? "" : ` · ⏱️ ${MODE_INFO[sessionMode].label}`;
-  banner.innerHTML = `<div class="label">${DAY_SHORT[selectedDay]} · ${selectedDay==todayKey()?"hoy":"sesión"} · ${LOCATIONS[LOCATION].tag}${modeTag}</div>
+  // BIELA hace el ejercicio en curso (el primero sin completar); tocarlo abre su tarjeta
+  const curEx = exList.find(e=>!isExDone(e)) || exList[0];
+  const bv = curEx ? activeVariant(day,curEx) : null;
+  const bslug = curEx ? illuSlug(curEx, bv.active, bv.ci) : null;
+  if(bslug) banner.classList.add("has-illu");
+  banner.innerHTML = `${bslug?`<div class="banner-illu" title="${esc(bv.active.name)}">${illuFigure(bslug,"",bv.active.note,true)}</div>`:""}<div class="label">${DAY_SHORT[selectedDay]} · ${selectedDay==todayKey()?"hoy":"sesión"} · ${LOCATIONS[LOCATION].tag}${modeTag}</div>
     <h2>${sv.title}</h2>
     <div class="meta">${nEx} ejercicios · ${totalSets} series · ${planBlock(WEEK).phase.split(" · ")[0]}</div>
     ${PROFILE!=="tono"?`<div class="rir-chip">🎯 Semana ${planBlock(WEEK).weekInBlock}/6 del bloque · <b>RIR ${planBlock(WEEK).rirWeek.rir}</b>${(selectedDay===todayKey() && checkinLow())?` → hoy <b>+1</b> (autorregulado)`:""}<small>${planBlock(WEEK).rirWeek.t} Hombro y escápula: +1.</small></div>`:""}
@@ -3323,6 +3344,10 @@ function renderEntreno(){
     <div class="dp-label${sessionComplete?" full":""}">${sessionComplete?"✓ Sesión completada":completedEx+"/"+nEx+" ejercicios completados"}</div>
     <div class="frase-banner">${fraseDe("banner")}</div>`;
   content.appendChild(banner);
+  if(bslug){
+    illuMount(banner);
+    banner.querySelector(".banner-illu").onclick=()=>{ UI.openEx[curEx.id]=true; saveJSON(LS_UI,UI); render(); requestAnimationFrame(()=>{ const t=document.querySelector(`.ex[data-ex="${curEx.id}"]`); if(t) t.scrollIntoView({behavior:"smooth",block:"start"}); }); };
+  }
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     const f=banner.querySelector(".dp-fill"); if(f) f.style.width=f.getAttribute("data-w")+"%";
   }));
@@ -3509,7 +3534,9 @@ function renderEntreno(){
   renderWarmup(day,sv);
 
   // Exercises (subconjunto según el modo)
+  SESSION_EXLIST=exList;
   exList.forEach((ex,i)=> content.appendChild(renderExercise(day,ex,i+1)));
+  illuPrefetch(day, exList);
 
   // Estiramientos finales (cool-down)
   renderStretch(day);
@@ -3829,12 +3856,64 @@ const ILLU_FRAMES = {"ab-wheel":[2],"cable-crunch":[2],"prone-y-raise":[1,2],"di
   "bird-dog":[1,3],"cable-curl":[1,3],"concentration-curl":[1,3],"dumbbell-skull-crusher":[1,3],"ez-bar-curl":[1,3],"pallof-press":[1,3],"rope-hammer-curl":[1,3],"rope-tricep-pushdown":[1,3],"skull-crusher":[1,3],"smith-machine-bench-press":[1,3],"smith-machine-squat":[1,3]};
 function illuFrames(slug){ return ILLU_FRAMES[slug] || [1,2,3]; }
 function illuThumb(slug){ const f=illuFrames(slug); return f.length===3 ? 2 : f[0]; }
-function illuFigure(slug, cls){
-  // 3 fotogramas: inicio → medio → final → medio; 2: ida y vuelta; 1: fija. Siempre con fundido, en bucle.
-  const fr=illuFrames(slug);
-  const seq = fr.length===3 ? [fr[0],fr[1],fr[2],fr[1]] : fr;
-  const kind = seq.length===4 ? "" : seq.length===2 ? " two" : " still";
-  return `<div class="illu${kind} ${cls||""}" data-slug="${slug}">${seq.map((f,i)=>`<img src="img/ex/${slug}-${f}.webp" alt="" loading="lazy" decoding="async" style="animation-delay:${(i*2.8/seq.length).toFixed(1)}s">`).join("")}</div>`;
+// Tempo del ejercicio (de la nota "Tempo 3-0-1-0") o uno controlado por defecto: ida · aguanta · vuelta · pausa (segundos)
+function illuTempo(note){ const m=/Tempo (\d)-(\d)-(\d)-(\d)/.exec(note||""); return m ? {t:[+m[1],+m[2],+m[3],+m[4]], real:true} : {t:[2,0.4,1.3,0.5], real:false}; }
+function illuFigure(slug, cls, note, nocap){
+  const fr=illuFrames(slug); const tp=illuTempo(note);
+  const still = fr.length===1;
+  return `<div class="illu-wrap ${cls||""}"><div class="illu${still?" still":""} ${cls||""}" data-slug="${slug}" data-tempo="${tp.t.join(",")}" data-real="${tp.real?1:0}">${fr.map((f,i)=>`<img src="img/ex/${slug}-${f}.webp" alt=""${i===0?' class="on"':""} loading="lazy" decoding="async">`).join("")}</div>${(!still && !nocap)?`<div class="illu-cap"></div>`:""}</div>`;
+}
+/* Motor de reproducción: recorre los fotogramas como una repetición real (ida lenta, aguanta, vuelta, pausa),
+   con fundido suave, pausa fuera de pantalla o con la app en segundo plano, y retoma la fase al re-renderizar. */
+const ILLU_PHASE = {};
+const ILLU_REDUCED = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+const ILLU_IO = ("IntersectionObserver" in window) ? new IntersectionObserver(es=>es.forEach(e=>{ const p=e.target._illu; if(!p) return; p.visible=e.isIntersecting; if(p.visible && !p.timer) p.step(); }),{threshold:.05}) : null;
+function illuMount(root){
+  (root||document).querySelectorAll(".illu[data-tempo]").forEach(el=>{
+    if(el._illu || el.classList.contains("still")) return;
+    const imgs=[...el.querySelectorAll("img")]; const n=imgs.length; if(n<2) return;
+    const cap=el.parentElement ? el.parentElement.querySelector(".illu-cap") : null;
+    const [d1,p1,d2,p2]=el.dataset.tempo.split(",").map(Number); const real=el.dataset.real==="1";
+    const ida = real?`Ida · ${d1} s`:"Ida, controlado", vuelta = real?`Vuelta · ${d2} s`:"Vuelta", aguanta = (real&&p1)?`Aguanta · ${p1} s`:"Aguanta";
+    const h1=Math.max(p1,.45), h2=Math.max(p2,.45);
+    // guion: [fotograma, segundos, etiqueta]
+    const seq = n===3
+      ? [[0,d1/2,ida],[1,d1/2,ida],[2,h1,aguanta],[1,d2/2,vuelta],[0,d2/2,vuelta],[0,h2,"Pausa"]]
+      : [[0,d1,ida],[1,h1,aguanta],[0,d2,vuelta],[0,h2,"Pausa"]];
+    if(ILLU_REDUCED){ imgs.forEach((im,j)=>im.classList.toggle("on", j===Math.min(1,n-1))); if(cap) cap.textContent=aguanta; return; }
+    const key=el.dataset.slug;
+    const p={ visible:true, timer:null, i:0,
+      step(){
+        if(!el.isConnected){ p.stop(); return; }
+        if(!p.visible || document.hidden){ p.timer=null; return; }
+        const [k,dur,lbl]=seq[p.i]; const xf=Math.min(.45,Math.max(.18,dur*.8));
+        imgs.forEach((im,j)=>{ im.style.transitionDuration=xf+"s"; im.classList.toggle("on", j===k); });
+        if(cap){ cap.textContent=lbl; cap.classList.toggle("go", /^(Ida|Vuelta)/.test(lbl)); }
+        ILLU_PHASE[key]={i:p.i, at:Date.now()};
+        p.i=(p.i+1)%seq.length; p.timer=setTimeout(p.step, dur*1000);
+      },
+      stop(){ clearTimeout(p.timer); p.timer=null; if(ILLU_IO) ILLU_IO.unobserve(el); el._illu=null; } };
+    el._illu=p;
+    // retoma la fase en la que iba este ejercicio (los re-renderizados no reinician la repetición)
+    const ph=ILLU_PHASE[key]; if(ph && Date.now()-ph.at<8000){ p.i=ph.i; const k=seq[p.i][0]; imgs.forEach((im,j)=>{ im.style.transitionDuration="0s"; im.classList.toggle("on", j===k); }); }
+    if(ILLU_IO){ p.visible=false; ILLU_IO.observe(el); } else p.step();
+  });
+}
+document.addEventListener("visibilitychange",()=>{ if(document.hidden) return; document.querySelectorAll(".illu[data-tempo]").forEach(el=>{ const p=el._illu; if(p && p.visible && !p.timer) p.step(); }); });
+// Variante activa de un ejercicio (titular o alternativa elegida) y precarga de los fotogramas de la sesión
+function activeVariant(day, ex){ const variants=[{name:ex.name, vid:ex.vid, note:ex.note}].concat(ex.alts||[]); let ci=UI.altChoice[LOCATION+"|"+day.key+"|"+ex.id]||0; if(ci>=variants.length) ci=0; return {variants, ci, active:variants[ci]}; }
+let SESSION_EXLIST=[];
+function illuPrefetch(day, exList){
+  if(navigator.connection && navigator.connection.saveData) return;
+  const run=()=>exList.forEach(ex=>{ const v=activeVariant(day,ex); const s=illuSlug(ex,v.active,v.ci); if(s) illuFrames(s).forEach(f=>{ const im=new Image(); im.src=`img/ex/${s}-${f}.webp`; }); });
+  (window.requestIdleCallback||(cb=>setTimeout(cb,900)))(run);
+}
+// Qué mostrar durante el descanso: la siguiente serie de este ejercicio o, si ya está, el siguiente ejercicio
+function restCtx(day, ex, num, entry, visN){
+  const done=entry.sets.slice(0,visN).filter(s=>s.done).length;
+  if(done<visN){ const v=activeVariant(day,ex); return {slug:illuSlug(ex,v.active,v.ci), t:"Siguiente", name:v.active.name, sub:`Serie ${done+1} de ${visN} · ${schemeForBlock(ex)}`, note:v.active.note}; }
+  const nx=SESSION_EXLIST[num]; if(!nx) return null;
+  const v=activeVariant(day,nx); return {slug:illuSlug(nx,v.active,v.ci), t:"Siguiente ejercicio", name:v.active.name, sub:`${schemeForBlock(nx)} · descanso ${nx.rest}s`, note:v.active.note};
 }
 function illuChips(slug){
   const m=ILLU_META[slug]; if(!m) return "";
@@ -3851,7 +3930,7 @@ function openIllu(slug, name, note){
   if(document.querySelector(".illu-modal")) return;
   const ov=document.createElement("div"); ov.className="illu-modal";
   ov.innerHTML=`<div class="im-box"><button class="im-close" aria-label="Cerrar">✕</button>
-    ${illuFigure(slug,"big")}
+    ${illuFigure(slug,"big",note)}
     <h3>${esc(name)}</h3>
     <div class="im-t">Trabaja</div>${illuChips(slug)}
     <div class="im-maps"><div class="im-map" id="imFront"></div><div class="im-map" id="imBack"></div></div>
@@ -3861,6 +3940,7 @@ function openIllu(slug, name, note){
   ov.querySelector(".im-close").onclick=close;
   ov.addEventListener("click",e=>{ if(e.target===ov) close(); });
   document.body.appendChild(ov); document.body.style.overflow="hidden";
+  illuMount(ov);
   if(window.BodyMuscles){
     try{
       const st=illuBodyState(slug);
@@ -4018,6 +4098,7 @@ function renderExercise(day,ex,num){
 
   const wrap=document.createElement("div");
   wrap.className="ex"+(open?" open":"")+(allDone?" done":"");
+  wrap.dataset.ex=ex.id;
 
   // header
   const head=document.createElement("div");
@@ -4044,10 +4125,11 @@ function renderExercise(day,ex,num){
   // Ilustración animada + músculos que trabaja (toca para ver en grande con el mapa muscular)
   if(slug){
     const il=document.createElement("div"); il.className="illu-row";
-    il.innerHTML=`${illuFigure(slug)}<div class="illu-info"><div class="illu-t">Trabaja</div>${illuChips(slug)}<button class="illu-big">🔍 Ver en grande y músculos</button></div>`;
+    il.innerHTML=`${illuFigure(slug,"",active.note)}<div class="illu-info"><div class="illu-t">Trabaja</div>${illuChips(slug)}<button class="illu-big">🔍 Ver en grande y músculos</button></div>`;
     const open=()=>openIllu(slug, active.name, active.note);
     il.querySelector(".illu").onclick=open; il.querySelector(".illu-big").onclick=open;
     detail.appendChild(il);
+    if(UI.openEx[ex.id]) requestAnimationFrame(()=>illuMount(il));
   }
 
   // Referencia del último entreno con datos (busca en todas las semanas y lugares)
@@ -4189,7 +4271,7 @@ function renderExercise(day,ex,num){
       touchEntry(entry); persist();
       wrap.classList.toggle("done", entryCompleteN(entry, visN)); // actualiza estado del ejercicio
       const r = updateDayProgress();                            // barra del día + detección de cierre
-      if(s.done && !s.warm && ex.rest>0 && isLiveTraining(day)) startRest(ex.rest); // autostart si entrenas AHORA (no al apuntar a posteriori; el cardio no tiene descanso)
+      if(s.done && !s.warm && ex.rest>0 && isLiveTraining(day)) startRest(ex.rest, undefined, restCtx(day,ex,num,entry,visN)); // autostart si entrenas AHORA (no al apuntar a posteriori; el cardio no tiene descanso)
       if(r.transition) render();                                // muestra/oculta cierre + confeti
     };
     tdD.appendChild(bd);
@@ -4262,7 +4344,7 @@ function renderExercise(day,ex,num){
   row.className="btn-row";
   const bRest=document.createElement("button");
   bRest.className="btn btn-rest"; bRest.innerHTML=`⏱ Descanso ${ex.rest}s`;
-  bRest.onclick=()=>startRest(ex.rest);
+  bRest.onclick=()=>startRest(ex.rest, undefined, restCtx(day,ex,num,entry,visN));
   if(!ex.rest) bRest.style.display="none"; // el remate de cardio no lleva descanso
   const aVid=document.createElement("a");
   aVid.className="btn btn-video"; aVid.href=active.vid; aVid.target="_blank"; aVid.rel="noopener";
@@ -4456,8 +4538,10 @@ function ensureAudio(){
 function saveRestState(){ saveJSON(LS_REST, {endAt:restEndAt, total:restTotal}); }
 function clearRestState(){ try{ localStorage.removeItem(LS_REST); }catch(e){} }
 
-function startRest(seconds, title){
+function startRest(seconds, title, ctx){
   const tt=document.querySelector(".rest-box .ttl"); if(tt) tt.textContent = title || "Descanso";
+  const rn=document.getElementById("restNext");
+  if(rn){ rn.innerHTML = (ctx && ctx.name) ? `${ctx.slug?illuFigure(ctx.slug,"",ctx.note,true):""}<div><div class="rn-t">${esc(ctx.t)}</div><div class="rn-n">${esc(ctx.name)}</div><div class="rn-s">${esc(ctx.sub||"")}</div></div>` : ""; if(ctx && ctx.slug) illuMount(rn); }
   restTotal=seconds; restRemaining=seconds; restPaused=false; restDone=false;
   restEndAt=Date.now()+seconds*1000;
   saveRestState(); // sobrevive a que iOS mate la app: al reabrir se reanuda solo
@@ -5436,7 +5520,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.10.04-6 · BIELA";
+const APP_VERSION = "2026.10.04-7 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
