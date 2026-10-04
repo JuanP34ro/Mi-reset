@@ -1,0 +1,133 @@
+FUENTE DE LOS FOTOGRAMAS · Mi Reset Saludable
+
+Origen: Workout Guide (Bryl Lim, https://github.com/bryllim/workout-guide), basado en Everkinetic (https://github.com/everkinetic/data). Licencia CC BY-SA 4.0.
+PNG 512 x 512, trazo blanco sobre fondo transparente. Nombre: <ejercicio>-<n>.png, donde n es el numero de fotograma usado en la app.
+
+Para que yo las pueda insertar, devuelvelas con EL MISMO NOMBRE, fondo transparente, 512 x 512 o mayor (cuadradas), y con el mismo angulo y encuadre entre los fotogramas de un mismo ejercicio.
+
+
+ab-wheel  (fotogramas 2)  →  Rueda abdominal (ab wheel) · Rueda abdominal (si tienes)
+assisted-dip  (fotogramas 2,3)  →  Fondos de tríceps en máquina asistida
+assisted-pistol-squat  (fotogramas 1,2,3)  →  Sentadilla a una pierna asistida (pistol), apoyo en una silla
+assisted-pull-up  (fotogramas 1,2,3)  →  Dominadas asistidas en máquina
+back-extension  (fotogramas 1,2)  →  Extensión de espalda en banco 45° (aún más fácil)
+band-pull-apart  (fotogramas 1,2,3)  →  Band pull-apart
+banded-clamshell  (fotogramas 1,2,3)  →  Almeja (clamshell) con banda
+banded-face-pull  (fotogramas 1,2,3)  →  Face pull con banda (si la llevas)
+banded-glute-bridge  (fotogramas 2,3)  →  Puente de glúteo con banda sobre las rodillas
+banded-kickback  (fotogramas 1,2,3)  →  Patada de glúteo con banda (si la llevas)
+banded-lat-pulldown  (fotogramas 1,2,3)  →  Jalón con banda anclada alto (vertical)
+banded-monster-walk  (fotogramas 1,2,3)  →  Monster walk / marcha lateral con banda · Monster walk con banda
+banded-pallof-press  (fotogramas 1,2,3)  →  Press Pallof con banda
+banded-row  (fotogramas 1,2)  →  Remo con banda a una mano · Remo con banda anclada (si la llevas)
+banded-standing-hip-abduction  (fotogramas 1,2,3)  →  Abducción con banda de pie
+bent-over-rear-delt-raise  (fotogramas 2,3)  →  Pájaros (reverse fly) con mancuernas ligeras · Pájaros (reverse fly) con mochila/botellas, inclinado
+bicep-curl  (fotogramas 2,3)  →  [solo por id]
+bird-dog  (fotogramas 1,3)  →  Bird dog (cuadrupedia alterna)
+bodyweight-squat  (fotogramas 1,2,3)  →  Sentadilla con mochila a la espalda · Sentadilla peso corporal (tempo 3 seg bajada) · Sentadilla peso corporal a tempo lento
+bulgarian-split-squat  (fotogramas 1,2,3)  →  Sentadilla búlgara · Sentadilla búlgara (cuando tengas equilibrio) · Sentadilla búlgara con mancuernas
+cable-crunch  (fotogramas 2)  →  Crunch en polea (arrodillado)
+cable-curl  (fotogramas 1,3)  →  Curl con banda elástica · Curl con banda elástica (si la llevas) · Curl en polea baja
+cable-fly  (fotogramas 1,2)  →  Aperturas con banda de pie (crossover) · Cruce de poleas (crossover)
+cable-lateral-raise  (fotogramas 1,2,3)  →  Elevaciones laterales en polea (una mano)
+cable-pull-through  (fotogramas 1,2)  →  Hip hinge con banda (pull-through) · Pull-through con banda (bisagra) · Pull-through en polea (la polea te guía)
+cable-standing-hip-abduction  (fotogramas 1,2,3)  →  Abducción de cadera en polea (una pierna)
+cable-standing-hip-adduction  (fotogramas 1,2,3)  →  Aducción con banda elástica
+calf-raise  (fotogramas 1,2,3)  →  Gemelo a dos piernas en escalón con mochila
+chair-dip  (fotogramas 1,2,3)  →  Fondos de tríceps en silla (rango corto) · Fondos de tríceps en silla, rango corto (solo si tu fisio lo valida)
+chest-supported-row  (fotogramas 1,2,3)  →  Remo en máquina con apoyo en pecho
+close-grip-lat-pulldown  (fotogramas 2,3)  →  Jalón agarre neutro/estrecho (hombro más amable)
+concentration-curl  (fotogramas 1,3)  →  Curl concentrado con mancuerna
+copenhagen-plank  (fotogramas 1,2,3)  →  Plancha Copenhagen
+cossack-squat  (fotogramas 1,2,3)  →  Sentadilla cosaca (movilidad + aductor)
+dead-bug  (fotogramas 2,3)  →  Dead bug · Dead bug (control lumbar)
+decline-push-up  (fotogramas 1,2,3)  →  Flexiones con pies elevados · Flexiones declinadas amplias
+diamond-push-up  (fotogramas 1,2,3)  →  Flexiones diamante de rodillas (más fáciles)
+donkey-kick  (fotogramas 1,2,3)  →  Extensión de cadera con mancuerna en la corva · Patada de glúteo en cuadrupedia (peso corporal)
+dumbbell-bench-press  (fotogramas 2,3)  →  Floor press ligero con mancuernas · Press con mancuernas en banco plano (si tienes banco) · Press con mancuernas ligero · Press de pecho con mancuernas en banco plano
+dumbbell-bent-over-row  (fotogramas 1,2,3)  →  Remo con dos mancuernas inclinado (bisagra de cadera) · Remo con mochila a dos manos, inclinado (bisagra de cadera)
+dumbbell-fly  (fotogramas 2,3)  →  Aperturas con mancuernas en banco
+dumbbell-glute-bridge  (fotogramas 1,2,3)  →  Puente de glúteo en el suelo con mochila en la cadera
+dumbbell-hip-thrust  (fotogramas 1,2,3)  →  Puente de glúteo con la espalda en un banco (mancuerna en la cadera)
+dumbbell-overhead-tricep-extension  (fotogramas 1,2,3)  →  Extensión de tríceps overhead con mancuerna a dos manos
+dumbbell-romanian-deadlift  (fotogramas 1,2)  →  Peso muerto rumano con mochila a dos piernas
+dumbbell-skull-crusher  (fotogramas 1,3)  →  Press francés con mancuerna tumbado
+dumbbell-sumo-squat  (fotogramas 1,2,3)  →  Sentadilla sumo con mancuerna/kettlebell
+ez-bar-curl  (fotogramas 1,3)  →  Curl con barra Z
+face-pull  (fotogramas 1,2,3)  →  [solo por id]
+fire-hydrant  (fotogramas 1,2,3)  →  Fire hydrant (cuadrupedia lateral)
+front-squat  (fotogramas 2,3)  →  Sentadilla frontal con 2 mancuernas al hombro
+glute-bridge  (fotogramas 2,3)  →  Puente de glúteo con pausa arriba (más fácil) · Puente de glúteo con pausa de 3 seg arriba (más difícil sin más peso) · Puente de glúteo con talones lejos (isquios), más fácil
+glute-bridge-march  (fotogramas 1,2,3)  →  Marcha de glúteo (elevado, apoyo en cama)
+goblet-squat  (fotogramas 1,2,3)  →  Sentadilla goblet con mancuerna (Fase 2)
+good-morning  (fotogramas 2,3)  →  Buenos días con banda o mancuerna · Buenos días con mancuerna/banda · Buenos días con mochila a la espalda
+hack-squat  (fotogramas 2,3)  →  [solo por id]
+hammer-curl  (fotogramas 2,3)  →  Curl martillo con banda
+hip-abduction-machine  (fotogramas 1,2,3)  →  [solo por id]
+hip-adduction-machine  (fotogramas 1,2,3)  →  [solo por id]
+hip-thrust  (fotogramas 1,2,3)  →  Empuje de cadera con barra (si tienes)
+hollow-body-hold  (fotogramas 1,2,3)  →  Hollow hold
+incline-bench-press  (fotogramas 2,3)  →  Press inclinado en multipower (Smith)
+incline-dumbbell-press  (fotogramas 2,3)  →  Press inclinado con mancuernas (banco 30°)
+incline-push-up  (fotogramas 1,2,3)  →  Flexiones con manos estrechas en una cama o roca (inclinadas) · Flexiones inclinadas (manos en cama/mesa/roca) · Flexiones inclinadas (manos en cama/mesa/roca) — más fáciles
+inverted-row  (fotogramas 2,3)  →  Remo invertido bajo una mesa firme · Remo invertido bajo una mesa firme (si la hay) · Remo invertido con sábana en la puerta · Remo invertido suave bajo una mesa firme
+jump-rope  (fotogramas 1,2,3)  →  Saltos suaves a la comba · Saltos suaves a la comba / a los talones · Saltos suaves a la comba / talones
+knee-push-up  (fotogramas 1,2,3)  →  Flexiones de rodillas
+landmine-press  (fotogramas 1,2,3)  →  Landmine press (barra en esquina) — más amable para el hombro · Landmine press con kettlebell/mancuerna
+lateral-raise  (fotogramas 2,3)  →  Elevaciones con garrafas de agua · Elevaciones laterales con banda (pie sobre la banda) · Elevaciones laterales con kettlebell (una mano) · Elevaciones laterales isométricas (aguanta arriba)
+leg-extension  (fotogramas 2,3)  →  Extensión con banda en el tobillo · Extensión de cuádriceps a una pierna · Extensión de cuádriceps con banda
+leg-press  (fotogramas 2,3)  →  Prensa de piernas (pies medios) · Prensa de piernas, pies altos en la plataforma
+leg-press-calf-raise  (fotogramas 2,3)  →  Gemelo en la prensa · Gemelo en la prensa (rodilla algo flexionada = sóleo)
+lying-leg-curl  (fotogramas 2,3)  →  Curl femoral a una pierna · Curl femoral con banda (si la llevas) · Curl femoral tumbado
+machine-chest-press  (fotogramas 2,3)  →  [solo por id]
+machine-lateral-raise  (fotogramas 1,2,3)  →  Elevaciones laterales en máquina
+machine-row  (fotogramas 1,2,3)  →  Remo en máquina ligero
+machine-shoulder-press  (fotogramas 1,2,3)  →  [solo por id]
+mountain-climber  (fotogramas 1,2,3)  →  Mountain climbers lentos
+nordic-hamstring-curl  (fotogramas 1,2,3)  →  Curl nórdico (avanzado) · Curl nórdico (excéntrico asistido) · Curl nórdico asistido (avanzado; pies bajo una cama)
+one-arm-dumbbell-row  (fotogramas 1,2,3)  →  Remo a una mano con mancuerna (apoyo en banco) · Remo a una mano con mancuerna ligero · Remo con kettlebell a una mano
+overhead-tricep-extension  (fotogramas 1,2,3)  →  Extensión de tríceps overhead con banda
+pallof-press  (fotogramas 1,3)  →  [solo por id]
+pec-deck  (fotogramas 1,2,3)  →  [solo por id]
+pike-push-up  (fotogramas 1,2,3)  →  Pike push-up de rodillas (solo si tu fisio lo valida)
+plank  (fotogramas 2,3)  →  Plancha / plancha lateral
+prone-y-raise  (fotogramas 1,2,3)  →  Y-T-W en banco inclinado con mancuernas ligeras · Y-T-W tumbado boca abajo
+pull-up  (fotogramas 2,3)  →  Dominadas en barra de puerta (si tienes) · Dominadas en el marco de una puerta o rama firme
+push-up  (fotogramas 2,3)  →  Flexiones · Flexiones lentas (tempo 3 seg bajada) · Flexiones normales (si las de pies elevados son mucho)
+reverse-curl  (fotogramas 1,2,3)  →  Curl inverso (agarre prono) · Curl inverso con mancuernas
+reverse-lunge  (fotogramas 2,3)  →  Zancada inversa con mancuernas · Zancada inversa con mochila (más amable de rodilla)
+reverse-pec-deck  (fotogramas 1,2,3)  →  Pájaros / reverse pec deck (deltoides posterior)
+romanian-deadlift  (fotogramas 2,3)  →  RDL con barra (cuando la bisagra salga sola)
+rope-hammer-curl  (fotogramas 1,3)  →  Curl martillo en polea con cuerda
+rope-tricep-pushdown  (fotogramas 1,3)  →  Pushdown con cuerda
+scapular-push-up  (fotogramas 1,2,3)  →  Push-up plus (serrato) de rodillas
+seated-calf-raise  (fotogramas 2,3)  →  Gemelo sentado con disco en las rodillas · Gemelo sentado con disco/mancuerna en las rodillas (sóleo) · Gemelo sentado con disco/mancuerna en rodillas (sóleo) · Gemelo sentado con mochila en las rodillas (sóleo)
+seated-dumbbell-press  (fotogramas 1,2,3)  →  Press de hombro con banda elástica · Press de hombro con mancuernas, agarre neutro
+seated-leg-curl  (fotogramas 2,3)  →  [solo por id]
+seated-row  (fotogramas 2,3)  →  Remo en polea sentado (agarre en V)
+side-lying-hip-abduction  (fotogramas 1,2,3)  →  Abducción de cadera tumbado (glúteo medio) · Abducción tumbado de lado
+side-plank  (fotogramas 2,3)  →  Plancha lateral
+single-leg-calf-raise  (fotogramas 1,2,3)  →  Gemelo a una pierna en escalón · Gemelo a una pierna en escalón con mancuerna · Gemelo de pie a una pierna (escalón o roca) · Gemelo de pie a una pierna con mancuerna
+single-leg-glute-bridge  (fotogramas 1,2,3)  →  Hip thrust a una pierna · Hip thrust a una pierna (cuando controles el gesto) · Hip thrust a una pierna (peso corporal) · Puente de glúteo a una pierna · Puente de glúteo a una pierna (cuando la mancuerna se quede corta) · Puente de glúteo a una pierna (más fácil)
+single-leg-romanian-deadlift  (fotogramas 1,2,3)  →  RDL a una pierna con mancuerna · RDL a una pierna con mochila (cuando tengas equilibrio)
+sissy-squat  (fotogramas 1,2,3)  →  Sentadilla sissy asistida (avanzado) · Sissy squat (asistido)
+skull-crusher  (fotogramas 1,3)  →  Press francés con mancuerna o barra Z
+smith-machine-bench-press  (fotogramas 1,3)  →  Press de pecho en multipower (Smith)
+smith-machine-squat  (fotogramas 1,3)  →  Sentadilla en multipower · Sentadilla en multipower (Smith) · Sentadilla en multipower (Smith), pies adelantados
+split-squat  (fotogramas 1,2,3)  →  Sentadilla dividida (split squat), dos pies en el suelo · Sentadilla dividida (split squat), dos pies en el suelo (más fácil)
+squat  (fotogramas 2,3)  →  Sentadilla libre con barra
+stair-climber  (fotogramas 1,2,3)  →  [solo por id]
+standing-calf-raise  (fotogramas 2,3)  →  Gemelo de pie en multipower
+step-up  (fotogramas 2,3)  →  Step-up a una silla firme con mancuernas
+superman  (fotogramas 1,2,3)  →  Extensiones de espalda en suelo (cobra) · Superman alterno (brazo y pierna contrarios)
+t-bar-row  (fotogramas 2,3)  →  Remo en punta (T-bar) con apoyo
+towel-hamstring-curl  (fotogramas 1,2,3)  →  Curl deslizante con toalla (más exigente)
+towel-row  (fotogramas 1,2,3)  →  Remo con toalla en pomo, poste o árbol
+tricep-kickback  (fotogramas 2,3)  →  Patada de tríceps con mancuerna · Patada de tríceps con mochila/botella
+tricep-pushdown  (fotogramas 2,3)  →  [solo por id]
+walking-lunge  (fotogramas 2,3)  →  Zancadas caminando · Zancadas caminando (cuando tengas equilibrio) · Zancadas caminando con mancuernas · Zancadas con mancuernas
+wall-push-up  (fotogramas 1,2,3)  →  Flexión contra la pared 'plus' (más suave para el hombro)
+wall-sit  (fotogramas 1,2,3)  →  Sentadilla isométrica en pared (wall sit)
+weighted-push-up  (fotogramas 1,2,3)  →  Flexiones con mochila a la espalda
+wide-grip-lat-pulldown  (fotogramas 1,2,3)  →  [solo por id]
+wide-push-up  (fotogramas 1,2,3)  →  Flexiones amplias lentas
