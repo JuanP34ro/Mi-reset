@@ -1,6 +1,6 @@
 # Ilustraciones de ejercicios
 
-Las ilustraciones de esta carpeta (`<ejercicio>-1.webp`, `-2.webp`, `-3.webp`) proceden de
+Las ilustraciones de esta carpeta (`<ejercicio>-<n>.webp`, hasta tres fotogramas por ejercicio) proceden de
 **Workout Guide** (Bryl Lim, https://github.com/bryllim/workout-guide), basado en
 **Everkinetic** (Greg Priday, https://github.com/everkinetic/data).
 
