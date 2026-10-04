@@ -944,7 +944,7 @@
 
   <div id="content"></div>
 
-  <p class="footnote">Constancia sobre intensidad · Recuperación = progreso<br>Solo entreno se registra aquí. Comida, agua y sueño → libreta.<br><span style="opacity:.65">versión <span id="appVer">—</span></span></p>
+  <p class="footnote">Constancia sobre intensidad · Recuperación = progreso<br>Entreno, nutrición, sueño y mente: tu día entero, en un sitio.<br><span style="opacity:.65">versión <span id="appVer">—</span></span></p>
 </div>
 
 <!-- Rest timer -->
@@ -3356,7 +3356,6 @@ function renderEntreno(){
     };
     if(HITOS[nSess]) facts.unshift(HITOS[nSess]);
     else if(sessWeek===sessionsPerWeek() && nSess>1) facts.unshift(`🎉 <b>Semana completa:</b> las ${sessWeek} sesiones del plan. Así se construye.`);
-    facts.push("🍗 Ahora: 25-40 g de proteína en las próximas horas. La ventana real son 4-6 h: sin agobio.");
     // Volumen del mismo entreno la vez anterior (misma sesión y lugar)
     for(let w=WEEK-1; w>=1; w--){
       let pv=0, any=false;
@@ -3384,6 +3383,8 @@ function renderEntreno(){
         break;
       }
     }
+
+    facts.push("🍗 Ahora: 25-40 g de proteína en las próximas horas. La ventana real son 4-6 h: sin agobio.");
 
     const dToday=DIARY[todayStr()]||"";
     const cierre=document.createElement("div");
@@ -4119,7 +4120,7 @@ function renderExercise(day,ex,num){
   // free note
   const ta=document.createElement("textarea");
   ta.className="ex-note"; ta.rows=2; ta.placeholder="Nota: sensación, técnica, molestia…";
-  ta.value=entry.note;
+  ta.value=entry.note||"";
   ta.oninput=()=>{ entry.note=ta.value; touchEntry(entry); persist(); };
   detail.appendChild(ta);
 
@@ -5323,7 +5324,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.10.04-1 · BIELA";
+const APP_VERSION = "2026.10.04-2 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
