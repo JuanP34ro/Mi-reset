@@ -1,13 +1,13 @@
 # Ilustraciones de ejercicios
 
-Las ilustraciones de esta carpeta (`<ejercicio>-<n>.svg`, hasta tres fotogramas por ejercicio) proceden de
+Las ilustraciones de esta carpeta (`<ejercicio>-<n>.webp`, hasta tres fotogramas por ejercicio) muestran a BIELA, la mascota de la app, y son un rediseño generado con IA (ver `img/src/MODIFICACIONES.txt`) a partir de los dibujos de
 **Workout Guide** (Bryl Lim, https://github.com/bryllim/workout-guide), basado en
 **Everkinetic** (Greg Priday, https://github.com/everkinetic/data).
 
 Licencia: **Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)**
 — https://creativecommons.org/licenses/by-sa/4.0/ (texto en `LICENSE-CC-BY-SA-4.0.txt`).
 
-Cambios realizados: encuadre unificado entre fotogramas, grosor de trazo igualado, vectorizadas (potrace) y recoloreadas para su uso en Mi Reset Saludable.
+Cambios realizados: rediseño del personaje generado con IA conservando poses, ángulos y numeración; después, encuadre unificado entre fotogramas y conversión a WebP para su uso en Mi Reset Saludable. Los PNG de origen están en `img/src/`.
 Estas copias se distribuyen bajo la misma licencia CC BY-SA 4.0.
 
 # Mapa muscular
