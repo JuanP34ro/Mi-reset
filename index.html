@@ -801,10 +801,10 @@
   /* ---- Ilustraciones y mapa muscular ---- */
   .ex-thumb{width:44px;height:44px;flex:none;border-radius:10px;background:var(--soft);object-fit:contain}
   .illu{position:relative;width:112px;height:112px;flex:none;border-radius:14px;background:var(--soft);overflow:hidden;cursor:pointer}
-  .illu img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;animation:illuCycle 2.8s linear infinite}
-  @keyframes illuCycle{0%{opacity:0}6%{opacity:1}25%{opacity:1}31%{opacity:0}100%{opacity:0}}
+  .illu img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;animation:illuCycle 2.8s linear infinite;filter:drop-shadow(0 0 5px rgba(16,185,255,.42));will-change:opacity,transform}
+  @keyframes illuCycle{0%{opacity:0;transform:scale(.985)}6%{opacity:1}25%{opacity:1;transform:scale(1.015)}31%{opacity:0}100%{opacity:0;transform:scale(.985)}}
   .illu.two img{animation-name:illuCycle2}
-  @keyframes illuCycle2{0%{opacity:0}8%{opacity:1}46%{opacity:1}54%{opacity:0}100%{opacity:0}}
+  @keyframes illuCycle2{0%{opacity:0;transform:scale(.985)}8%{opacity:1}46%{opacity:1;transform:scale(1.015)}54%{opacity:0}100%{opacity:0;transform:scale(.985)}}
   .illu.still img{animation:none;opacity:1}
   .illu.big{width:min(260px,70vw);height:min(260px,70vw);margin:0 auto 10px}
   @media (prefers-reduced-motion:reduce){.illu img{animation:none;opacity:0}.illu img:nth-child(2),.illu img:only-child{opacity:1}}
@@ -3196,13 +3196,13 @@ function renderPlan(){
   const cr=document.createElement("div"); cr.className="plan-card fold";
   cr.innerHTML=`<h3>🎨 Ilustraciones y créditos <span class="fold-chev">▾</span></h3><div class="fold-body">
     <p>Cada ejercicio lleva una ilustración animada y, al tocarla, el mapa de los músculos que trabaja. Para verlas sin cobertura (gimnasio, campo), guárdalas una vez:</p>
-    <button class="var-toggle" id="illuDl">⬇️ Guardar las ilustraciones para sin conexión (3 MB)</button>
-    <p class="plan-tip">Ilustraciones: <b>Workout Guide</b> (Bryl Lim) a partir de <b>Everkinetic</b> (Greg Priday), licencia CC BY-SA 4.0. Mapa muscular: <b>body-muscles</b>, licencia Apache 2.0. Gracias a sus autores por compartirlas.</p></div>`;
+    <button class="var-toggle" id="illuDl">⬇️ Guardar las ilustraciones para sin conexión (2,5 MB)</button>
+    <p class="plan-tip">Ilustraciones: <b>Workout Guide</b> (Bryl Lim) a partir de <b>Everkinetic</b> (Greg Priday), licencia CC BY-SA 4.0; vectorizadas y adaptadas a esta app. Mapa muscular: <b>body-muscles</b>, licencia Apache 2.0. Gracias a sus autores por compartirlas.</p></div>`;
   foldify(cr); content.appendChild(cr);
   cr.querySelector("#illuDl").onclick=async()=>{
     const b=cr.querySelector("#illuDl"), slugs=Object.keys(ILLU_META); let n=0; b.disabled=true;
     for(const s of slugs){
-      try{ await Promise.all(illuFrames(s).map(f=>fetch(`img/ex/${s}-${f}.webp`))); }catch(e){}
+      try{ await Promise.all(illuFrames(s).map(f=>fetch(`img/ex/${s}-${f}.svg`))); }catch(e){}
       n++; b.textContent=`Guardando… ${Math.round(n/slugs.length*100)} %`;
     }
     b.textContent="✓ Ilustraciones guardadas"; toast("Listas para sin conexión 🎨");
@@ -3834,7 +3834,7 @@ function illuFigure(slug, cls){
   const fr=illuFrames(slug);
   const seq = fr.length===3 ? [fr[0],fr[1],fr[2],fr[1]] : fr;
   const kind = seq.length===4 ? "" : seq.length===2 ? " two" : " still";
-  return `<div class="illu${kind} ${cls||""}" data-slug="${slug}">${seq.map((f,i)=>`<img src="img/ex/${slug}-${f}.webp" alt="" loading="lazy" decoding="async" style="animation-delay:${(i*2.8/seq.length).toFixed(1)}s">`).join("")}</div>`;
+  return `<div class="illu${kind} ${cls||""}" data-slug="${slug}">${seq.map((f,i)=>`<img src="img/ex/${slug}-${f}.svg" alt="" loading="lazy" decoding="async" style="animation-delay:${(i*2.8/seq.length).toFixed(1)}s">`).join("")}</div>`;
 }
 function illuChips(slug){
   const m=ILLU_META[slug]; if(!m) return "";
@@ -4023,7 +4023,7 @@ function renderExercise(day,ex,num){
   const head=document.createElement("div");
   head.className="ex-head";
   head.innerHTML=`<div class="ex-num">${num}</div>
-    ${slug?`<img class="ex-thumb" src="img/ex/${slug}-${illuThumb(slug)}.webp" alt="" loading="lazy" decoding="async">`:""}
+    ${slug?`<img class="ex-thumb" src="img/ex/${slug}-${illuThumb(slug)}.svg" alt="" loading="lazy" decoding="async">`:""}
     <div class="ex-title"><div class="name">${esc(active.name)}${ci>0?' <span class="alt-tag">variante</span>':''}</div><div class="scheme">${schemeForBlock(ex)} · descanso ${ex.rest}s</div></div>
     <div class="ex-check">✓</div>
     <span class="ex-chev">▾</span>`;
@@ -5436,7 +5436,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.10.04-4 · BIELA";
+const APP_VERSION = "2026.10.04-5 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
