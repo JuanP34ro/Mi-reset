@@ -760,6 +760,44 @@
   .ms-table td small{display:block;font-size:10.5px}
   .ms-table small.dn{color:var(--ok)} .ms-table small.up{color:var(--warn)}
   .mood-card.sleep{border-left:4px solid #6366f1}
+  .habits-card{border-left:4px solid var(--ok)}
+  .habits-card .mc-h{font-weight:800;font-size:14px;margin-bottom:10px}
+  .habits-card .mc-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .habits-card .mc-row div{flex:1;min-width:120px;background:var(--ok-soft);border-radius:12px;padding:9px 10px;text-align:center}
+  .habits-card .mc-row b{display:block;font-size:22px;font-weight:800;line-height:1.1;color:var(--ink)}
+  .habits-card .mc-row span{font-size:11.5px;color:var(--muted);display:block;margin-top:2px}
+  /* ---- Plan en secciones y tarjetas plegables ---- */
+  .plan-seg{display:flex;gap:4px;background:var(--soft);border-radius:999px;padding:4px;margin-bottom:14px}
+  .plan-seg button{flex:1;border:0;background:none;color:var(--muted);border-radius:999px;padding:8px 4px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+  .plan-seg button.on{background:var(--card);color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.35)}
+  .plan-card.fold>h3{cursor:pointer;user-select:none}
+  .plan-card.fold .fold-chev{margin-left:auto;color:var(--muted);font-size:14px;transition:transform .2s}
+  .plan-card.fold.open .fold-chev{transform:rotate(180deg)}
+  .plan-card.fold .fold-body{display:none;margin-top:6px}
+  .plan-card.fold.open .fold-body{display:block}
+  .plan-card.fold:not(.open) h3{margin-bottom:0}
+  /* ---- Hábitos del día ---- */
+  .habits{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:8px 14px;margin-bottom:12px}
+  .hb-row{display:flex;align-items:center;gap:8px;padding:4px 0}
+  .hb-l{width:84px;flex:none;font-size:12.5px;font-weight:700}
+  .hb-dots{display:flex;gap:2px;flex:1;flex-wrap:wrap}
+  .hb-dot{border:0;background:none;color:var(--line);font-size:19px;line-height:1;padding:2px 1px;cursor:pointer;transition:color .15s,transform .15s}
+  .hb-dot.on{color:var(--ok);transform:scale(1.1)}
+  .hb-row small{font-size:11px;color:var(--muted);white-space:nowrap;flex:none}
+  /* ---- Plan de comidas y chuletas ---- */
+  .meal-list{display:flex;flex-direction:column;gap:8px}
+  .meal{display:flex;gap:10px;background:var(--soft);border-radius:12px;padding:10px 12px}
+  .meal-ic{font-size:22px;flex:none;line-height:1.2}
+  .meal b{font-size:13.5px}
+  .meal ul{margin:4px 0 0;padding-left:16px;font-size:12.5px;color:var(--muted);line-height:1.45}
+  .equiv{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
+  .equiv b{color:var(--ink);display:block;margin-bottom:3px}
+  .nutri-table{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;font-size:12.5px;color:var(--muted)}
+  .nutri-table div{display:flex;justify-content:space-between;gap:6px;border-bottom:1px solid var(--line);padding:5px 0}
+  .nutri-table b{color:var(--ink);white-space:nowrap}
+  .supl{border-radius:12px;padding:8px 10px;margin-bottom:8px;font-size:12.5px;color:var(--ink)}
+  .supl ul{margin:4px 0 0;padding-left:16px;color:var(--muted);line-height:1.45}
+  .supl.A{background:var(--ok-soft)} .supl.B{background:rgba(217,181,74,.12)} .supl.C{background:rgba(239,68,68,.1)}
   .rir-chip{margin-top:10px;background:rgba(255,255,255,.14);border-radius:12px;padding:8px 11px;font-size:13px}
   .rir-chip small{display:block;font-size:11.5px;opacity:.85;margin-top:2px;line-height:1.35}
   .metodo{margin:10px 0 4px}
@@ -2045,6 +2083,7 @@ const LS_BODY = "reset_gym_body_v1";               // datos para la calculadora 
 const LS_WEIGHTS = "reset_gym_weights_v1";         // báscula: { "YYYY-MM-DD": kg }
 const LS_CHECKIN = "reset_gym_checkin_v1";         // check-in pre-sesión: { "YYYY-MM-DD": {s:1-3 sueño, e:1-3 energía} }
 const LS_MEASURES = "reset_gym_measures_v1";       // medidas corporales: { "YYYY-MM-DD": {cintura, cadera, pecho, brazo, muslo} }
+const LS_HABITS = "reset_gym_habits_v1";           // hábitos del día: { "YYYY-MM-DD": {p: comidas con proteína 0-4, w: vasos de agua} }
 const LS_REST = "reset_gym_rest_v1";               // descanso en curso {endAt,total} — sobrevive a recargas/cierres
 const LS_PROFILE = "reset_gym_profile_v1";         // plan elegido: fuerza (💪) | tono (🔥 perder peso y tonificar)
 
@@ -2301,6 +2340,14 @@ function sanitizeMeasures(o){
   });
   return out;
 }
+function sanitizeHabits(o){
+  const out={};
+  if(o && typeof o==="object") Object.keys(o).forEach(k=>{
+    const v=o[k]||{}; const p=Math.min(4, Math.max(0, parseInt(v.p,10)||0)), w=Math.min(20, Math.max(0, parseInt(v.w,10)||0));
+    if(/^\d{4}-\d{2}-\d{2}$/.test(k) && (p||w)) out[k]={p,w};
+  });
+  return out;
+}
 function moodNote(v){
   return v===1 ? "Normal en días exigentes: hoy, comer y dormir bien vale doble."
                : "Apúntatelo: así es como te deja entrenar. El mejor motivo para volver.";
@@ -2390,6 +2437,7 @@ let BODY = sanitizeBody(loadJSON(LS_BODY, null));   // datos de la calculadora (
 let WEIGHTS = sanitizeWeights(loadJSON(LS_WEIGHTS, {})); // pesajes
 let CHECKIN = sanitizeCheckin(loadJSON(LS_CHECKIN, {}));  // cómo llegas a entrenar
 let MEASURES = sanitizeMeasures(loadJSON(LS_MEASURES, {})); // cinta métrica
+let HABITS = sanitizeHabits(loadJSON(LS_HABITS, {}));     // proteína y agua del día
 let calRef = null;                     // {y, m} mes mostrado en el calendario
 const SESSION_LABEL = (()=>{ const o={}; [PROGRAM_FUERZA, PROGRAM_TONO].forEach(P=>Object.values(P).forEach(d=>{ if(d.key) o[d.key]=d.label; })); return o; })();
 // Registra que HOY se entrenó esta sesión (para el calendario)
@@ -2895,6 +2943,85 @@ function renderScale(){
   content.appendChild(card);
 }
 
+/* ---- Hábitos del día: proteína en 4 comidas y agua (toques, sin pesar nada) ---- */
+function waterGlasses(){ const n=nutriCalc(); return n ? Math.max(4, Math.round(n.agua/0.5)) : 6; }
+function renderHabits(){
+  const ds=todayStr();
+  const box=document.createElement("div"); box.className="habits";
+  const paint=()=>{
+    const h=HABITS[ds]||{p:0,w:0}, wg=waterGlasses(), n=nutriCalc();
+    const dots=(k,total,cur)=>Array.from({length:total},(_,i)=>`<button class="hb-dot${i<cur?" on":""}" data-k="${k}" data-i="${i}" aria-label="${k==="p"?"comida":"vaso"} ${i+1}">${i<cur?"●":"○"}</button>`).join("");
+    box.innerHTML=`<div class="hb-row"><span class="hb-l">🍗 Proteína</span><div class="hb-dots">${dots("p",4,h.p)}</div><small>${h.p>=4?"✓ 4 comidas":`4 × ${n?n.porComida:"35-40"} g`}</small></div>
+      <div class="hb-row"><span class="hb-l">💧 Agua</span><div class="hb-dots">${dots("w",wg,h.w)}</div><small>${h.w>=wg?"✓ objetivo":`${fmtKg(wg*0.5)} L · vasos de ½`}</small></div>`;
+    box.querySelectorAll(".hb-dot").forEach(b=>b.onclick=()=>{
+      const k=b.getAttribute("data-k"), i=+b.getAttribute("data-i"), cur=(HABITS[ds]||{})[k]||0;
+      const v = (i+1===cur) ? i : i+1;                       // tocar el último lleno lo vacía; cualquier otro fija el nivel
+      HABITS[ds]=Object.assign({p:0,w:0}, HABITS[ds]||{}, {[k]:v});
+      if(!HABITS[ds].p && !HABITS[ds].w) delete HABITS[ds];
+      saveJSON(LS_HABITS, HABITS); scheduleCloudSync(); paint();
+    });
+  };
+  paint();
+  content.appendChild(box);
+}
+/* Tarjetas plegables (h3 abre/cierra) */
+function foldify(card){ const h=card.querySelector("h3"); if(h) h.onclick=(e)=>{ if(e.target.closest("button")) return; card.classList.toggle("open"); }; }
+
+/* ---- Día de comidas de ejemplo, escalado a tus números (guía de nutrición) ---- */
+function renderMealPlan(){
+  const card=document.createElement("div"); card.className="plan-card fold open meal-card";
+  const n=nutriCalc();
+  if(!n){
+    card.innerHTML=`<h3>🍽️ Tu día de ejemplo <span class="fold-chev">▾</span></h3><div class="fold-body"><p class="plan-tip">Rellena la calculadora de arriba y te monto un día de comidas con tus cantidades.</p></div>`;
+    foldify(card); content.appendChild(card); return;
+  }
+  const tono = PROFILE==="tono";
+  const fp = Math.min(1.5, Math.max(0.6, n.prot/(tono?120:160)));
+  const fc = Math.min(1.6, Math.max(0.4, n.carb/(tono?170:400)));
+  const g=(base,f,step=10)=>Math.max(step, Math.round(base*f/step)*step);
+  const meals = tono ? [
+    {t:"Desayuno", ic:"🍳", items:["2 huevos + 1 clara", `${g(40,fc,5)} g de avena con leche`, "1 pieza de fruta"]},
+    {t:"Comida", ic:"🍗", items:[`${g(150,fp)} g de pollo o pescado`, `${g(120,fc)} g de arroz o quinoa cocidos (o ${g(200,fc)} g de patata)`, "verdura abundante + 1 cucharada de aceite de oliva"]},
+    {t:"Merienda · pre-entreno", ic:"🥣", items:["200 g de yogur griego natural", "1 pieza de fruta", "20 g de frutos secos"]},
+    {t:"Cena", ic:"🐟", items:[`${g(150,fp)} g de pescado o carne magra`, `${g(150,fc)} g de patata o boniato`, "verdura abundante + 1 cucharada de aceite"]},
+    {t:"Antes de dormir (opcional)", ic:"🌙", items:["150 g de queso fresco batido o yogur griego"]}
+  ] : [
+    {t:"Desayuno", ic:"🍳", items:[`${Math.max(2, Math.round(3*fp))} huevos revueltos`, `${g(80,fc,5)} g de avena con leche`, "1 plátano + 1 cucharada de miel"]},
+    {t:"Comida", ic:"🍗", items:[`${g(200,fp)} g de pechuga de pollo`, `${g(200,fc)} g de arroz cocido`, "ensalada con 1 cucharada de aceite de oliva + 1 fruta"]},
+    {t:"Pre-entreno · merienda", ic:"🥣", items:["200 g de yogur griego", `${g(60,fc,5)} g de granola o avena`, "1 plátano"]},
+    {t:"Cena · post-entreno", ic:"🥩", items:[`${g(200,fp)} g de carne magra o pescado`, `${g(300,fc)} g de patata cocida`, "verdura al vapor + 1 cucharada de aceite"]},
+    {t:"Antes de dormir", ic:"🌙", items:["200 g de queso fresco batido", "30 g de almendras"]}
+  ];
+  card.innerHTML=`<h3>🍽️ Tu día de ejemplo <span class="fold-chev">▾</span></h3><div class="fold-body">
+    <p class="plan-tip">Escalado a tus <b>${fmt(n.kcal)} kcal</b> y <b>${n.prot} g de proteína</b>. Es un ejemplo: lo que cuenta son los totales del día, no el alimento. Cambia lo que quieras con las equivalencias.</p>
+    <div class="meal-list">${meals.map(m=>`<div class="meal"><div class="meal-ic">${m.ic}</div><div><b>${m.t}</b><ul>${m.items.map(i=>`<li>${i}</li>`).join("")}</ul></div></div>`).join("")}</div>
+    <div class="equiv"><b>Equivalencias</b>
+      <div>🍗 100 g de pollo ≈ 120 g de merluza ≈ 110 g de atún ≈ 3 huevos ≈ 250 g de yogur griego ≈ 130 g de tofu</div>
+      <div>🍚 100 g de arroz cocido ≈ 100 g de pasta cocida ≈ 120 g de patata ≈ 35 g de avena en seco ≈ 45 g de pan</div></div>
+  </div>`;
+  foldify(card); content.appendChild(card);
+}
+/* ---- Chuletas: fuentes de proteína y suplementos con evidencia ---- */
+function renderNutriGuide(){
+  const n=nutriCalc();
+  const p=document.createElement("div"); p.className="plan-card fold";
+  const rows=[["Pechuga de pollo",31],["Carne magra",26],["Atún en lata",26],["Salmón",20],["Merluza",17],["Huevo (1 unidad)",6],["Yogur griego",10],["Queso fresco batido",11],["Lentejas cocidas",9],["Garbanzos cocidos",9],["Tofu",8],["Avena (en seco)",13],["Leche (100 ml)","3,4"]];
+  p.innerHTML=`<h3>🥚 ¿Cuánta proteína tiene? <span class="fold-chev">▾</span></h3><div class="fold-body">
+    <div class="nutri-table">${rows.map(([k,v])=>`<div><span>${k}</span><b>${v} g</b></div>`).join("")}</div>
+    <p class="plan-tip">Gramos de proteína por 100 g. Para tus <b>${n?n.porComida:"35-40"} g por comida</b>: una pechuga mediana (150 g), 2 latas de atún, 3 huevos + yogur, o 250 g de yogur griego + un puñado de frutos secos.</p></div>`;
+  foldify(p); content.appendChild(p);
+  const s=document.createElement("div"); s.className="plan-card fold";
+  s.innerHTML=`<h3>💊 Suplementos: qué funciona <span class="fold-chev">▾</span></h3><div class="fold-body">
+    <div class="supl A"><b>Nivel A · evidencia fuerte</b><ul>
+      <li><b>Creatina monohidrato</b> (3-5 g/día): el más estudiado. <b>Opcional</b>: con pescado 2-3 veces por semana, carne y huevos cubres lo esencial. Con enfermedad tiroidea o renal, consúltalo antes y avisa de que la tomas en las analíticas.</li>
+      <li><b>Proteína whey</b>: solo si no llegas a tu proteína con comida.</li>
+      <li><b>Cafeína</b> (1-2 cafés 30-60 min antes): mejora el rendimiento; nada después de las 16 h, el sueño importa más.</li></ul></div>
+    <div class="supl B"><b>Nivel B · pueden ayudar</b><ul><li>Omega-3 (si comes poco pescado), beta-alanina, citrulina.</li></ul></div>
+    <div class="supl C"><b>Nivel C · ahorra el dinero</b><ul><li>BCAA, glutamina, quemagrasas.</li></ul></div>
+    <p class="plan-tip">Los suplementos son el 5 %. Primero la comida, el sueño y la constancia.</p></div>`;
+  foldify(s); content.appendChild(s);
+}
+
 function renderPlan(){
   const b = planBlock(WEEK);
 
@@ -2905,6 +3032,14 @@ function renderPlan(){
     <div class="ph-meta">Semana ${WEEK} · semana ${b.weekInBlock}/6 del bloque ${b.blockNum}</div>`;
   content.appendChild(head);
 
+  // Tres secciones para no sobrecargar: Semana · Nutrición · Guía
+  const sub = UI.planSub || "semana";
+  const seg=document.createElement("div"); seg.className="plan-seg";
+  seg.innerHTML=[["semana","📅 Semana"],["nutricion","🍽️ Nutrición"],["guia","📚 Guía"]].map(([k,l])=>`<button class="${k===sub?"on":""}" data-s="${k}">${l}</button>`).join("");
+  seg.querySelectorAll("button").forEach(bt=>bt.onclick=()=>{ UI.planSub=bt.getAttribute("data-s"); saveJSON(LS_UI,UI); render(); });
+  content.appendChild(seg);
+
+  if(sub==="semana"){
   // Plan activo (objetivo) con cambio en un toque
   if(PROFILE){
     const other = PROFILE==="tono" ? "fuerza" : "tono";
@@ -2963,10 +3098,17 @@ function renderPlan(){
     content.appendChild(f2);
     const fb=f2.querySelector("#f2back"); if(fb) fb.onclick=fase2Revert;
   }
+  } // semana
 
-  renderNutrition();
-  renderScale();
-  renderMeasures();
+  if(sub==="nutricion"){
+    renderNutrition();
+    renderScale();
+    renderMealPlan();
+    renderNutriGuide();
+    renderMeasures();
+    return;
+  }
+  if(sub!=="guia") return;
 
   const g=document.createElement("div"); g.className="plan-card";
   g.innerHTML = PROFILE==="tono"
@@ -2993,20 +3135,21 @@ function renderPlan(){
     </ul>`;
   content.appendChild(g);
 
-  const sem=document.createElement("div"); sem.className="plan-card";
-  sem.innerHTML=`<h3>🚦 Protocolo de molestia (auditoría)</h3>
+  const sem=document.createElement("div"); sem.className="plan-card fold";
+  sem.innerHTML=`<h3>🚦 Protocolo de molestia <span class="fold-chev">▾</span></h3><div class="fold-body">
     <ul class="plan-ul">
       <li><b>≤3/10 y no empeora durante la serie:</b> baja la carga un 20-30% o pasa a la variante prevista (⇄).</li>
       <li><b>4-6/10 o que sube al repetir:</b> cambia de ejercicio ese día.</li>
       <li><b>Persiste al día siguiente, o aparece en press vertical / pec deck:</b> sáltalo y consúltalo con el fisio antes de reintroducirlo.</li>
     </ul>
-    <p class="plan-tip">💡 Al marcar "molestia" en un ejercicio, este protocolo aparece ahí mismo. Pendiente de validar con el fisio: pike push-up y fondos en silla (hotel).</p>`;
-  content.appendChild(sem);
+    <p class="plan-tip">💡 Al marcar "molestia" en un ejercicio, este protocolo aparece ahí mismo. Pendiente de validar con el fisio: pike push-up y fondos en silla (viaje).</p></div>`;
+  foldify(sem); content.appendChild(sem);
 
   MILESTONES.forEach(group=>{
-    const sec=document.createElement("div"); sec.className="plan-card";
+    const sec=document.createElement("div"); sec.className="plan-card fold";
     const done=group.items.filter(it=>PLAN[it.id]).length;
-    sec.innerHTML=`<h3>🏁 Hitos · ${group.h} <span class="ms-count">${done}/${group.items.length}</span></h3><div class="ms-list"></div>`;
+    sec.innerHTML=`<h3>🏁 Hitos · ${group.h} <span class="ms-count">${done}/${group.items.length}</span><span class="fold-chev">▾</span></h3><div class="fold-body"><div class="ms-list"></div></div>`;
+    foldify(sec);
     const list=sec.querySelector(".ms-list");
     group.items.forEach(it=>{
       const row=document.createElement("button");
@@ -3059,6 +3202,7 @@ function renderEntreno(){
   const day = PROGRAM[selectedDay];
   content.innerHTML = "";
   renderWelcome();
+  renderHabits();
 
   if(day.type==="rest"){
     renderRestDay();
@@ -3442,6 +3586,7 @@ function renderWeekRecap(){
       <div><b>${fmt(s.vol)}</b><span>kg movidos</span></div>
       <div><b>${s.prs?"🥇 "+s.prs:s.sets}</b><span>${s.prs?"récord"+(s.prs>1?"s":""):"series"}</span></div>
       ${(()=>{ const a=weeklyWeightAvgs(); const l=a[a.length-1]; return (l && l.mon===s.mon) ? `<div><b>⚖️ ${fmtKg(l.avg)}</b><span>kg, media de la semana</span></div>` : ""; })()}
+      ${(()=>{ const d=Object.keys(HABITS).filter(ds=>ds>=s.mon); return d.length ? `<div><b>🍗 ${d.filter(x=>HABITS[x].p>=4).length}</b><span>días con la proteína completa</span></div>` : ""; })()}
     </div>
     <div class="wk-line">${line}</div>
     ${isToday?`<textarea class="cierre-diary wk-diary" rows="2" placeholder="¿Qué te llevas de esta semana? Una línea…">${esc(dToday)}</textarea>`:""}`;
@@ -4428,6 +4573,7 @@ document.getElementById("restoreBackup").onclick=()=>{
   WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(data.weights)); saveJSON(LS_WEIGHTS, WEIGHTS); // báscula: unión
   CHECKIN = mergeDiary(CHECKIN, sanitizeCheckin(data.checkin)); saveJSON(LS_CHECKIN, CHECKIN);
   MEASURES = mergeDiary(MEASURES, sanitizeMeasures(data.measures)); saveJSON(LS_MEASURES, MEASURES);
+  HABITS = mergeDiary(HABITS, sanitizeHabits(data.habits)); saveJSON(LS_HABITS, HABITS);
   // La semana de la copia se "envejece" según cuándo se guardó (no retrocede el tiempo real)
   const w=parseInt(data.week,10); if(Number.isFinite(w)) setWeek(w + weeksSinceSaved(data.savedAt));
   markCloudReplace();  // el siguiente push refleja esta restauración tal cual
@@ -4452,6 +4598,7 @@ document.getElementById("undoRestore").onclick=()=>{
   if(p.weights){ WEIGHTS = sanitizeWeights(p.weights); saveJSON(LS_WEIGHTS, WEIGHTS); }
   if(p.checkin){ CHECKIN = sanitizeCheckin(p.checkin); saveJSON(LS_CHECKIN, CHECKIN); }
   if(p.measures){ MEASURES = sanitizeMeasures(p.measures); saveJSON(LS_MEASURES, MEASURES); }
+  if(p.habits){ HABITS = sanitizeHabits(p.habits); saveJSON(LS_HABITS, HABITS); }
   const w=parseInt(p.week,10); if(Number.isFinite(w)) setWeek(w);
   saveJSON(LS_PREDO, current);
   markCloudReplace();  // el siguiente push refleja el estado recuperado
@@ -4478,7 +4625,7 @@ function cloudPayload(){
   // Sin entradas vacías (las que crea el render al navegar): copias y nube limpias
   const log={};
   Object.keys(LOG).forEach(k=>{ if(!isEmptyEntry(LOG[k])) log[k]=LOG[k]; });
-  return JSON.stringify({ v:2, week:WEEK, log, dates:TRAINED, plan:PLAN, diary:DIARY, mood:MOOD, medit:MEDIT, body:BODY, weights:WEIGHTS, checkin:CHECKIN, measures:MEASURES, savedAt:new Date().toISOString() }, null, 2);
+  return JSON.stringify({ v:2, week:WEEK, log, dates:TRAINED, plan:PLAN, diary:DIARY, mood:MOOD, medit:MEDIT, body:BODY, weights:WEIGHTS, checkin:CHECKIN, measures:MEASURES, habits:HABITS, savedAt:new Date().toISOString() }, null, 2);
 }
 /* Semanas transcurridas desde que se guardó una copia (para "envejecer" su nº de semana al restaurarla) */
 function weeksSinceSaved(savedAt){
@@ -4555,7 +4702,7 @@ async function cloudFetchRemote(token, id){
   if(f.truncated && f.raw_url){ content=await (await fetch(f.raw_url)).text(); }
   const data=JSON.parse(content);
   if(!data || typeof data.log!=="object") return null;
-  return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan), diary:sanitizeDiary(data.diary), mood:sanitizeMood(data.mood), medit:sanitizeMedit(data.medit), body:sanitizeBody(data.body), weights:sanitizeWeights(data.weights), checkin:sanitizeCheckin(data.checkin), measures:sanitizeMeasures(data.measures) };
+  return { log:migrateLog(data.log), week:data.week, dates:sanitizeDates(data.dates), plan:sanitizePlan(data.plan), diary:sanitizeDiary(data.diary), mood:sanitizeMood(data.mood), medit:sanitizeMedit(data.medit), body:sanitizeBody(data.body), weights:sanitizeWeights(data.weights), checkin:sanitizeCheckin(data.checkin), measures:sanitizeMeasures(data.measures), habits:sanitizeHabits(data.habits) };
 }
 
 /* Tras "Borrar semana" o "Restaurar copia", el siguiente push debe REEMPLAZAR la nube
@@ -4612,6 +4759,7 @@ async function cloudPush(flush){
           WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(remote.weights)); saveJSON(LS_WEIGHTS, WEIGHTS);
           CHECKIN = mergeDiary(CHECKIN, sanitizeCheckin(remote.checkin)); saveJSON(LS_CHECKIN, CHECKIN);
           MEASURES = mergeDiary(MEASURES, sanitizeMeasures(remote.measures)); saveJSON(LS_MEASURES, MEASURES);
+          HABITS = mergeDiary(HABITS, sanitizeHabits(remote.habits)); saveJSON(LS_HABITS, HABITS);
         }
       }catch(e){ /* si el GET falla seguimos y subimos lo local */ }
     }
@@ -4655,7 +4803,8 @@ async function cloudPull(){
           BODY = mergeBody(BODY, sanitizeBody(remote.body)); saveJSON(LS_BODY, BODY);
           WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(remote.weights)); saveJSON(LS_WEIGHTS, WEIGHTS);
           CHECKIN = mergeDiary(CHECKIN, sanitizeCheckin(remote.checkin)); saveJSON(LS_CHECKIN, CHECKIN);
-          MEASURES = mergeDiary(MEASURES, sanitizeMeasures(remote.measures)); saveJSON(LS_MEASURES, MEASURES);       // diario: unión
+          MEASURES = mergeDiary(MEASURES, sanitizeMeasures(remote.measures)); saveJSON(LS_MEASURES, MEASURES);
+          HABITS = mergeDiary(HABITS, sanitizeHabits(remote.habits)); saveJSON(LS_HABITS, HABITS);       // diario: unión
     // La semana de la copia se "envejece" según cuándo se guardó (no retrocede el tiempo real)
     const w=parseInt(remote.week,10);
     const aged = Number.isFinite(w) ? w + weeksSinceSaved(remote.savedAt) : NaN;
@@ -4697,6 +4846,7 @@ async function cloudConnect(){
           WEIGHTS = mergeDiary(WEIGHTS, sanitizeWeights(remote.weights)); saveJSON(LS_WEIGHTS, WEIGHTS);
           CHECKIN = mergeDiary(CHECKIN, sanitizeCheckin(remote.checkin)); saveJSON(LS_CHECKIN, CHECKIN);
           MEASURES = mergeDiary(MEASURES, sanitizeMeasures(remote.measures)); saveJSON(LS_MEASURES, MEASURES);
+          HABITS = mergeDiary(HABITS, sanitizeHabits(remote.habits)); saveJSON(LS_HABITS, HABITS);
           const w=parseInt(remote.week,10);
           const aged = Number.isFinite(w) ? w + weeksSinceSaved(remote.savedAt) : NaN;
           if(Number.isFinite(aged) && aged>WEEK) setWeek(aged);
@@ -4955,6 +5105,18 @@ function renderProgress(){
     sc.innerHTML=`😴 Dormiste <b>7 h o más</b> antes de <b>${good7}</b> de ${ckDays.length} entrenos.${(a!=null && b!=null)?` Saliste bien o mejor el <b>${a} %</b> de las veces con 7 h+, frente al <b>${b} %</b> con menos.`:""}<span>Dormir menos de 7 h recorta hasta un 18 % la síntesis de músculo. La cama también entrena.</span>`;
     content.appendChild(sc);
   }
+
+  // Hábitos de nutrición de los últimos 30 días
+  const cut=(()=>{ const d=parseLocalDate(todayStr()); d.setDate(d.getDate()-29); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); })();
+  const hDays=Object.keys(HABITS).filter(ds=>ds>=cut);
+  if(hDays.length>=3){
+    const wg=waterGlasses(), pOK=hDays.filter(d=>HABITS[d].p>=4).length, wOK=hDays.filter(d=>HABITS[d].w>=wg).length;
+    const hc=document.createElement("div"); hc.className="mood-card habits-card";
+    hc.innerHTML=`<div class="mc-h">🍽️ Hábitos de nutrición · 30 días</div>
+      <div class="mc-row"><div><b>${pOK}</b><span>/${hDays.length} días con las 4 comidas de proteína</span></div><div><b>${wOK}</b><span>/${hDays.length} días con el agua al objetivo</span></div></div>
+      <span>La proteína repartida es la que construye; el agua, la que rinde. Un toque por comida y por vaso.</span>`;
+    content.appendChild(hc);
+  }
   // anima el anillo tras pintar
   const ring=hero.querySelector("circle.prog");
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ ring.setAttribute("stroke-dashoffset", off.toFixed(1)); }));
@@ -5161,7 +5323,7 @@ if(UI.liveNow){
   Object.keys(UI.liveNow).forEach(k=>{ if(!k.startsWith(t+"|")){ delete UI.liveNow[k]; changed=true; } });
   if(changed) saveJSON(LS_UI, UI);
 }
-const APP_VERSION = "2026.10.03-3 · BIELA";
+const APP_VERSION = "2026.10.04-1 · BIELA";
 const verEl=document.getElementById("appVer"); if(verEl) verEl.textContent=APP_VERSION;
 document.getElementById("weekNum").textContent=WEEK;
 updateSyncPill(cloudConfigured() ? "idle" : "");
